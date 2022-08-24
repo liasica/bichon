@@ -1,0 +1,31 @@
+basePath: /
+definitions:
+  app.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: ChatPuppy Api Doc
+  version: "1.0"
+paths:
+  /memeber/test:
+    get:
+      consumes:
+      - application/json
+      operationId: MemberTest
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Member Test
+      tags:
+      - Member
+swagger: "2.0"

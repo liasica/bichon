@@ -1,0 +1,41 @@
+syntax = 'proto3';
+
+package message;
+
+option go_package = "github.com/chatpuppy/puppychat/grpc/pb/message";
+
+message Response {
+  int64 code = 1;
+  string message = 2;
+  oneof data {
+      GetNodesResponse nodes = 3;
+  }
+}
+
+message NodeItem {
+  string sn = 1;
+  string addr = 2;
+}
+
+message GetNodesResponse {
+  repeated NodeItem nodes = 1;
+}
+
+message NodeRequest {
+  string sn = 1;
+}
+
+message RegisterRequest {
+  string sn = 1;
+  string addr = 2;
+  string machineid = 3;
+}
+
+message SyncRequest {
+  string sn = 1;
+  string message = 2;
+}
+
+message SyncResponse {
+  string message = 1;
+}

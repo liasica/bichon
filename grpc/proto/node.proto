@@ -1,0 +1,16 @@
+syntax = 'proto3';
+
+import 'message.proto';
+
+package node;
+
+option go_package = "github.com/chatpuppy/puppychat/grpc/pb/node";
+
+service Node {
+  // Get all trusted nodes from network
+  rpc GetNodes (message.NodeRequest) returns (message.Response) {}
+  // Register node to network
+  rpc Register (message.NodeRequest) returns (message.Response) {}
+  // Sync messages
+  rpc Sync (stream message.SyncRequest) returns (stream message.SyncResponse) {}
+}
