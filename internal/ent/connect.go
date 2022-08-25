@@ -1,8 +1,3 @@
-// Copyright (C) liasica. 2022-present.
-//
-// Created at 2022-06-30
-// Based on aurservd by liasica, magicrolan@qq.com.
-
 package ent
 
 import (
@@ -21,7 +16,7 @@ import (
 
 var Database *Client
 
-func OpenDatabase(dsn string, debug bool) *Client {
+func OpenDatabase(dsn string, debug bool) {
 
     // change timezone to UTC
     arr := strings.Split(dsn, " ")
@@ -51,7 +46,7 @@ func OpenDatabase(dsn string, debug bool) *Client {
 
     autoMigrate(c)
 
-    return c
+    Database = c
 }
 
 func autoMigrate(c *Client) {

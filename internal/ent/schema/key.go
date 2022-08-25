@@ -4,10 +4,33 @@ import (
     "entgo.io/ent"
     "entgo.io/ent/dialect/entsql"
     "entgo.io/ent/schema"
+    "entgo.io/ent/schema/edge"
     "entgo.io/ent/schema/field"
     "entgo.io/ent/schema/index"
+    "entgo.io/ent/schema/mixin"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
 )
+
+type KeyMixin struct {
+    mixin.Schema
+    Optional bool
+}
+
+func (m KeyMixin) Fields() []ent.Field {
+    f := field.Uint64("key_id")
+    if m.Optional {
+        f.Optional().Nillable()
+    }
+    return []ent.Field{f}
+}
+
+func (m KeyMixin) Edges() []ent.Edge {
+    e := edge.To("key", Key.Type).Unique().Field("key_id")
+    if !m.Optional {
+        e.Required()
+    }
+    return []ent.Edge{e}
+}
 
 // Key holds the schema definition for the Key entity.
 type Key struct {

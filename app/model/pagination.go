@@ -1,8 +1,3 @@
-// Copyright (C) liasica. 2021-present.
-//
-// Created at 2022/3/1
-// Based on aurservd by liasica, magicrolan@qq.com.
-
 package model
 
 import (

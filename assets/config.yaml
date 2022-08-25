@@ -2,7 +2,7 @@ app:
   address: ':5300'
   mode: prod
   tz: Asia/Shanghai
-  secret: ''
+  printStack: false
 
 database:
   dsn: "host=localhost user= dbname=chatpuppy port=5432 sslmode=disable"

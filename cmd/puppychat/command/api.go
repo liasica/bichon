@@ -10,9 +10,6 @@ import (
     "github.com/chatpuppy/puppychat/internal/g"
     "github.com/chatpuppy/puppychat/utils"
     "github.com/spf13/cobra"
-    "google.golang.org/grpc"
-    "google.golang.org/grpc/credentials/insecure"
-    "google.golang.org/grpc/keepalive"
     "google.golang.org/grpc/metadata"
     "io"
     "log"
@@ -48,36 +45,38 @@ func apiCommand() *cobra.Command {
             // start api server
             go router.Run()
 
-            // start grpc client
-            var kacp = keepalive.ClientParameters{
-                Time:                10 * time.Second,
-                Timeout:             time.Second,
-                PermitWithoutStream: true,
-            }
-
-            conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithKeepaliveParams(kacp))
-            if err != nil {
-                log.Fatalf("can not connect grpc server: %v", err)
-            }
-
-            defer func(conn *grpc.ClientConn) {
-                _ = conn.Close()
-            }(conn)
-
-            c := pb.NewNodeClient(conn)
-
-            // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-            // defer cancel()
-            //
-            // var res *message.Response
-            // res, err = c.GetNodes(ctx, &message.NodeRequest{Sn: utils.GetMachineID()})
-            // if err != nil {
-            //     log.Fatalf("unexpected error from GetNodes: %v", err)
+            // // start grpc client
+            // var kacp = keepalive.ClientParameters{
+            //     Time:                10 * time.Second,
+            //     Timeout:             time.Second,
+            //     PermitWithoutStream: true,
             // }
-            // fmt.Printf("RPC response: %#v", res.Data)
-            // select {}
+            //
+            // conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithKeepaliveParams(kacp))
+            // if err != nil {
+            //     log.Fatalf("can not connect grpc server: %v", err)
+            // }
+            //
+            // defer func(conn *grpc.ClientConn) {
+            //     _ = conn.Close()
+            // }(conn)
+            //
+            // c := pb.NewNodeClient(conn)
+            //
+            // // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+            // // defer cancel()
+            // //
+            // // var res *message.Response
+            // // res, err = c.GetNodes(ctx, &message.NodeRequest{Sn: utils.GetMachineID()})
+            // // if err != nil {
+            // //     log.Fatalf("unexpected error from GetNodes: %v", err)
+            // // }
+            // // fmt.Printf("RPC response: %#v", res.Data)
+            // // select {}
+            //
+            // SyncMessage(c)
 
-            SyncMessage(c)
+            select {}
         },
     }
 
@@ -88,6 +87,7 @@ func apiCommand() *cobra.Command {
     return cmd
 }
 
+// SyncMessage TODO sync all nodes data, (messages groups keys members and members of group...)
 func SyncMessage(c pb.NodeClient) {
     // Create metadata and context.
     md := metadata.Pairs("timestamp", utils.GetTimestampNanoString())

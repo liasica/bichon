@@ -42,15 +42,63 @@ func (mu *MemberUpdate) SetNickname(s string) *MemberUpdate {
 	return mu
 }
 
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (mu *MemberUpdate) SetNillableNickname(s *string) *MemberUpdate {
+	if s != nil {
+		mu.SetNickname(*s)
+	}
+	return mu
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (mu *MemberUpdate) ClearNickname() *MemberUpdate {
+	mu.mutation.ClearNickname()
+	return mu
+}
+
 // SetAvatar sets the "avatar" field.
 func (mu *MemberUpdate) SetAvatar(s string) *MemberUpdate {
 	mu.mutation.SetAvatar(s)
 	return mu
 }
 
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (mu *MemberUpdate) SetNillableAvatar(s *string) *MemberUpdate {
+	if s != nil {
+		mu.SetAvatar(*s)
+	}
+	return mu
+}
+
+// ClearAvatar clears the value of the "avatar" field.
+func (mu *MemberUpdate) ClearAvatar() *MemberUpdate {
+	mu.mutation.ClearAvatar()
+	return mu
+}
+
 // SetIntro sets the "intro" field.
 func (mu *MemberUpdate) SetIntro(s string) *MemberUpdate {
 	mu.mutation.SetIntro(s)
+	return mu
+}
+
+// SetNillableIntro sets the "intro" field if the given value is not nil.
+func (mu *MemberUpdate) SetNillableIntro(s *string) *MemberUpdate {
+	if s != nil {
+		mu.SetIntro(*s)
+	}
+	return mu
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (mu *MemberUpdate) ClearIntro() *MemberUpdate {
+	mu.mutation.ClearIntro()
+	return mu
+}
+
+// SetNonce sets the "nonce" field.
+func (mu *MemberUpdate) SetNonce(s string) *MemberUpdate {
+	mu.mutation.SetNonce(s)
 	return mu
 }
 
@@ -273,10 +321,22 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: member.FieldNickname,
 		})
 	}
+	if mu.mutation.NicknameCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: member.FieldNickname,
+		})
+	}
 	if value, ok := mu.mutation.Avatar(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
+			Column: member.FieldAvatar,
+		})
+	}
+	if mu.mutation.AvatarCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
 			Column: member.FieldAvatar,
 		})
 	}
@@ -285,6 +345,19 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: member.FieldIntro,
+		})
+	}
+	if mu.mutation.IntroCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: member.FieldIntro,
+		})
+	}
+	if value, ok := mu.mutation.Nonce(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: member.FieldNonce,
 		})
 	}
 	if value, ok := mu.mutation.ShowNickname(); ok {
@@ -489,15 +562,63 @@ func (muo *MemberUpdateOne) SetNickname(s string) *MemberUpdateOne {
 	return muo
 }
 
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (muo *MemberUpdateOne) SetNillableNickname(s *string) *MemberUpdateOne {
+	if s != nil {
+		muo.SetNickname(*s)
+	}
+	return muo
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (muo *MemberUpdateOne) ClearNickname() *MemberUpdateOne {
+	muo.mutation.ClearNickname()
+	return muo
+}
+
 // SetAvatar sets the "avatar" field.
 func (muo *MemberUpdateOne) SetAvatar(s string) *MemberUpdateOne {
 	muo.mutation.SetAvatar(s)
 	return muo
 }
 
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (muo *MemberUpdateOne) SetNillableAvatar(s *string) *MemberUpdateOne {
+	if s != nil {
+		muo.SetAvatar(*s)
+	}
+	return muo
+}
+
+// ClearAvatar clears the value of the "avatar" field.
+func (muo *MemberUpdateOne) ClearAvatar() *MemberUpdateOne {
+	muo.mutation.ClearAvatar()
+	return muo
+}
+
 // SetIntro sets the "intro" field.
 func (muo *MemberUpdateOne) SetIntro(s string) *MemberUpdateOne {
 	muo.mutation.SetIntro(s)
+	return muo
+}
+
+// SetNillableIntro sets the "intro" field if the given value is not nil.
+func (muo *MemberUpdateOne) SetNillableIntro(s *string) *MemberUpdateOne {
+	if s != nil {
+		muo.SetIntro(*s)
+	}
+	return muo
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (muo *MemberUpdateOne) ClearIntro() *MemberUpdateOne {
+	muo.mutation.ClearIntro()
+	return muo
+}
+
+// SetNonce sets the "nonce" field.
+func (muo *MemberUpdateOne) SetNonce(s string) *MemberUpdateOne {
+	muo.mutation.SetNonce(s)
 	return muo
 }
 
@@ -750,10 +871,22 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Column: member.FieldNickname,
 		})
 	}
+	if muo.mutation.NicknameCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: member.FieldNickname,
+		})
+	}
 	if value, ok := muo.mutation.Avatar(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
+			Column: member.FieldAvatar,
+		})
+	}
+	if muo.mutation.AvatarCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
 			Column: member.FieldAvatar,
 		})
 	}
@@ -762,6 +895,19 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Type:   field.TypeString,
 			Value:  value,
 			Column: member.FieldIntro,
+		})
+	}
+	if muo.mutation.IntroCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: member.FieldIntro,
+		})
+	}
+	if value, ok := muo.mutation.Nonce(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: member.FieldNonce,
 		})
 	}
 	if value, ok := muo.mutation.ShowNickname(); ok {

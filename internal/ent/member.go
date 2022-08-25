@@ -26,6 +26,8 @@ type Member struct {
 	Avatar string `json:"avatar,omitempty"`
 	// Intro holds the value of the "intro" field.
 	Intro string `json:"intro,omitempty"`
+	// Nonce holds the value of the "nonce" field.
+	Nonce string `json:"nonce,omitempty"`
 	// ShowNickname holds the value of the "show_nickname" field.
 	ShowNickname bool `json:"show_nickname,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -82,7 +84,7 @@ func (*Member) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullBool)
 		case member.FieldID:
 			values[i] = new(sql.NullInt64)
-		case member.FieldAddress, member.FieldNickname, member.FieldAvatar, member.FieldIntro:
+		case member.FieldAddress, member.FieldNickname, member.FieldAvatar, member.FieldIntro, member.FieldNonce:
 			values[i] = new(sql.NullString)
 		case member.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -136,6 +138,12 @@ func (m *Member) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field intro", values[i])
 			} else if value.Valid {
 				m.Intro = value.String
+			}
+		case member.FieldNonce:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field nonce", values[i])
+			} else if value.Valid {
+				m.Nonce = value.String
 			}
 		case member.FieldShowNickname:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -200,6 +208,9 @@ func (m *Member) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("intro=")
 	builder.WriteString(m.Intro)
+	builder.WriteString(", ")
+	builder.WriteString("nonce=")
+	builder.WriteString(m.Nonce)
 	builder.WriteString(", ")
 	builder.WriteString("show_nickname=")
 	builder.WriteString(fmt.Sprintf("%v", m.ShowNickname))

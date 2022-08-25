@@ -25,9 +25,10 @@ func (Member) Annotations() []schema.Annotation {
 func (Member) Fields() []ent.Field {
     return []ent.Field{
         field.String("address").Unique(),
-        field.String("nickname"),
-        field.String("avatar"),
-        field.String("intro"),
+        field.String("nickname").Optional(),
+        field.String("avatar").Optional(),
+        field.String("intro").Optional(),
+        field.String("nonce"),
         field.Bool("show_nickname").Default(true),
     }
 }

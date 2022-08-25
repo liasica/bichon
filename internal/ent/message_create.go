@@ -38,6 +38,12 @@ func (mc *MessageCreate) SetNillableCreatedAt(t *time.Time) *MessageCreate {
 	return mc
 }
 
+// SetKeyID sets the "key_id" field.
+func (mc *MessageCreate) SetKeyID(u uint64) *MessageCreate {
+	mc.mutation.SetKeyID(u)
+	return mc
+}
+
 // SetGroupID sets the "group_id" field.
 func (mc *MessageCreate) SetGroupID(u uint64) *MessageCreate {
 	mc.mutation.SetGroupID(u)
@@ -160,6 +166,9 @@ func (mc *MessageCreate) check() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Message.created_at"`)}
 	}
+	if _, ok := mc.mutation.KeyID(); !ok {
+		return &ValidationError{Name: "key_id", err: errors.New(`ent: missing required field "Message.key_id"`)}
+	}
 	if _, ok := mc.mutation.GroupID(); !ok {
 		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "Message.group_id"`)}
 	}
@@ -210,6 +219,14 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Column: message.FieldCreatedAt,
 		})
 		_node.CreatedAt = value
+	}
+	if value, ok := mc.mutation.KeyID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: message.FieldKeyID,
+		})
+		_node.KeyID = value
 	}
 	if value, ok := mc.mutation.Content(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -323,6 +340,24 @@ func (u *MessageUpsert) UpdateCreatedAt() *MessageUpsert {
 	return u
 }
 
+// SetKeyID sets the "key_id" field.
+func (u *MessageUpsert) SetKeyID(v uint64) *MessageUpsert {
+	u.Set(message.FieldKeyID, v)
+	return u
+}
+
+// UpdateKeyID sets the "key_id" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateKeyID() *MessageUpsert {
+	u.SetExcluded(message.FieldKeyID)
+	return u
+}
+
+// AddKeyID adds v to the "key_id" field.
+func (u *MessageUpsert) AddKeyID(v uint64) *MessageUpsert {
+	u.Add(message.FieldKeyID, v)
+	return u
+}
+
 // SetGroupID sets the "group_id" field.
 func (u *MessageUpsert) SetGroupID(v uint64) *MessageUpsert {
 	u.Set(message.FieldGroupID, v)
@@ -415,6 +450,27 @@ func (u *MessageUpsertOne) SetCreatedAt(v time.Time) *MessageUpsertOne {
 func (u *MessageUpsertOne) UpdateCreatedAt() *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetKeyID sets the "key_id" field.
+func (u *MessageUpsertOne) SetKeyID(v uint64) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetKeyID(v)
+	})
+}
+
+// AddKeyID adds v to the "key_id" field.
+func (u *MessageUpsertOne) AddKeyID(v uint64) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.AddKeyID(v)
+	})
+}
+
+// UpdateKeyID sets the "key_id" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateKeyID() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateKeyID()
 	})
 }
 
@@ -678,6 +734,27 @@ func (u *MessageUpsertBulk) SetCreatedAt(v time.Time) *MessageUpsertBulk {
 func (u *MessageUpsertBulk) UpdateCreatedAt() *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetKeyID sets the "key_id" field.
+func (u *MessageUpsertBulk) SetKeyID(v uint64) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetKeyID(v)
+	})
+}
+
+// AddKeyID adds v to the "key_id" field.
+func (u *MessageUpsertBulk) AddKeyID(v uint64) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.AddKeyID(v)
+	})
+}
+
+// UpdateKeyID sets the "key_id" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateKeyID() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateKeyID()
 	})
 }
 

@@ -12,31 +12,24 @@ type Response struct {
     Data    any    `json:"data,omitempty"`
 }
 
-// processParam Process response data
-func (r *Response) processParam(param any) {
-    switch param.(type) {
-    case error:
-        r.Message = param.(error).Error()
-        break
-    case int:
-        r.Code = param.(int)
-    case nil:
-        break
-    default:
-        r.Data = param
-        break
-    }
-}
-
 // SendResponse Send api response
-func (c *BaseContext) SendResponse(params ...any) error {
-    r := &Response{
-        Message: "ok",
-        Code:    http.StatusOK,
+func (c *BaseContext) SendResponse(data any, err error, params ...int) error {
+    var r *Response
+    if err != nil {
+        r = &Response{
+            Message: err.Error(),
+            Code:    http.StatusBadRequest,
+        }
+    } else {
+        r = &Response{
+            Message: "ok",
+            Data:    data,
+            Code:    http.StatusOK,
+        }
     }
 
-    for _, param := range params {
-        r.processParam(param)
+    if len(params) > 0 {
+        r.Code = params[0]
     }
 
     buffer := &bytes.Buffer{}

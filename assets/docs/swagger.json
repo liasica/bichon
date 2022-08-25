@@ -7,7 +7,7 @@
     },
     "basePath": "/",
     "paths": {
-        "/memeber/test": {
+        "/member/nonce/{address}": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -18,13 +18,60 @@
                 "tags": [
                     "Member"
                 ],
-                "summary": "Member Test",
-                "operationId": "MemberTest",
+                "summary": "Get Member Signin Nonce String",
+                "operationId": "MemberNonce",
                 "responses": {
                     "200": {
                         "description": "Response success",
                         "schema": {
-                            "$ref": "#/definitions/app.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/app.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.MemberNonceRes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/memeber": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Member"
+                ],
+                "summary": "Member Signin",
+                "operationId": "MemberSignin",
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/app.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.MemberSigninRes"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -40,6 +87,22 @@
                 },
                 "data": {},
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.MemberNonceRes": {
+            "type": "object",
+            "properties": {
+                "nonce": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.MemberSigninRes": {
+            "type": "object",
+            "properties": {
+                "token": {
                     "type": "string"
                 }
             }

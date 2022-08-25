@@ -8,24 +8,59 @@ definitions:
       message:
         type: string
     type: object
+  model.MemberNonceRes:
+    properties:
+      nonce:
+        type: string
+    type: object
+  model.MemberSigninRes:
+    properties:
+      token:
+        type: string
+    type: object
 info:
   contact: {}
   title: ChatPuppy Api Doc
   version: "1.0"
 paths:
-  /memeber/test:
+  /member/nonce/{address}:
     get:
       consumes:
       - application/json
-      operationId: MemberTest
+      operationId: MemberNonce
       produces:
       - application/json
       responses:
         "200":
           description: Response success
           schema:
-            $ref: '#/definitions/app.Response'
-      summary: Member Test
+            allOf:
+            - $ref: '#/definitions/app.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.MemberNonceRes'
+              type: object
+      summary: Get Member Signin Nonce String
+      tags:
+      - Member
+  /memeber:
+    post:
+      consumes:
+      - application/json
+      operationId: MemberSignin
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.MemberSigninRes'
+              type: object
+      summary: Member Signin
       tags:
       - Member
 swagger: "2.0"

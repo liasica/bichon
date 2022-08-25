@@ -99,9 +99,10 @@ var (
 		{Name: "id", Type: field.TypeUint64, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "address", Type: field.TypeString, Unique: true},
-		{Name: "nickname", Type: field.TypeString},
-		{Name: "avatar", Type: field.TypeString},
-		{Name: "intro", Type: field.TypeString},
+		{Name: "nickname", Type: field.TypeString, Nullable: true},
+		{Name: "avatar", Type: field.TypeString, Nullable: true},
+		{Name: "intro", Type: field.TypeString, Nullable: true},
+		{Name: "nonce", Type: field.TypeString},
 		{Name: "show_nickname", Type: field.TypeBool, Default: true},
 	}
 	// MemberTable holds the schema information for the "member" table.
@@ -121,6 +122,7 @@ var (
 	MessageColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "key_id", Type: field.TypeUint64},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "group_id", Type: field.TypeUint64},
 		{Name: "member_id", Type: field.TypeUint64},
@@ -133,13 +135,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_group_messages",
-				Columns:    []*schema.Column{MessageColumns[3]},
+				Columns:    []*schema.Column{MessageColumns[4]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "message_member_messages",
-				Columns:    []*schema.Column{MessageColumns[4]},
+				Columns:    []*schema.Column{MessageColumns[5]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

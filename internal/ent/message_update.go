@@ -30,6 +30,19 @@ func (mu *MessageUpdate) Where(ps ...predicate.Message) *MessageUpdate {
 	return mu
 }
 
+// SetKeyID sets the "key_id" field.
+func (mu *MessageUpdate) SetKeyID(u uint64) *MessageUpdate {
+	mu.mutation.ResetKeyID()
+	mu.mutation.SetKeyID(u)
+	return mu
+}
+
+// AddKeyID adds u to the "key_id" field.
+func (mu *MessageUpdate) AddKeyID(u int64) *MessageUpdate {
+	mu.mutation.AddKeyID(u)
+	return mu
+}
+
 // SetGroupID sets the "group_id" field.
 func (mu *MessageUpdate) SetGroupID(u uint64) *MessageUpdate {
 	mu.mutation.SetGroupID(u)
@@ -176,6 +189,20 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := mu.mutation.KeyID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: message.FieldKeyID,
+		})
+	}
+	if value, ok := mu.mutation.AddedKeyID(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: message.FieldKeyID,
+		})
+	}
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -272,6 +299,19 @@ type MessageUpdateOne struct {
 	hooks     []Hook
 	mutation  *MessageMutation
 	modifiers []func(*sql.UpdateBuilder)
+}
+
+// SetKeyID sets the "key_id" field.
+func (muo *MessageUpdateOne) SetKeyID(u uint64) *MessageUpdateOne {
+	muo.mutation.ResetKeyID()
+	muo.mutation.SetKeyID(u)
+	return muo
+}
+
+// AddKeyID adds u to the "key_id" field.
+func (muo *MessageUpdateOne) AddKeyID(u int64) *MessageUpdateOne {
+	muo.mutation.AddKeyID(u)
+	return muo
 }
 
 // SetGroupID sets the "group_id" field.
@@ -449,6 +489,20 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := muo.mutation.KeyID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: message.FieldKeyID,
+		})
+	}
+	if value, ok := muo.mutation.AddedKeyID(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: message.FieldKeyID,
+		})
 	}
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{

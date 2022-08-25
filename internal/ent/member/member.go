@@ -21,6 +21,8 @@ const (
 	FieldAvatar = "avatar"
 	// FieldIntro holds the string denoting the intro field in the database.
 	FieldIntro = "intro"
+	// FieldNonce holds the string denoting the nonce field in the database.
+	FieldNonce = "nonce"
 	// FieldShowNickname holds the string denoting the show_nickname field in the database.
 	FieldShowNickname = "show_nickname"
 	// EdgeOwnGroups holds the string denoting the own_groups edge name in mutations.
@@ -60,6 +62,7 @@ var Columns = []string{
 	FieldNickname,
 	FieldAvatar,
 	FieldIntro,
+	FieldNonce,
 	FieldShowNickname,
 }
 

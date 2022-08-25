@@ -116,6 +116,13 @@ func Intro(v string) predicate.Member {
 	})
 }
 
+// Nonce applies equality check predicate on the "nonce" field. It's identical to NonceEQ.
+func Nonce(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNonce), v))
+	})
+}
+
 // ShowNickname applies equality check predicate on the "show_nickname" field. It's identical to ShowNicknameEQ.
 func ShowNickname(v bool) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
@@ -371,6 +378,20 @@ func NicknameHasSuffix(v string) predicate.Member {
 	})
 }
 
+// NicknameIsNil applies the IsNil predicate on the "nickname" field.
+func NicknameIsNil() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldNickname)))
+	})
+}
+
+// NicknameNotNil applies the NotNil predicate on the "nickname" field.
+func NicknameNotNil() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldNickname)))
+	})
+}
+
 // NicknameEqualFold applies the EqualFold predicate on the "nickname" field.
 func NicknameEqualFold(v string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
@@ -467,6 +488,20 @@ func AvatarHasPrefix(v string) predicate.Member {
 func AvatarHasSuffix(v string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldAvatar), v))
+	})
+}
+
+// AvatarIsNil applies the IsNil predicate on the "avatar" field.
+func AvatarIsNil() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldAvatar)))
+	})
+}
+
+// AvatarNotNil applies the NotNil predicate on the "avatar" field.
+func AvatarNotNil() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldAvatar)))
 	})
 }
 
@@ -569,6 +604,20 @@ func IntroHasSuffix(v string) predicate.Member {
 	})
 }
 
+// IntroIsNil applies the IsNil predicate on the "intro" field.
+func IntroIsNil() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldIntro)))
+	})
+}
+
+// IntroNotNil applies the NotNil predicate on the "intro" field.
+func IntroNotNil() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldIntro)))
+	})
+}
+
 // IntroEqualFold applies the EqualFold predicate on the "intro" field.
 func IntroEqualFold(v string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
@@ -580,6 +629,105 @@ func IntroEqualFold(v string) predicate.Member {
 func IntroContainsFold(v string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldIntro), v))
+	})
+}
+
+// NonceEQ applies the EQ predicate on the "nonce" field.
+func NonceEQ(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNonce), v))
+	})
+}
+
+// NonceNEQ applies the NEQ predicate on the "nonce" field.
+func NonceNEQ(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldNonce), v))
+	})
+}
+
+// NonceIn applies the In predicate on the "nonce" field.
+func NonceIn(vs ...string) predicate.Member {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldNonce), v...))
+	})
+}
+
+// NonceNotIn applies the NotIn predicate on the "nonce" field.
+func NonceNotIn(vs ...string) predicate.Member {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldNonce), v...))
+	})
+}
+
+// NonceGT applies the GT predicate on the "nonce" field.
+func NonceGT(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldNonce), v))
+	})
+}
+
+// NonceGTE applies the GTE predicate on the "nonce" field.
+func NonceGTE(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldNonce), v))
+	})
+}
+
+// NonceLT applies the LT predicate on the "nonce" field.
+func NonceLT(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldNonce), v))
+	})
+}
+
+// NonceLTE applies the LTE predicate on the "nonce" field.
+func NonceLTE(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldNonce), v))
+	})
+}
+
+// NonceContains applies the Contains predicate on the "nonce" field.
+func NonceContains(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldNonce), v))
+	})
+}
+
+// NonceHasPrefix applies the HasPrefix predicate on the "nonce" field.
+func NonceHasPrefix(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldNonce), v))
+	})
+}
+
+// NonceHasSuffix applies the HasSuffix predicate on the "nonce" field.
+func NonceHasSuffix(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldNonce), v))
+	})
+}
+
+// NonceEqualFold applies the EqualFold predicate on the "nonce" field.
+func NonceEqualFold(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldNonce), v))
+	})
+}
+
+// NonceContainsFold applies the ContainsFold predicate on the "nonce" field.
+func NonceContainsFold(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldNonce), v))
 	})
 }
 

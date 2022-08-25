@@ -50,15 +50,45 @@ func (mc *MemberCreate) SetNickname(s string) *MemberCreate {
 	return mc
 }
 
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (mc *MemberCreate) SetNillableNickname(s *string) *MemberCreate {
+	if s != nil {
+		mc.SetNickname(*s)
+	}
+	return mc
+}
+
 // SetAvatar sets the "avatar" field.
 func (mc *MemberCreate) SetAvatar(s string) *MemberCreate {
 	mc.mutation.SetAvatar(s)
 	return mc
 }
 
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (mc *MemberCreate) SetNillableAvatar(s *string) *MemberCreate {
+	if s != nil {
+		mc.SetAvatar(*s)
+	}
+	return mc
+}
+
 // SetIntro sets the "intro" field.
 func (mc *MemberCreate) SetIntro(s string) *MemberCreate {
 	mc.mutation.SetIntro(s)
+	return mc
+}
+
+// SetNillableIntro sets the "intro" field if the given value is not nil.
+func (mc *MemberCreate) SetNillableIntro(s *string) *MemberCreate {
+	if s != nil {
+		mc.SetIntro(*s)
+	}
+	return mc
+}
+
+// SetNonce sets the "nonce" field.
+func (mc *MemberCreate) SetNonce(s string) *MemberCreate {
+	mc.mutation.SetNonce(s)
 	return mc
 }
 
@@ -216,14 +246,8 @@ func (mc *MemberCreate) check() error {
 	if _, ok := mc.mutation.Address(); !ok {
 		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "Member.address"`)}
 	}
-	if _, ok := mc.mutation.Nickname(); !ok {
-		return &ValidationError{Name: "nickname", err: errors.New(`ent: missing required field "Member.nickname"`)}
-	}
-	if _, ok := mc.mutation.Avatar(); !ok {
-		return &ValidationError{Name: "avatar", err: errors.New(`ent: missing required field "Member.avatar"`)}
-	}
-	if _, ok := mc.mutation.Intro(); !ok {
-		return &ValidationError{Name: "intro", err: errors.New(`ent: missing required field "Member.intro"`)}
+	if _, ok := mc.mutation.Nonce(); !ok {
+		return &ValidationError{Name: "nonce", err: errors.New(`ent: missing required field "Member.nonce"`)}
 	}
 	if _, ok := mc.mutation.ShowNickname(); !ok {
 		return &ValidationError{Name: "show_nickname", err: errors.New(`ent: missing required field "Member.show_nickname"`)}
@@ -295,6 +319,14 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Column: member.FieldIntro,
 		})
 		_node.Intro = value
+	}
+	if value, ok := mc.mutation.Nonce(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: member.FieldNonce,
+		})
+		_node.Nonce = value
 	}
 	if value, ok := mc.mutation.ShowNickname(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -449,6 +481,12 @@ func (u *MemberUpsert) UpdateNickname() *MemberUpsert {
 	return u
 }
 
+// ClearNickname clears the value of the "nickname" field.
+func (u *MemberUpsert) ClearNickname() *MemberUpsert {
+	u.SetNull(member.FieldNickname)
+	return u
+}
+
 // SetAvatar sets the "avatar" field.
 func (u *MemberUpsert) SetAvatar(v string) *MemberUpsert {
 	u.Set(member.FieldAvatar, v)
@@ -461,6 +499,12 @@ func (u *MemberUpsert) UpdateAvatar() *MemberUpsert {
 	return u
 }
 
+// ClearAvatar clears the value of the "avatar" field.
+func (u *MemberUpsert) ClearAvatar() *MemberUpsert {
+	u.SetNull(member.FieldAvatar)
+	return u
+}
+
 // SetIntro sets the "intro" field.
 func (u *MemberUpsert) SetIntro(v string) *MemberUpsert {
 	u.Set(member.FieldIntro, v)
@@ -470,6 +514,24 @@ func (u *MemberUpsert) SetIntro(v string) *MemberUpsert {
 // UpdateIntro sets the "intro" field to the value that was provided on create.
 func (u *MemberUpsert) UpdateIntro() *MemberUpsert {
 	u.SetExcluded(member.FieldIntro)
+	return u
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (u *MemberUpsert) ClearIntro() *MemberUpsert {
+	u.SetNull(member.FieldIntro)
+	return u
+}
+
+// SetNonce sets the "nonce" field.
+func (u *MemberUpsert) SetNonce(v string) *MemberUpsert {
+	u.Set(member.FieldNonce, v)
+	return u
+}
+
+// UpdateNonce sets the "nonce" field to the value that was provided on create.
+func (u *MemberUpsert) UpdateNonce() *MemberUpsert {
+	u.SetExcluded(member.FieldNonce)
 	return u
 }
 
@@ -572,6 +634,13 @@ func (u *MemberUpsertOne) UpdateNickname() *MemberUpsertOne {
 	})
 }
 
+// ClearNickname clears the value of the "nickname" field.
+func (u *MemberUpsertOne) ClearNickname() *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.ClearNickname()
+	})
+}
+
 // SetAvatar sets the "avatar" field.
 func (u *MemberUpsertOne) SetAvatar(v string) *MemberUpsertOne {
 	return u.Update(func(s *MemberUpsert) {
@@ -586,6 +655,13 @@ func (u *MemberUpsertOne) UpdateAvatar() *MemberUpsertOne {
 	})
 }
 
+// ClearAvatar clears the value of the "avatar" field.
+func (u *MemberUpsertOne) ClearAvatar() *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.ClearAvatar()
+	})
+}
+
 // SetIntro sets the "intro" field.
 func (u *MemberUpsertOne) SetIntro(v string) *MemberUpsertOne {
 	return u.Update(func(s *MemberUpsert) {
@@ -597,6 +673,27 @@ func (u *MemberUpsertOne) SetIntro(v string) *MemberUpsertOne {
 func (u *MemberUpsertOne) UpdateIntro() *MemberUpsertOne {
 	return u.Update(func(s *MemberUpsert) {
 		s.UpdateIntro()
+	})
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (u *MemberUpsertOne) ClearIntro() *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.ClearIntro()
+	})
+}
+
+// SetNonce sets the "nonce" field.
+func (u *MemberUpsertOne) SetNonce(v string) *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.SetNonce(v)
+	})
+}
+
+// UpdateNonce sets the "nonce" field to the value that was provided on create.
+func (u *MemberUpsertOne) UpdateNonce() *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.UpdateNonce()
 	})
 }
 
@@ -863,6 +960,13 @@ func (u *MemberUpsertBulk) UpdateNickname() *MemberUpsertBulk {
 	})
 }
 
+// ClearNickname clears the value of the "nickname" field.
+func (u *MemberUpsertBulk) ClearNickname() *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.ClearNickname()
+	})
+}
+
 // SetAvatar sets the "avatar" field.
 func (u *MemberUpsertBulk) SetAvatar(v string) *MemberUpsertBulk {
 	return u.Update(func(s *MemberUpsert) {
@@ -877,6 +981,13 @@ func (u *MemberUpsertBulk) UpdateAvatar() *MemberUpsertBulk {
 	})
 }
 
+// ClearAvatar clears the value of the "avatar" field.
+func (u *MemberUpsertBulk) ClearAvatar() *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.ClearAvatar()
+	})
+}
+
 // SetIntro sets the "intro" field.
 func (u *MemberUpsertBulk) SetIntro(v string) *MemberUpsertBulk {
 	return u.Update(func(s *MemberUpsert) {
@@ -888,6 +999,27 @@ func (u *MemberUpsertBulk) SetIntro(v string) *MemberUpsertBulk {
 func (u *MemberUpsertBulk) UpdateIntro() *MemberUpsertBulk {
 	return u.Update(func(s *MemberUpsert) {
 		s.UpdateIntro()
+	})
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (u *MemberUpsertBulk) ClearIntro() *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.ClearIntro()
+	})
+}
+
+// SetNonce sets the "nonce" field.
+func (u *MemberUpsertBulk) SetNonce(v string) *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.SetNonce(v)
+	})
+}
+
+// UpdateNonce sets the "nonce" field to the value that was provided on create.
+func (u *MemberUpsertBulk) UpdateNonce() *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.UpdateNonce()
 	})
 }
 

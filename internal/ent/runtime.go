@@ -48,7 +48,7 @@ func init() {
 	// member.DefaultCreatedAt holds the default value on creation for the created_at field.
 	member.DefaultCreatedAt = memberDescCreatedAt.Default.(time.Time)
 	// memberDescShowNickname is the schema descriptor for show_nickname field.
-	memberDescShowNickname := memberFields[4].Descriptor()
+	memberDescShowNickname := memberFields[5].Descriptor()
 	// member.DefaultShowNickname holds the default value on creation for the show_nickname field.
 	member.DefaultShowNickname = memberDescShowNickname.Default.(bool)
 	messageMixin := schema.Message{}.Mixin()

@@ -9,3 +9,7 @@ type GroupCreateReq struct {
     Name  string
     Intro string
 }
+
+type GroupJoinReq struct {
+    GroupID uint64 `json:"groupId" validate:"required" trans:"Group ID"`
+}

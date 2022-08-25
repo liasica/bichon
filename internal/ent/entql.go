@@ -73,6 +73,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			member.FieldNickname:     {Type: field.TypeString, Column: member.FieldNickname},
 			member.FieldAvatar:       {Type: field.TypeString, Column: member.FieldAvatar},
 			member.FieldIntro:        {Type: field.TypeString, Column: member.FieldIntro},
+			member.FieldNonce:        {Type: field.TypeString, Column: member.FieldNonce},
 			member.FieldShowNickname: {Type: field.TypeBool, Column: member.FieldShowNickname},
 		},
 	}
@@ -88,6 +89,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type: "Message",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			message.FieldCreatedAt: {Type: field.TypeTime, Column: message.FieldCreatedAt},
+			message.FieldKeyID:     {Type: field.TypeUint64, Column: message.FieldKeyID},
 			message.FieldGroupID:   {Type: field.TypeUint64, Column: message.FieldGroupID},
 			message.FieldMemberID:  {Type: field.TypeUint64, Column: message.FieldMemberID},
 			message.FieldContent:   {Type: field.TypeString, Column: message.FieldContent},
@@ -450,6 +452,11 @@ func (f *MemberFilter) WhereIntro(p entql.StringP) {
 	f.Where(p.Field(member.FieldIntro))
 }
 
+// WhereNonce applies the entql string predicate on the nonce field.
+func (f *MemberFilter) WhereNonce(p entql.StringP) {
+	f.Where(p.Field(member.FieldNonce))
+}
+
 // WhereShowNickname applies the entql bool predicate on the show_nickname field.
 func (f *MemberFilter) WhereShowNickname(p entql.BoolP) {
 	f.Where(p.Field(member.FieldShowNickname))
@@ -540,6 +547,11 @@ func (f *MessageFilter) WhereID(p entql.Uint64P) {
 // WhereCreatedAt applies the entql time.Time predicate on the created_at field.
 func (f *MessageFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(message.FieldCreatedAt))
+}
+
+// WhereKeyID applies the entql uint64 predicate on the key_id field.
+func (f *MessageFilter) WhereKeyID(p entql.Uint64P) {
+	f.Where(p.Field(message.FieldKeyID))
 }
 
 // WhereGroupID applies the entql uint64 predicate on the group_id field.

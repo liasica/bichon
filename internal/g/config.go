@@ -10,10 +10,10 @@ import (
 )
 
 type ConfigApp struct {
-    Address string
-    Mode    string
-    TZ      string
-    Secret  string
+    Address    string
+    Mode       string
+    TZ         string
+    PrintStack bool
 }
 
 type ConfigDB struct {
