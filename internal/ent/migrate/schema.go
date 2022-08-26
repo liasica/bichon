@@ -116,6 +116,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{MemberColumns[1]},
 			},
+			{
+				Name:    "member_nonce",
+				Unique:  false,
+				Columns: []*schema.Column{MemberColumns[6]},
+			},
 		},
 	}
 	// MessageColumns holds the columns for the "message" table.
