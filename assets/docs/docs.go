@@ -30,6 +30,17 @@ const docTemplate = `{
                 ],
                 "summary": "Group Create",
                 "operationId": "GroupCreate",
+                "parameters": [
+                    {
+                        "description": "Group info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GroupCreateReq"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Response success",
@@ -146,6 +157,22 @@ const docTemplate = `{
                 "data": {},
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "model.GroupCreateReq": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "intro": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 2
                 }
             }
         },

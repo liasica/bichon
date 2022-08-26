@@ -8,6 +8,17 @@ definitions:
       message:
         type: string
     type: object
+  model.GroupCreateReq:
+    properties:
+      intro:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
   model.MemberNonceRes:
     properties:
       nonce:
@@ -46,6 +57,13 @@ paths:
       - application/json
       description: create an group (need signature verify)
       operationId: GroupCreate
+      parameters:
+      - description: Group info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.GroupCreateReq'
       produces:
       - application/json
       responses:

@@ -7,15 +7,16 @@ import (
 )
 
 func loadAppRoutes(r *echo.Echo) {
-    r.Use(
+    g := r.Group("")
+    g.Use(
         middleware.Member(),
     )
 
     // member routes
-    r.GET("/member/nonce/:address", endpoint.Member.Nonce)
-    r.POST("/member", endpoint.Member.Signin)
-    r.GET("/member/:address", endpoint.Member.Profile)
+    g.GET("/member/nonce/:address", endpoint.Member.Nonce)
+    g.POST("/member", endpoint.Member.Signin)
+    g.GET("/member/:address", endpoint.Member.Profile)
 
     // group routes
-    r.POST("/group", endpoint.Group.Create, middleware.Signature())
+    g.POST("/group", endpoint.Group.Create, middleware.Signature())
 }
