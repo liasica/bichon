@@ -28,19 +28,20 @@ func (SonyflakeIDMixin) Hooks() []ent.Hook {
     }
 }
 
+type IDSetter interface {
+    SetID(uint64)
+}
+
 func IDHook() ent.Hook {
-    sf := sonyflake.NewSonyflake(sonyflake.Settings{
-        MachineID: func() (uint16, error) {
-            return g.NodeID(), nil
-        },
-        CheckMachineID: func(id uint16) bool {
-            return g.NodeID() == id
-        },
-    })
-    type IDSetter interface {
-        SetID(uint64)
-    }
     return func(next ent.Mutator) ent.Mutator {
+        sf := sonyflake.NewSonyflake(sonyflake.Settings{
+            MachineID: func() (uint16, error) {
+                return g.NodeID(), nil
+            },
+            CheckMachineID: func(id uint16) bool {
+                return g.NodeID() == id
+            },
+        })
         return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
             is, ok := m.(IDSetter)
             if !ok {

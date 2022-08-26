@@ -9,13 +9,8 @@ import (
     "errors"
 )
 
-// RSAEncrypt RSA encrypt to base64 string (using public key)
-func RSAEncrypt(data []byte, pubKey string) (b64 string, err error) {
-    var key []byte
-    key, err = base64.StdEncoding.DecodeString(pubKey)
-    if err != nil {
-        return
-    }
+// RSAEncrypt RSA encrypt to []byte (using public key)
+func RSAEncrypt(data, key []byte) (b []byte, err error) {
     block, _ := pem.Decode(key)
     if block == nil {
         err = errors.New("RSA Key error")
@@ -31,23 +26,22 @@ func RSAEncrypt(data []byte, pubKey string) (b64 string, err error) {
         err = errors.New("RSA Key parse error")
         return
     }
+    return rsa.EncryptPKCS1v15(rand.Reader, pub, data)
+}
+
+// RSAEncryptToBase64 RSA encrypt to base64 string (using public key)
+func RSAEncryptToBase64(data, key []byte) (b64 string, err error) {
     var b []byte
-    b, err = rsa.EncryptPKCS1v15(rand.Reader, pub, data)
+    b, err = RSAEncrypt(data, key)
     if err != nil {
         return
     }
     b64 = base64.StdEncoding.EncodeToString(b)
-
     return
 }
 
-// RSADecrypt RSA decode base64 string to bytes (using private key)
-func RSADecrypt(b64 string, privkey string) (data []byte, err error) {
-    var key []byte
-    key, err = base64.StdEncoding.DecodeString(privkey)
-    if err != nil {
-        return
-    }
+// RSADecrypt RSA decode bytes to bytes (using private key)
+func RSADecrypt(b, key []byte) (data []byte, err error) {
     block, _ := pem.Decode(key)
     if block == nil {
         err = errors.New("RSA Key error")
@@ -61,6 +55,16 @@ func RSADecrypt(b64 string, privkey string) (data []byte, err error) {
         return
     }
 
+    // decode data
+    data, err = rsa.DecryptPKCS1v15(rand.Reader, priv, b)
+    if err != nil {
+        return
+    }
+    return
+}
+
+// RSADecryptFromBase64 RSA decode base64 string to bytes (using private key)
+func RSADecryptFromBase64(b64 string, key []byte) (data []byte, err error) {
     var b []byte
     b, err = base64.StdEncoding.DecodeString(b64)
     if err != nil {
@@ -68,7 +72,7 @@ func RSADecrypt(b64 string, privkey string) (data []byte, err error) {
     }
 
     // decode data
-    data, err = rsa.DecryptPKCS1v15(rand.Reader, priv, b)
+    data, err = RSADecrypt(b, key)
     if err != nil {
         return
     }

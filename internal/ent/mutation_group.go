@@ -9,6 +9,7 @@ import (
     "errors"
     "time"
     "github.com/chatpuppy/puppychat/internal/ent/group"
+    "encoding/json"
     "github.com/chatpuppy/puppychat/internal/ent/predicate"
 
     "entgo.io/ent"
@@ -28,8 +29,9 @@ type GroupMutation struct {
 	members_count    *int
 	addmembers_count *int
 	public           *bool
-	sn               *string
+	address          *string
 	intro            *string
+	keys             *json.RawMessage
 	clearedFields    map[string]struct{}
 	owner            *uint64
 	clearedowner     bool
@@ -112,6 +114,12 @@ func (m GroupMutation) Tx() (*Tx, error) {
 	tx := &Tx{config: m.config}
 	tx.init()
 	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Group entities.
+func (m *GroupMutation) SetID(id uint64) {
+	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
@@ -398,40 +406,40 @@ func (m *GroupMutation) ResetPublic() {
 	m.public = nil
 }
 
-// SetSn sets the "sn" field.
-func (m *GroupMutation) SetSn(s string) {
-	m.sn = &s
+// SetAddress sets the "address" field.
+func (m *GroupMutation) SetAddress(s string) {
+	m.address = &s
 }
 
-// Sn returns the value of the "sn" field in the mutation.
-func (m *GroupMutation) Sn() (r string, exists bool) {
-	v := m.sn
+// Address returns the value of the "address" field in the mutation.
+func (m *GroupMutation) Address() (r string, exists bool) {
+	v := m.address
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldSn returns the old "sn" field's value of the Group entity.
+// OldAddress returns the old "address" field's value of the Group entity.
 // If the Group object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldSn(ctx context.Context) (v string, err error) {
+func (m *GroupMutation) OldAddress(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSn is only allowed on UpdateOne operations")
+		return v, errors.New("OldAddress is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSn requires an ID field in the mutation")
+		return v, errors.New("OldAddress requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSn: %w", err)
+		return v, fmt.Errorf("querying old value for OldAddress: %w", err)
 	}
-	return oldValue.Sn, nil
+	return oldValue.Address, nil
 }
 
-// ResetSn resets all changes to the "sn" field.
-func (m *GroupMutation) ResetSn() {
-	m.sn = nil
+// ResetAddress resets all changes to the "address" field.
+func (m *GroupMutation) ResetAddress() {
+	m.address = nil
 }
 
 // SetIntro sets the "intro" field.
@@ -465,9 +473,58 @@ func (m *GroupMutation) OldIntro(ctx context.Context) (v string, err error) {
 	return oldValue.Intro, nil
 }
 
+// ClearIntro clears the value of the "intro" field.
+func (m *GroupMutation) ClearIntro() {
+	m.intro = nil
+	m.clearedFields[group.FieldIntro] = struct{}{}
+}
+
+// IntroCleared returns if the "intro" field was cleared in this mutation.
+func (m *GroupMutation) IntroCleared() bool {
+	_, ok := m.clearedFields[group.FieldIntro]
+	return ok
+}
+
 // ResetIntro resets all changes to the "intro" field.
 func (m *GroupMutation) ResetIntro() {
 	m.intro = nil
+	delete(m.clearedFields, group.FieldIntro)
+}
+
+// SetKeys sets the "keys" field.
+func (m *GroupMutation) SetKeys(jm json.RawMessage) {
+	m.keys = &jm
+}
+
+// Keys returns the value of the "keys" field in the mutation.
+func (m *GroupMutation) Keys() (r json.RawMessage, exists bool) {
+	v := m.keys
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKeys returns the old "keys" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldKeys(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKeys is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKeys requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKeys: %w", err)
+	}
+	return oldValue.Keys, nil
+}
+
+// ResetKeys resets all changes to the "keys" field.
+func (m *GroupMutation) ResetKeys() {
+	m.keys = nil
 }
 
 // SetOwnerID sets the "owner" edge to the Member entity by id.
@@ -636,7 +693,7 @@ func (m *GroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, group.FieldCreatedAt)
 	}
@@ -655,11 +712,14 @@ func (m *GroupMutation) Fields() []string {
 	if m.public != nil {
 		fields = append(fields, group.FieldPublic)
 	}
-	if m.sn != nil {
-		fields = append(fields, group.FieldSn)
+	if m.address != nil {
+		fields = append(fields, group.FieldAddress)
 	}
 	if m.intro != nil {
 		fields = append(fields, group.FieldIntro)
+	}
+	if m.keys != nil {
+		fields = append(fields, group.FieldKeys)
 	}
 	return fields
 }
@@ -681,10 +741,12 @@ func (m *GroupMutation) Field(name string) (ent.Value, bool) {
 		return m.MembersCount()
 	case group.FieldPublic:
 		return m.Public()
-	case group.FieldSn:
-		return m.Sn()
+	case group.FieldAddress:
+		return m.Address()
 	case group.FieldIntro:
 		return m.Intro()
+	case group.FieldKeys:
+		return m.Keys()
 	}
 	return nil, false
 }
@@ -706,10 +768,12 @@ func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldMembersCount(ctx)
 	case group.FieldPublic:
 		return m.OldPublic(ctx)
-	case group.FieldSn:
-		return m.OldSn(ctx)
+	case group.FieldAddress:
+		return m.OldAddress(ctx)
 	case group.FieldIntro:
 		return m.OldIntro(ctx)
+	case group.FieldKeys:
+		return m.OldKeys(ctx)
 	}
 	return nil, fmt.Errorf("unknown Group field %s", name)
 }
@@ -761,12 +825,12 @@ func (m *GroupMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPublic(v)
 		return nil
-	case group.FieldSn:
+	case group.FieldAddress:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetSn(v)
+		m.SetAddress(v)
 		return nil
 	case group.FieldIntro:
 		v, ok := value.(string)
@@ -774,6 +838,13 @@ func (m *GroupMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIntro(v)
+		return nil
+	case group.FieldKeys:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKeys(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Group field %s", name)
@@ -831,7 +902,11 @@ func (m *GroupMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GroupMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(group.FieldIntro) {
+		fields = append(fields, group.FieldIntro)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -844,6 +919,11 @@ func (m *GroupMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GroupMutation) ClearField(name string) error {
+	switch name {
+	case group.FieldIntro:
+		m.ClearIntro()
+		return nil
+	}
 	return fmt.Errorf("unknown Group nullable field %s", name)
 }
 
@@ -869,11 +949,14 @@ func (m *GroupMutation) ResetField(name string) error {
 	case group.FieldPublic:
 		m.ResetPublic()
 		return nil
-	case group.FieldSn:
-		m.ResetSn()
+	case group.FieldAddress:
+		m.ResetAddress()
 		return nil
 	case group.FieldIntro:
 		m.ResetIntro()
+		return nil
+	case group.FieldKeys:
+		m.ResetKeys()
 		return nil
 	}
 	return fmt.Errorf("unknown Group field %s", name)

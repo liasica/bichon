@@ -86,6 +86,20 @@ func (mc *MemberCreate) SetNillableIntro(s *string) *MemberCreate {
 	return mc
 }
 
+// SetPublicKey sets the "public_key" field.
+func (mc *MemberCreate) SetPublicKey(s string) *MemberCreate {
+	mc.mutation.SetPublicKey(s)
+	return mc
+}
+
+// SetNillablePublicKey sets the "public_key" field if the given value is not nil.
+func (mc *MemberCreate) SetNillablePublicKey(s *string) *MemberCreate {
+	if s != nil {
+		mc.SetPublicKey(*s)
+	}
+	return mc
+}
+
 // SetNonce sets the "nonce" field.
 func (mc *MemberCreate) SetNonce(s string) *MemberCreate {
 	mc.mutation.SetNonce(s)
@@ -103,6 +117,12 @@ func (mc *MemberCreate) SetNillableShowNickname(b *bool) *MemberCreate {
 	if b != nil {
 		mc.SetShowNickname(*b)
 	}
+	return mc
+}
+
+// SetID sets the "id" field.
+func (mc *MemberCreate) SetID(u uint64) *MemberCreate {
+	mc.mutation.SetID(u)
 	return mc
 }
 
@@ -162,7 +182,9 @@ func (mc *MemberCreate) Save(ctx context.Context) (*Member, error) {
 		err  error
 		node *Member
 	)
-	mc.defaults()
+	if err := mc.defaults(); err != nil {
+		return nil, err
+	}
 	if len(mc.hooks) == 0 {
 		if err = mc.check(); err != nil {
 			return nil, err
@@ -227,7 +249,7 @@ func (mc *MemberCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (mc *MemberCreate) defaults() {
+func (mc *MemberCreate) defaults() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		v := member.DefaultCreatedAt
 		mc.mutation.SetCreatedAt(v)
@@ -236,6 +258,7 @@ func (mc *MemberCreate) defaults() {
 		v := member.DefaultShowNickname
 		mc.mutation.SetShowNickname(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -263,8 +286,10 @@ func (mc *MemberCreate) sqlSave(ctx context.Context) (*Member, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = uint64(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = uint64(id)
+	}
 	return _node, nil
 }
 
@@ -280,6 +305,10 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 		}
 	)
 	_spec.OnConflict = mc.conflict
+	if id, ok := mc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := mc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -319,6 +348,14 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Column: member.FieldIntro,
 		})
 		_node.Intro = value
+	}
+	if value, ok := mc.mutation.PublicKey(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: member.FieldPublicKey,
+		})
+		_node.PublicKey = value
 	}
 	if value, ok := mc.mutation.Nonce(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -523,6 +560,24 @@ func (u *MemberUpsert) ClearIntro() *MemberUpsert {
 	return u
 }
 
+// SetPublicKey sets the "public_key" field.
+func (u *MemberUpsert) SetPublicKey(v string) *MemberUpsert {
+	u.Set(member.FieldPublicKey, v)
+	return u
+}
+
+// UpdatePublicKey sets the "public_key" field to the value that was provided on create.
+func (u *MemberUpsert) UpdatePublicKey() *MemberUpsert {
+	u.SetExcluded(member.FieldPublicKey)
+	return u
+}
+
+// ClearPublicKey clears the value of the "public_key" field.
+func (u *MemberUpsert) ClearPublicKey() *MemberUpsert {
+	u.SetNull(member.FieldPublicKey)
+	return u
+}
+
 // SetNonce sets the "nonce" field.
 func (u *MemberUpsert) SetNonce(v string) *MemberUpsert {
 	u.Set(member.FieldNonce, v)
@@ -547,17 +602,23 @@ func (u *MemberUpsert) UpdateShowNickname() *MemberUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.Member.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(member.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *MemberUpsertOne) UpdateNewValues() *MemberUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(member.FieldID)
+		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(member.FieldCreatedAt)
 		}
@@ -683,6 +744,27 @@ func (u *MemberUpsertOne) ClearIntro() *MemberUpsertOne {
 	})
 }
 
+// SetPublicKey sets the "public_key" field.
+func (u *MemberUpsertOne) SetPublicKey(v string) *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.SetPublicKey(v)
+	})
+}
+
+// UpdatePublicKey sets the "public_key" field to the value that was provided on create.
+func (u *MemberUpsertOne) UpdatePublicKey() *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.UpdatePublicKey()
+	})
+}
+
+// ClearPublicKey clears the value of the "public_key" field.
+func (u *MemberUpsertOne) ClearPublicKey() *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.ClearPublicKey()
+	})
+}
+
 // SetNonce sets the "nonce" field.
 func (u *MemberUpsertOne) SetNonce(v string) *MemberUpsertOne {
 	return u.Update(func(s *MemberUpsert) {
@@ -787,7 +869,7 @@ func (mcb *MemberCreateBulk) Save(ctx context.Context) ([]*Member, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = uint64(id)
 				}
@@ -877,12 +959,19 @@ type MemberUpsertBulk struct {
 //	client.Member.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(member.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *MemberUpsertBulk) UpdateNewValues() *MemberUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(member.FieldID)
+				return
+			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(member.FieldCreatedAt)
 			}
@@ -1006,6 +1095,27 @@ func (u *MemberUpsertBulk) UpdateIntro() *MemberUpsertBulk {
 func (u *MemberUpsertBulk) ClearIntro() *MemberUpsertBulk {
 	return u.Update(func(s *MemberUpsert) {
 		s.ClearIntro()
+	})
+}
+
+// SetPublicKey sets the "public_key" field.
+func (u *MemberUpsertBulk) SetPublicKey(v string) *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.SetPublicKey(v)
+	})
+}
+
+// UpdatePublicKey sets the "public_key" field to the value that was provided on create.
+func (u *MemberUpsertBulk) UpdatePublicKey() *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.UpdatePublicKey()
+	})
+}
+
+// ClearPublicKey clears the value of the "public_key" field.
+func (u *MemberUpsertBulk) ClearPublicKey() *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.ClearPublicKey()
 	})
 }
 

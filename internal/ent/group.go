@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -25,14 +26,16 @@ type Group struct {
 	MemberID uint64 `json:"member_id,omitempty"`
 	// MembersMax holds the value of the "members_max" field.
 	MembersMax int `json:"members_max,omitempty"`
-	// MembersCount holds the value of the "members_count" field.
+	// members count of group
 	MembersCount int `json:"members_count,omitempty"`
 	// Public holds the value of the "public" field.
 	Public bool `json:"public,omitempty"`
-	// Sn holds the value of the "sn" field.
-	Sn string `json:"sn,omitempty"`
+	// Address holds the value of the "address" field.
+	Address string `json:"address,omitempty"`
 	// Intro holds the value of the "intro" field.
 	Intro string `json:"intro,omitempty"`
+	// group's ethereum keys
+	Keys json.RawMessage `json:"keys,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GroupQuery when eager-loading is set.
 	Edges GroupEdges `json:"edges"`
@@ -87,11 +90,13 @@ func (*Group) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case group.FieldKeys:
+			values[i] = new([]byte)
 		case group.FieldPublic:
 			values[i] = new(sql.NullBool)
 		case group.FieldID, group.FieldMemberID, group.FieldMembersMax, group.FieldMembersCount:
 			values[i] = new(sql.NullInt64)
-		case group.FieldName, group.FieldSn, group.FieldIntro:
+		case group.FieldName, group.FieldAddress, group.FieldIntro:
 			values[i] = new(sql.NullString)
 		case group.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -152,17 +157,25 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				gr.Public = value.Bool
 			}
-		case group.FieldSn:
+		case group.FieldAddress:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field sn", values[i])
+				return fmt.Errorf("unexpected type %T for field address", values[i])
 			} else if value.Valid {
-				gr.Sn = value.String
+				gr.Address = value.String
 			}
 		case group.FieldIntro:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field intro", values[i])
 			} else if value.Valid {
 				gr.Intro = value.String
+			}
+		case group.FieldKeys:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field keys", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &gr.Keys); err != nil {
+					return fmt.Errorf("unmarshal field keys: %w", err)
+				}
 			}
 		}
 	}
@@ -225,11 +238,14 @@ func (gr *Group) String() string {
 	builder.WriteString("public=")
 	builder.WriteString(fmt.Sprintf("%v", gr.Public))
 	builder.WriteString(", ")
-	builder.WriteString("sn=")
-	builder.WriteString(gr.Sn)
+	builder.WriteString("address=")
+	builder.WriteString(gr.Address)
 	builder.WriteString(", ")
 	builder.WriteString("intro=")
 	builder.WriteString(gr.Intro)
+	builder.WriteString(", ")
+	builder.WriteString("keys=")
+	builder.WriteString(fmt.Sprintf("%v", gr.Keys))
 	builder.WriteByte(')')
 	return builder.String()
 }

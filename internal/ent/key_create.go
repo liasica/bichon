@@ -68,6 +68,12 @@ func (kc *KeyCreate) SetNillableEnable(b *bool) *KeyCreate {
 	return kc
 }
 
+// SetID sets the "id" field.
+func (kc *KeyCreate) SetID(u uint64) *KeyCreate {
+	kc.mutation.SetID(u)
+	return kc
+}
+
 // Mutation returns the KeyMutation object of the builder.
 func (kc *KeyCreate) Mutation() *KeyMutation {
 	return kc.mutation
@@ -79,7 +85,9 @@ func (kc *KeyCreate) Save(ctx context.Context) (*Key, error) {
 		err  error
 		node *Key
 	)
-	kc.defaults()
+	if err := kc.defaults(); err != nil {
+		return nil, err
+	}
 	if len(kc.hooks) == 0 {
 		if err = kc.check(); err != nil {
 			return nil, err
@@ -144,7 +152,7 @@ func (kc *KeyCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (kc *KeyCreate) defaults() {
+func (kc *KeyCreate) defaults() error {
 	if _, ok := kc.mutation.CreatedAt(); !ok {
 		v := key.DefaultCreatedAt
 		kc.mutation.SetCreatedAt(v)
@@ -153,6 +161,7 @@ func (kc *KeyCreate) defaults() {
 		v := key.DefaultEnable
 		kc.mutation.SetEnable(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -183,8 +192,10 @@ func (kc *KeyCreate) sqlSave(ctx context.Context) (*Key, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = uint64(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = uint64(id)
+	}
 	return _node, nil
 }
 
@@ -200,6 +211,10 @@ func (kc *KeyCreate) createSpec() (*Key, *sqlgraph.CreateSpec) {
 		}
 	)
 	_spec.OnConflict = kc.conflict
+	if id, ok := kc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := kc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -364,17 +379,23 @@ func (u *KeyUpsert) UpdateEnable() *KeyUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.Key.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(key.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *KeyUpsertOne) UpdateNewValues() *KeyUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(key.FieldID)
+		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(key.FieldCreatedAt)
 		}
@@ -569,7 +590,7 @@ func (kcb *KeyCreateBulk) Save(ctx context.Context) ([]*Key, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = uint64(id)
 				}
@@ -659,12 +680,19 @@ type KeyUpsertBulk struct {
 //	client.Key.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(key.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *KeyUpsertBulk) UpdateNewValues() *KeyUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(key.FieldID)
+				return
+			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(key.FieldCreatedAt)
 			}

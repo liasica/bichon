@@ -16,6 +16,30 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/group": {
+            "post": {
+                "description": "create an group (need signature verify)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Group Create",
+                "operationId": "GroupCreate",
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/member/nonce/{address}": {
             "get": {
                 "description": "Getting nonce string to be signed",

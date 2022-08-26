@@ -4,6 +4,8 @@ package group
 
 import (
 	"time"
+
+	"entgo.io/ent"
 )
 
 const (
@@ -23,10 +25,12 @@ const (
 	FieldMembersCount = "members_count"
 	// FieldPublic holds the string denoting the public field in the database.
 	FieldPublic = "public"
-	// FieldSn holds the string denoting the sn field in the database.
-	FieldSn = "sn"
+	// FieldAddress holds the string denoting the address field in the database.
+	FieldAddress = "address"
 	// FieldIntro holds the string denoting the intro field in the database.
 	FieldIntro = "intro"
+	// FieldKeys holds the string denoting the keys field in the database.
+	FieldKeys = "keys"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeMessages holds the string denoting the messages edge name in mutations.
@@ -65,8 +69,9 @@ var Columns = []string{
 	FieldMembersMax,
 	FieldMembersCount,
 	FieldPublic,
-	FieldSn,
+	FieldAddress,
 	FieldIntro,
+	FieldKeys,
 }
 
 var (
@@ -85,7 +90,15 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/chatpuppy/puppychat/internal/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt time.Time
+	// DefaultMembersCount holds the default value on creation for the "members_count" field.
+	DefaultMembersCount int
 )

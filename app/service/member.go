@@ -110,6 +110,8 @@ func (s *memberService) Signin(req *model.MemberSigninReq) (res *model.MemberSig
     if err != nil {
         return
     }
+    // saving member's public key
+    _, _ = mem.Update().SetPublicKey(hexutil.Encode(crypto.FromECDSAPub(pub))).Save(s.ctx)
     res = &model.MemberSigninRes{Token: token, Profile: s.Profile(mem)}
     return
 }

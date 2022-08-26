@@ -41,6 +41,7 @@ func (Message) Edges() []ent.Edge {
 
 func (Message) Mixin() []ent.Mixin {
     return []ent.Mixin{
+        internal.SonyflakeIDMixin{},
         internal.TimeMixin{},
     }
 }

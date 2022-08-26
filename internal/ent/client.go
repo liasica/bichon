@@ -279,7 +279,8 @@ func (c *GroupClient) QueryMembers(gr *Group) *MemberQuery {
 
 // Hooks returns the client hooks.
 func (c *GroupClient) Hooks() []Hook {
-	return c.hooks.Group
+	hooks := c.hooks.Group
+	return append(hooks[:len(hooks):len(hooks)], group.Hooks[:]...)
 }
 
 // KeyClient is a client for the Key schema.
@@ -369,7 +370,8 @@ func (c *KeyClient) GetX(ctx context.Context, id uint64) *Key {
 
 // Hooks returns the client hooks.
 func (c *KeyClient) Hooks() []Hook {
-	return c.hooks.Key
+	hooks := c.hooks.Key
+	return append(hooks[:len(hooks):len(hooks)], key.Hooks[:]...)
 }
 
 // MemberClient is a client for the Member schema.
@@ -507,7 +509,8 @@ func (c *MemberClient) QueryGroups(m *Member) *GroupQuery {
 
 // Hooks returns the client hooks.
 func (c *MemberClient) Hooks() []Hook {
-	return c.hooks.Member
+	hooks := c.hooks.Member
+	return append(hooks[:len(hooks):len(hooks)], member.Hooks[:]...)
 }
 
 // MessageClient is a client for the Message schema.
@@ -629,5 +632,6 @@ func (c *MessageClient) QueryGroup(m *Message) *GroupQuery {
 
 // Hooks returns the client hooks.
 func (c *MessageClient) Hooks() []Hook {
-	return c.hooks.Message
+	hooks := c.hooks.Message
+	return append(hooks[:len(hooks):len(hooks)], message.Hooks[:]...)
 }

@@ -15,10 +15,11 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "members_max", Type: field.TypeInt},
-		{Name: "members_count", Type: field.TypeInt},
+		{Name: "members_count", Type: field.TypeInt, Default: 1},
 		{Name: "public", Type: field.TypeBool},
-		{Name: "sn", Type: field.TypeString},
-		{Name: "intro", Type: field.TypeString},
+		{Name: "address", Type: field.TypeString, Unique: true},
+		{Name: "intro", Type: field.TypeString, Nullable: true},
+		{Name: "keys", Type: field.TypeJSON},
 		{Name: "member_id", Type: field.TypeUint64},
 	}
 	// GroupTable holds the schema information for the "group" table.
@@ -29,7 +30,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "group_member_own_groups",
-				Columns:    []*schema.Column{GroupColumns[8]},
+				Columns:    []*schema.Column{GroupColumns[9]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -53,12 +54,7 @@ var (
 			{
 				Name:    "group_member_id",
 				Unique:  false,
-				Columns: []*schema.Column{GroupColumns[8]},
-			},
-			{
-				Name:    "group_sn",
-				Unique:  false,
-				Columns: []*schema.Column{GroupColumns[6]},
+				Columns: []*schema.Column{GroupColumns[9]},
 			},
 		},
 	}
@@ -102,6 +98,7 @@ var (
 		{Name: "nickname", Type: field.TypeString, Nullable: true},
 		{Name: "avatar", Type: field.TypeString, Nullable: true},
 		{Name: "intro", Type: field.TypeString, Nullable: true},
+		{Name: "public_key", Type: field.TypeString, Nullable: true},
 		{Name: "nonce", Type: field.TypeString},
 		{Name: "show_nickname", Type: field.TypeBool, Default: true},
 	}
@@ -119,7 +116,7 @@ var (
 			{
 				Name:    "member_nonce",
 				Unique:  false,
-				Columns: []*schema.Column{MemberColumns[6]},
+				Columns: []*schema.Column{MemberColumns[7]},
 			},
 		},
 	}
@@ -161,8 +158,8 @@ var (
 	}
 	// GroupMembersColumns holds the columns for the "group_members" table.
 	GroupMembersColumns = []*schema.Column{
-		{Name: "group_id", Type: field.TypeInt},
-		{Name: "member_id", Type: field.TypeInt},
+		{Name: "group_id", Type: field.TypeUint64},
+		{Name: "member_id", Type: field.TypeUint64},
 	}
 	// GroupMembersTable holds the schema information for the "group_members" table.
 	GroupMembersTable = &schema.Table{

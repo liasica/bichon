@@ -116,6 +116,13 @@ func Intro(v string) predicate.Member {
 	})
 }
 
+// PublicKey applies equality check predicate on the "public_key" field. It's identical to PublicKeyEQ.
+func PublicKey(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldPublicKey), v))
+	})
+}
+
 // Nonce applies equality check predicate on the "nonce" field. It's identical to NonceEQ.
 func Nonce(v string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
@@ -629,6 +636,119 @@ func IntroEqualFold(v string) predicate.Member {
 func IntroContainsFold(v string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldIntro), v))
+	})
+}
+
+// PublicKeyEQ applies the EQ predicate on the "public_key" field.
+func PublicKeyEQ(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyNEQ applies the NEQ predicate on the "public_key" field.
+func PublicKeyNEQ(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyIn applies the In predicate on the "public_key" field.
+func PublicKeyIn(vs ...string) predicate.Member {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldPublicKey), v...))
+	})
+}
+
+// PublicKeyNotIn applies the NotIn predicate on the "public_key" field.
+func PublicKeyNotIn(vs ...string) predicate.Member {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldPublicKey), v...))
+	})
+}
+
+// PublicKeyGT applies the GT predicate on the "public_key" field.
+func PublicKeyGT(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyGTE applies the GTE predicate on the "public_key" field.
+func PublicKeyGTE(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyLT applies the LT predicate on the "public_key" field.
+func PublicKeyLT(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyLTE applies the LTE predicate on the "public_key" field.
+func PublicKeyLTE(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyContains applies the Contains predicate on the "public_key" field.
+func PublicKeyContains(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyHasPrefix applies the HasPrefix predicate on the "public_key" field.
+func PublicKeyHasPrefix(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyHasSuffix applies the HasSuffix predicate on the "public_key" field.
+func PublicKeyHasSuffix(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyIsNil applies the IsNil predicate on the "public_key" field.
+func PublicKeyIsNil() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldPublicKey)))
+	})
+}
+
+// PublicKeyNotNil applies the NotNil predicate on the "public_key" field.
+func PublicKeyNotNil() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldPublicKey)))
+	})
+}
+
+// PublicKeyEqualFold applies the EqualFold predicate on the "public_key" field.
+func PublicKeyEqualFold(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldPublicKey), v))
+	})
+}
+
+// PublicKeyContainsFold applies the ContainsFold predicate on the "public_key" field.
+func PublicKeyContainsFold(v string) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldPublicKey), v))
 	})
 }
 

@@ -10,8 +10,6 @@ import (
     "net/http"
 )
 
-type RequestUrlMethod string
-
 var (
     memberTokenPrefix = "Bearer "
     memberAuthSkipper = map[RequestUrlMethod]struct{}{

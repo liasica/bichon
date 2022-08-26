@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -62,21 +63,49 @@ func (gc *GroupCreate) SetMembersCount(i int) *GroupCreate {
 	return gc
 }
 
+// SetNillableMembersCount sets the "members_count" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableMembersCount(i *int) *GroupCreate {
+	if i != nil {
+		gc.SetMembersCount(*i)
+	}
+	return gc
+}
+
 // SetPublic sets the "public" field.
 func (gc *GroupCreate) SetPublic(b bool) *GroupCreate {
 	gc.mutation.SetPublic(b)
 	return gc
 }
 
-// SetSn sets the "sn" field.
-func (gc *GroupCreate) SetSn(s string) *GroupCreate {
-	gc.mutation.SetSn(s)
+// SetAddress sets the "address" field.
+func (gc *GroupCreate) SetAddress(s string) *GroupCreate {
+	gc.mutation.SetAddress(s)
 	return gc
 }
 
 // SetIntro sets the "intro" field.
 func (gc *GroupCreate) SetIntro(s string) *GroupCreate {
 	gc.mutation.SetIntro(s)
+	return gc
+}
+
+// SetNillableIntro sets the "intro" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableIntro(s *string) *GroupCreate {
+	if s != nil {
+		gc.SetIntro(*s)
+	}
+	return gc
+}
+
+// SetKeys sets the "keys" field.
+func (gc *GroupCreate) SetKeys(jm json.RawMessage) *GroupCreate {
+	gc.mutation.SetKeys(jm)
+	return gc
+}
+
+// SetID sets the "id" field.
+func (gc *GroupCreate) SetID(u uint64) *GroupCreate {
+	gc.mutation.SetID(u)
 	return gc
 }
 
@@ -132,7 +161,9 @@ func (gc *GroupCreate) Save(ctx context.Context) (*Group, error) {
 		err  error
 		node *Group
 	)
-	gc.defaults()
+	if err := gc.defaults(); err != nil {
+		return nil, err
+	}
 	if len(gc.hooks) == 0 {
 		if err = gc.check(); err != nil {
 			return nil, err
@@ -197,11 +228,16 @@ func (gc *GroupCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (gc *GroupCreate) defaults() {
+func (gc *GroupCreate) defaults() error {
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		v := group.DefaultCreatedAt
 		gc.mutation.SetCreatedAt(v)
 	}
+	if _, ok := gc.mutation.MembersCount(); !ok {
+		v := group.DefaultMembersCount
+		gc.mutation.SetMembersCount(v)
+	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -224,11 +260,11 @@ func (gc *GroupCreate) check() error {
 	if _, ok := gc.mutation.Public(); !ok {
 		return &ValidationError{Name: "public", err: errors.New(`ent: missing required field "Group.public"`)}
 	}
-	if _, ok := gc.mutation.Sn(); !ok {
-		return &ValidationError{Name: "sn", err: errors.New(`ent: missing required field "Group.sn"`)}
+	if _, ok := gc.mutation.Address(); !ok {
+		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "Group.address"`)}
 	}
-	if _, ok := gc.mutation.Intro(); !ok {
-		return &ValidationError{Name: "intro", err: errors.New(`ent: missing required field "Group.intro"`)}
+	if _, ok := gc.mutation.Keys(); !ok {
+		return &ValidationError{Name: "keys", err: errors.New(`ent: missing required field "Group.keys"`)}
 	}
 	if _, ok := gc.mutation.OwnerID(); !ok {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Group.owner"`)}
@@ -244,8 +280,10 @@ func (gc *GroupCreate) sqlSave(ctx context.Context) (*Group, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = uint64(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = uint64(id)
+	}
 	return _node, nil
 }
 
@@ -261,6 +299,10 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		}
 	)
 	_spec.OnConflict = gc.conflict
+	if id, ok := gc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := gc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -301,13 +343,13 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		})
 		_node.Public = value
 	}
-	if value, ok := gc.mutation.Sn(); ok {
+	if value, ok := gc.mutation.Address(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: group.FieldSn,
+			Column: group.FieldAddress,
 		})
-		_node.Sn = value
+		_node.Address = value
 	}
 	if value, ok := gc.mutation.Intro(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -316,6 +358,14 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 			Column: group.FieldIntro,
 		})
 		_node.Intro = value
+	}
+	if value, ok := gc.mutation.Keys(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: group.FieldKeys,
+		})
+		_node.Keys = value
 	}
 	if nodes := gc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -511,15 +561,15 @@ func (u *GroupUpsert) UpdatePublic() *GroupUpsert {
 	return u
 }
 
-// SetSn sets the "sn" field.
-func (u *GroupUpsert) SetSn(v string) *GroupUpsert {
-	u.Set(group.FieldSn, v)
+// SetAddress sets the "address" field.
+func (u *GroupUpsert) SetAddress(v string) *GroupUpsert {
+	u.Set(group.FieldAddress, v)
 	return u
 }
 
-// UpdateSn sets the "sn" field to the value that was provided on create.
-func (u *GroupUpsert) UpdateSn() *GroupUpsert {
-	u.SetExcluded(group.FieldSn)
+// UpdateAddress sets the "address" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateAddress() *GroupUpsert {
+	u.SetExcluded(group.FieldAddress)
 	return u
 }
 
@@ -535,19 +585,46 @@ func (u *GroupUpsert) UpdateIntro() *GroupUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// ClearIntro clears the value of the "intro" field.
+func (u *GroupUpsert) ClearIntro() *GroupUpsert {
+	u.SetNull(group.FieldIntro)
+	return u
+}
+
+// SetKeys sets the "keys" field.
+func (u *GroupUpsert) SetKeys(v json.RawMessage) *GroupUpsert {
+	u.Set(group.FieldKeys, v)
+	return u
+}
+
+// UpdateKeys sets the "keys" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateKeys() *GroupUpsert {
+	u.SetExcluded(group.FieldKeys)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.Group.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(group.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *GroupUpsertOne) UpdateNewValues() *GroupUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(group.FieldID)
+		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(group.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.Address(); exists {
+			s.SetIgnore(group.FieldAddress)
 		}
 	}))
 	return u
@@ -678,17 +755,17 @@ func (u *GroupUpsertOne) UpdatePublic() *GroupUpsertOne {
 	})
 }
 
-// SetSn sets the "sn" field.
-func (u *GroupUpsertOne) SetSn(v string) *GroupUpsertOne {
+// SetAddress sets the "address" field.
+func (u *GroupUpsertOne) SetAddress(v string) *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
-		s.SetSn(v)
+		s.SetAddress(v)
 	})
 }
 
-// UpdateSn sets the "sn" field to the value that was provided on create.
-func (u *GroupUpsertOne) UpdateSn() *GroupUpsertOne {
+// UpdateAddress sets the "address" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateAddress() *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
-		s.UpdateSn()
+		s.UpdateAddress()
 	})
 }
 
@@ -703,6 +780,27 @@ func (u *GroupUpsertOne) SetIntro(v string) *GroupUpsertOne {
 func (u *GroupUpsertOne) UpdateIntro() *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateIntro()
+	})
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (u *GroupUpsertOne) ClearIntro() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.ClearIntro()
+	})
+}
+
+// SetKeys sets the "keys" field.
+func (u *GroupUpsertOne) SetKeys(v json.RawMessage) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetKeys(v)
+	})
+}
+
+// UpdateKeys sets the "keys" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateKeys() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateKeys()
 	})
 }
 
@@ -782,7 +880,7 @@ func (gcb *GroupCreateBulk) Save(ctx context.Context) ([]*Group, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = uint64(id)
 				}
@@ -872,14 +970,24 @@ type GroupUpsertBulk struct {
 //	client.Group.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(group.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *GroupUpsertBulk) UpdateNewValues() *GroupUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(group.FieldID)
+				return
+			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(group.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.Address(); exists {
+				s.SetIgnore(group.FieldAddress)
 			}
 		}
 	}))
@@ -1011,17 +1119,17 @@ func (u *GroupUpsertBulk) UpdatePublic() *GroupUpsertBulk {
 	})
 }
 
-// SetSn sets the "sn" field.
-func (u *GroupUpsertBulk) SetSn(v string) *GroupUpsertBulk {
+// SetAddress sets the "address" field.
+func (u *GroupUpsertBulk) SetAddress(v string) *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
-		s.SetSn(v)
+		s.SetAddress(v)
 	})
 }
 
-// UpdateSn sets the "sn" field to the value that was provided on create.
-func (u *GroupUpsertBulk) UpdateSn() *GroupUpsertBulk {
+// UpdateAddress sets the "address" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateAddress() *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
-		s.UpdateSn()
+		s.UpdateAddress()
 	})
 }
 
@@ -1036,6 +1144,27 @@ func (u *GroupUpsertBulk) SetIntro(v string) *GroupUpsertBulk {
 func (u *GroupUpsertBulk) UpdateIntro() *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateIntro()
+	})
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (u *GroupUpsertBulk) ClearIntro() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.ClearIntro()
+	})
+}
+
+// SetKeys sets the "keys" field.
+func (u *GroupUpsertBulk) SetKeys(v json.RawMessage) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetKeys(v)
+	})
+}
+
+// UpdateKeys sets the "keys" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateKeys() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateKeys()
 	})
 }
 

@@ -96,6 +96,26 @@ func (mu *MemberUpdate) ClearIntro() *MemberUpdate {
 	return mu
 }
 
+// SetPublicKey sets the "public_key" field.
+func (mu *MemberUpdate) SetPublicKey(s string) *MemberUpdate {
+	mu.mutation.SetPublicKey(s)
+	return mu
+}
+
+// SetNillablePublicKey sets the "public_key" field if the given value is not nil.
+func (mu *MemberUpdate) SetNillablePublicKey(s *string) *MemberUpdate {
+	if s != nil {
+		mu.SetPublicKey(*s)
+	}
+	return mu
+}
+
+// ClearPublicKey clears the value of the "public_key" field.
+func (mu *MemberUpdate) ClearPublicKey() *MemberUpdate {
+	mu.mutation.ClearPublicKey()
+	return mu
+}
+
 // SetNonce sets the "nonce" field.
 func (mu *MemberUpdate) SetNonce(s string) *MemberUpdate {
 	mu.mutation.SetNonce(s)
@@ -351,6 +371,19 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: member.FieldIntro,
+		})
+	}
+	if value, ok := mu.mutation.PublicKey(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: member.FieldPublicKey,
+		})
+	}
+	if mu.mutation.PublicKeyCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: member.FieldPublicKey,
 		})
 	}
 	if value, ok := mu.mutation.Nonce(); ok {
@@ -613,6 +646,26 @@ func (muo *MemberUpdateOne) SetNillableIntro(s *string) *MemberUpdateOne {
 // ClearIntro clears the value of the "intro" field.
 func (muo *MemberUpdateOne) ClearIntro() *MemberUpdateOne {
 	muo.mutation.ClearIntro()
+	return muo
+}
+
+// SetPublicKey sets the "public_key" field.
+func (muo *MemberUpdateOne) SetPublicKey(s string) *MemberUpdateOne {
+	muo.mutation.SetPublicKey(s)
+	return muo
+}
+
+// SetNillablePublicKey sets the "public_key" field if the given value is not nil.
+func (muo *MemberUpdateOne) SetNillablePublicKey(s *string) *MemberUpdateOne {
+	if s != nil {
+		muo.SetPublicKey(*s)
+	}
+	return muo
+}
+
+// ClearPublicKey clears the value of the "public_key" field.
+func (muo *MemberUpdateOne) ClearPublicKey() *MemberUpdateOne {
+	muo.mutation.ClearPublicKey()
 	return muo
 }
 
@@ -901,6 +954,19 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: member.FieldIntro,
+		})
+	}
+	if value, ok := muo.mutation.PublicKey(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: member.FieldPublicKey,
+		})
+	}
+	if muo.mutation.PublicKeyCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: member.FieldPublicKey,
 		})
 	}
 	if value, ok := muo.mutation.Nonce(); ok {

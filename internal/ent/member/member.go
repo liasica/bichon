@@ -4,6 +4,8 @@ package member
 
 import (
 	"time"
+
+	"entgo.io/ent"
 )
 
 const (
@@ -21,6 +23,8 @@ const (
 	FieldAvatar = "avatar"
 	// FieldIntro holds the string denoting the intro field in the database.
 	FieldIntro = "intro"
+	// FieldPublicKey holds the string denoting the public_key field in the database.
+	FieldPublicKey = "public_key"
 	// FieldNonce holds the string denoting the nonce field in the database.
 	FieldNonce = "nonce"
 	// FieldShowNickname holds the string denoting the show_nickname field in the database.
@@ -62,6 +66,7 @@ var Columns = []string{
 	FieldNickname,
 	FieldAvatar,
 	FieldIntro,
+	FieldPublicKey,
 	FieldNonce,
 	FieldShowNickname,
 }
@@ -82,7 +87,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/chatpuppy/puppychat/internal/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt time.Time
 	// DefaultShowNickname holds the default value on creation for the "show_nickname" field.

@@ -35,8 +35,9 @@ var schemaGraph = func() *sqlgraph.Schema {
 			group.FieldMembersMax:   {Type: field.TypeInt, Column: group.FieldMembersMax},
 			group.FieldMembersCount: {Type: field.TypeInt, Column: group.FieldMembersCount},
 			group.FieldPublic:       {Type: field.TypeBool, Column: group.FieldPublic},
-			group.FieldSn:           {Type: field.TypeString, Column: group.FieldSn},
+			group.FieldAddress:      {Type: field.TypeString, Column: group.FieldAddress},
 			group.FieldIntro:        {Type: field.TypeString, Column: group.FieldIntro},
+			group.FieldKeys:         {Type: field.TypeJSON, Column: group.FieldKeys},
 		},
 	}
 	graph.Nodes[1] = &sqlgraph.Node{
@@ -73,6 +74,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			member.FieldNickname:     {Type: field.TypeString, Column: member.FieldNickname},
 			member.FieldAvatar:       {Type: field.TypeString, Column: member.FieldAvatar},
 			member.FieldIntro:        {Type: field.TypeString, Column: member.FieldIntro},
+			member.FieldPublicKey:    {Type: field.TypeString, Column: member.FieldPublicKey},
 			member.FieldNonce:        {Type: field.TypeString, Column: member.FieldNonce},
 			member.FieldShowNickname: {Type: field.TypeBool, Column: member.FieldShowNickname},
 		},
@@ -270,14 +272,19 @@ func (f *GroupFilter) WherePublic(p entql.BoolP) {
 	f.Where(p.Field(group.FieldPublic))
 }
 
-// WhereSn applies the entql string predicate on the sn field.
-func (f *GroupFilter) WhereSn(p entql.StringP) {
-	f.Where(p.Field(group.FieldSn))
+// WhereAddress applies the entql string predicate on the address field.
+func (f *GroupFilter) WhereAddress(p entql.StringP) {
+	f.Where(p.Field(group.FieldAddress))
 }
 
 // WhereIntro applies the entql string predicate on the intro field.
 func (f *GroupFilter) WhereIntro(p entql.StringP) {
 	f.Where(p.Field(group.FieldIntro))
+}
+
+// WhereKeys applies the entql json.RawMessage predicate on the keys field.
+func (f *GroupFilter) WhereKeys(p entql.BytesP) {
+	f.Where(p.Field(group.FieldKeys))
 }
 
 // WhereHasOwner applies a predicate to check if query has an edge owner.
@@ -450,6 +457,11 @@ func (f *MemberFilter) WhereAvatar(p entql.StringP) {
 // WhereIntro applies the entql string predicate on the intro field.
 func (f *MemberFilter) WhereIntro(p entql.StringP) {
 	f.Where(p.Field(member.FieldIntro))
+}
+
+// WherePublicKey applies the entql string predicate on the public_key field.
+func (f *MemberFilter) WherePublicKey(p entql.StringP) {
+	f.Where(p.Field(member.FieldPublicKey))
 }
 
 // WhereNonce applies the entql string predicate on the nonce field.

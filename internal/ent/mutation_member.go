@@ -26,6 +26,7 @@ type MemberMutation struct {
 	nickname          *string
 	avatar            *string
 	intro             *string
+	public_key        *string
 	nonce             *string
 	show_nickname     *bool
 	clearedFields     map[string]struct{}
@@ -111,6 +112,12 @@ func (m MemberMutation) Tx() (*Tx, error) {
 	tx := &Tx{config: m.config}
 	tx.init()
 	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Member entities.
+func (m *MemberMutation) SetID(id uint64) {
+	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
@@ -358,6 +365,55 @@ func (m *MemberMutation) IntroCleared() bool {
 func (m *MemberMutation) ResetIntro() {
 	m.intro = nil
 	delete(m.clearedFields, member.FieldIntro)
+}
+
+// SetPublicKey sets the "public_key" field.
+func (m *MemberMutation) SetPublicKey(s string) {
+	m.public_key = &s
+}
+
+// PublicKey returns the value of the "public_key" field in the mutation.
+func (m *MemberMutation) PublicKey() (r string, exists bool) {
+	v := m.public_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicKey returns the old "public_key" field's value of the Member entity.
+// If the Member object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemberMutation) OldPublicKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicKey: %w", err)
+	}
+	return oldValue.PublicKey, nil
+}
+
+// ClearPublicKey clears the value of the "public_key" field.
+func (m *MemberMutation) ClearPublicKey() {
+	m.public_key = nil
+	m.clearedFields[member.FieldPublicKey] = struct{}{}
+}
+
+// PublicKeyCleared returns if the "public_key" field was cleared in this mutation.
+func (m *MemberMutation) PublicKeyCleared() bool {
+	_, ok := m.clearedFields[member.FieldPublicKey]
+	return ok
+}
+
+// ResetPublicKey resets all changes to the "public_key" field.
+func (m *MemberMutation) ResetPublicKey() {
+	m.public_key = nil
+	delete(m.clearedFields, member.FieldPublicKey)
 }
 
 // SetNonce sets the "nonce" field.
@@ -613,7 +669,7 @@ func (m *MemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemberMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, member.FieldCreatedAt)
 	}
@@ -628,6 +684,9 @@ func (m *MemberMutation) Fields() []string {
 	}
 	if m.intro != nil {
 		fields = append(fields, member.FieldIntro)
+	}
+	if m.public_key != nil {
+		fields = append(fields, member.FieldPublicKey)
 	}
 	if m.nonce != nil {
 		fields = append(fields, member.FieldNonce)
@@ -653,6 +712,8 @@ func (m *MemberMutation) Field(name string) (ent.Value, bool) {
 		return m.Avatar()
 	case member.FieldIntro:
 		return m.Intro()
+	case member.FieldPublicKey:
+		return m.PublicKey()
 	case member.FieldNonce:
 		return m.Nonce()
 	case member.FieldShowNickname:
@@ -676,6 +737,8 @@ func (m *MemberMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldAvatar(ctx)
 	case member.FieldIntro:
 		return m.OldIntro(ctx)
+	case member.FieldPublicKey:
+		return m.OldPublicKey(ctx)
 	case member.FieldNonce:
 		return m.OldNonce(ctx)
 	case member.FieldShowNickname:
@@ -723,6 +786,13 @@ func (m *MemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIntro(v)
+		return nil
+	case member.FieldPublicKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicKey(v)
 		return nil
 	case member.FieldNonce:
 		v, ok := value.(string)
@@ -777,6 +847,9 @@ func (m *MemberMutation) ClearedFields() []string {
 	if m.FieldCleared(member.FieldIntro) {
 		fields = append(fields, member.FieldIntro)
 	}
+	if m.FieldCleared(member.FieldPublicKey) {
+		fields = append(fields, member.FieldPublicKey)
+	}
 	return fields
 }
 
@@ -800,6 +873,9 @@ func (m *MemberMutation) ClearField(name string) error {
 	case member.FieldIntro:
 		m.ClearIntro()
 		return nil
+	case member.FieldPublicKey:
+		m.ClearPublicKey()
+		return nil
 	}
 	return fmt.Errorf("unknown Member nullable field %s", name)
 }
@@ -822,6 +898,9 @@ func (m *MemberMutation) ResetField(name string) error {
 		return nil
 	case member.FieldIntro:
 		m.ResetIntro()
+		return nil
+	case member.FieldPublicKey:
+		m.ResetPublicKey()
 		return nil
 	case member.FieldNonce:
 		m.ResetNonce()

@@ -1,6 +1,7 @@
 package schema
 
 import (
+    "encoding/json"
     "entgo.io/ent"
     "entgo.io/ent/dialect"
     "entgo.io/ent/dialect/entsql"
@@ -29,10 +30,11 @@ func (Group) Fields() []ent.Field {
         field.String("name"),
         field.Uint64("member_id").Comment("created by"),
         field.Int("members_max"),
-        field.Int("members_count"),
+        field.Int("members_count").Default(1).Comment("members count of group"),
         field.Bool("public"),
-        field.String("sn"),
-        field.String("intro"),
+        field.String("address").Immutable().Unique(),
+        field.String("intro").Optional(),
+        field.JSON("keys", json.RawMessage{}).Comment("group's ethereum keys"),
     }
 }
 
@@ -47,6 +49,7 @@ func (Group) Edges() []ent.Edge {
 
 func (Group) Mixin() []ent.Mixin {
     return []ent.Mixin{
+        internal.SonyflakeIDMixin{},
         internal.TimeMixin{},
     }
 }
@@ -59,6 +62,5 @@ func (Group) Indexes() []ent.Index {
             }),
         ),
         index.Fields("member_id"),
-        index.Fields("sn"),
     }
 }

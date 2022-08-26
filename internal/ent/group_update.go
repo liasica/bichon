@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -62,6 +63,14 @@ func (gu *GroupUpdate) SetMembersCount(i int) *GroupUpdate {
 	return gu
 }
 
+// SetNillableMembersCount sets the "members_count" field if the given value is not nil.
+func (gu *GroupUpdate) SetNillableMembersCount(i *int) *GroupUpdate {
+	if i != nil {
+		gu.SetMembersCount(*i)
+	}
+	return gu
+}
+
 // AddMembersCount adds i to the "members_count" field.
 func (gu *GroupUpdate) AddMembersCount(i int) *GroupUpdate {
 	gu.mutation.AddMembersCount(i)
@@ -74,15 +83,29 @@ func (gu *GroupUpdate) SetPublic(b bool) *GroupUpdate {
 	return gu
 }
 
-// SetSn sets the "sn" field.
-func (gu *GroupUpdate) SetSn(s string) *GroupUpdate {
-	gu.mutation.SetSn(s)
-	return gu
-}
-
 // SetIntro sets the "intro" field.
 func (gu *GroupUpdate) SetIntro(s string) *GroupUpdate {
 	gu.mutation.SetIntro(s)
+	return gu
+}
+
+// SetNillableIntro sets the "intro" field if the given value is not nil.
+func (gu *GroupUpdate) SetNillableIntro(s *string) *GroupUpdate {
+	if s != nil {
+		gu.SetIntro(*s)
+	}
+	return gu
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (gu *GroupUpdate) ClearIntro() *GroupUpdate {
+	gu.mutation.ClearIntro()
+	return gu
+}
+
+// SetKeys sets the "keys" field.
+func (gu *GroupUpdate) SetKeys(jm json.RawMessage) *GroupUpdate {
+	gu.mutation.SetKeys(jm)
 	return gu
 }
 
@@ -314,18 +337,24 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: group.FieldPublic,
 		})
 	}
-	if value, ok := gu.mutation.Sn(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: group.FieldSn,
-		})
-	}
 	if value, ok := gu.mutation.Intro(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: group.FieldIntro,
+		})
+	}
+	if gu.mutation.IntroCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: group.FieldIntro,
+		})
+	}
+	if value, ok := gu.mutation.Keys(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: group.FieldKeys,
 		})
 	}
 	if gu.mutation.OwnerCleared() {
@@ -524,6 +553,14 @@ func (guo *GroupUpdateOne) SetMembersCount(i int) *GroupUpdateOne {
 	return guo
 }
 
+// SetNillableMembersCount sets the "members_count" field if the given value is not nil.
+func (guo *GroupUpdateOne) SetNillableMembersCount(i *int) *GroupUpdateOne {
+	if i != nil {
+		guo.SetMembersCount(*i)
+	}
+	return guo
+}
+
 // AddMembersCount adds i to the "members_count" field.
 func (guo *GroupUpdateOne) AddMembersCount(i int) *GroupUpdateOne {
 	guo.mutation.AddMembersCount(i)
@@ -536,15 +573,29 @@ func (guo *GroupUpdateOne) SetPublic(b bool) *GroupUpdateOne {
 	return guo
 }
 
-// SetSn sets the "sn" field.
-func (guo *GroupUpdateOne) SetSn(s string) *GroupUpdateOne {
-	guo.mutation.SetSn(s)
-	return guo
-}
-
 // SetIntro sets the "intro" field.
 func (guo *GroupUpdateOne) SetIntro(s string) *GroupUpdateOne {
 	guo.mutation.SetIntro(s)
+	return guo
+}
+
+// SetNillableIntro sets the "intro" field if the given value is not nil.
+func (guo *GroupUpdateOne) SetNillableIntro(s *string) *GroupUpdateOne {
+	if s != nil {
+		guo.SetIntro(*s)
+	}
+	return guo
+}
+
+// ClearIntro clears the value of the "intro" field.
+func (guo *GroupUpdateOne) ClearIntro() *GroupUpdateOne {
+	guo.mutation.ClearIntro()
+	return guo
+}
+
+// SetKeys sets the "keys" field.
+func (guo *GroupUpdateOne) SetKeys(jm json.RawMessage) *GroupUpdateOne {
+	guo.mutation.SetKeys(jm)
 	return guo
 }
 
@@ -806,18 +857,24 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 			Column: group.FieldPublic,
 		})
 	}
-	if value, ok := guo.mutation.Sn(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: group.FieldSn,
-		})
-	}
 	if value, ok := guo.mutation.Intro(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: group.FieldIntro,
+		})
+	}
+	if guo.mutation.IntroCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: group.FieldIntro,
+		})
+	}
+	if value, ok := guo.mutation.Keys(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: group.FieldKeys,
 		})
 	}
 	if guo.mutation.OwnerCleared() {

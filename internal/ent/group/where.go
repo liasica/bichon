@@ -123,10 +123,10 @@ func Public(v bool) predicate.Group {
 	})
 }
 
-// Sn applies equality check predicate on the "sn" field. It's identical to SnEQ.
-func Sn(v string) predicate.Group {
+// Address applies equality check predicate on the "address" field. It's identical to AddressEQ.
+func Address(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSn), v))
+		s.Where(sql.EQ(s.C(FieldAddress), v))
 	})
 }
 
@@ -478,102 +478,102 @@ func PublicNEQ(v bool) predicate.Group {
 	})
 }
 
-// SnEQ applies the EQ predicate on the "sn" field.
-func SnEQ(v string) predicate.Group {
+// AddressEQ applies the EQ predicate on the "address" field.
+func AddressEQ(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSn), v))
+		s.Where(sql.EQ(s.C(FieldAddress), v))
 	})
 }
 
-// SnNEQ applies the NEQ predicate on the "sn" field.
-func SnNEQ(v string) predicate.Group {
+// AddressNEQ applies the NEQ predicate on the "address" field.
+func AddressNEQ(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldSn), v))
+		s.Where(sql.NEQ(s.C(FieldAddress), v))
 	})
 }
 
-// SnIn applies the In predicate on the "sn" field.
-func SnIn(vs ...string) predicate.Group {
+// AddressIn applies the In predicate on the "address" field.
+func AddressIn(vs ...string) predicate.Group {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldSn), v...))
+		s.Where(sql.In(s.C(FieldAddress), v...))
 	})
 }
 
-// SnNotIn applies the NotIn predicate on the "sn" field.
-func SnNotIn(vs ...string) predicate.Group {
+// AddressNotIn applies the NotIn predicate on the "address" field.
+func AddressNotIn(vs ...string) predicate.Group {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldSn), v...))
+		s.Where(sql.NotIn(s.C(FieldAddress), v...))
 	})
 }
 
-// SnGT applies the GT predicate on the "sn" field.
-func SnGT(v string) predicate.Group {
+// AddressGT applies the GT predicate on the "address" field.
+func AddressGT(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldSn), v))
+		s.Where(sql.GT(s.C(FieldAddress), v))
 	})
 }
 
-// SnGTE applies the GTE predicate on the "sn" field.
-func SnGTE(v string) predicate.Group {
+// AddressGTE applies the GTE predicate on the "address" field.
+func AddressGTE(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldSn), v))
+		s.Where(sql.GTE(s.C(FieldAddress), v))
 	})
 }
 
-// SnLT applies the LT predicate on the "sn" field.
-func SnLT(v string) predicate.Group {
+// AddressLT applies the LT predicate on the "address" field.
+func AddressLT(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldSn), v))
+		s.Where(sql.LT(s.C(FieldAddress), v))
 	})
 }
 
-// SnLTE applies the LTE predicate on the "sn" field.
-func SnLTE(v string) predicate.Group {
+// AddressLTE applies the LTE predicate on the "address" field.
+func AddressLTE(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldSn), v))
+		s.Where(sql.LTE(s.C(FieldAddress), v))
 	})
 }
 
-// SnContains applies the Contains predicate on the "sn" field.
-func SnContains(v string) predicate.Group {
+// AddressContains applies the Contains predicate on the "address" field.
+func AddressContains(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldSn), v))
+		s.Where(sql.Contains(s.C(FieldAddress), v))
 	})
 }
 
-// SnHasPrefix applies the HasPrefix predicate on the "sn" field.
-func SnHasPrefix(v string) predicate.Group {
+// AddressHasPrefix applies the HasPrefix predicate on the "address" field.
+func AddressHasPrefix(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldSn), v))
+		s.Where(sql.HasPrefix(s.C(FieldAddress), v))
 	})
 }
 
-// SnHasSuffix applies the HasSuffix predicate on the "sn" field.
-func SnHasSuffix(v string) predicate.Group {
+// AddressHasSuffix applies the HasSuffix predicate on the "address" field.
+func AddressHasSuffix(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldSn), v))
+		s.Where(sql.HasSuffix(s.C(FieldAddress), v))
 	})
 }
 
-// SnEqualFold applies the EqualFold predicate on the "sn" field.
-func SnEqualFold(v string) predicate.Group {
+// AddressEqualFold applies the EqualFold predicate on the "address" field.
+func AddressEqualFold(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldSn), v))
+		s.Where(sql.EqualFold(s.C(FieldAddress), v))
 	})
 }
 
-// SnContainsFold applies the ContainsFold predicate on the "sn" field.
-func SnContainsFold(v string) predicate.Group {
+// AddressContainsFold applies the ContainsFold predicate on the "address" field.
+func AddressContainsFold(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldSn), v))
+		s.Where(sql.ContainsFold(s.C(FieldAddress), v))
 	})
 }
 
@@ -659,6 +659,20 @@ func IntroHasPrefix(v string) predicate.Group {
 func IntroHasSuffix(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldIntro), v))
+	})
+}
+
+// IntroIsNil applies the IsNil predicate on the "intro" field.
+func IntroIsNil() predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldIntro)))
+	})
+}
+
+// IntroNotNil applies the NotNil predicate on the "intro" field.
+func IntroNotNil() predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldIntro)))
 	})
 }
 

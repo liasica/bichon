@@ -9,4 +9,6 @@ const (
     HeaderMemberAddress = "X-Member-Address"
     // HeaderAuthorization the Authorization header
     HeaderAuthorization = "Authorization"
+    // HeaderSignature data signature string
+    HeaderSignature = "X-Signature"
 )

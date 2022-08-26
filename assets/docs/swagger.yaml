@@ -40,6 +40,22 @@ info:
   title: ChatPuppy Api Doc
   version: "1.0"
 paths:
+  /group:
+    post:
+      consumes:
+      - application/json
+      description: create an group (need signature verify)
+      operationId: GroupCreate
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Group Create
+      tags:
+      - Group
   /member/{address}:
     get:
       consumes:
