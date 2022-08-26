@@ -13,8 +13,25 @@ definitions:
       nonce:
         type: string
     type: object
+  model.MemberProfile:
+    properties:
+      address:
+        type: string
+      avatar:
+        description: optional
+        type: string
+      intro:
+        description: optional
+        type: string
+      nickname:
+        description: optional
+        type: string
+    type: object
   model.MemberSigninRes:
     properties:
+      profile:
+        allOf:
+        - $ref: '#/definitions/model.MemberProfile'
       token:
         type: string
     type: object
@@ -23,10 +40,27 @@ info:
   title: ChatPuppy Api Doc
   version: "1.0"
 paths:
+  /member/{address}:
+    get:
+      consumes:
+      - application/json
+      description: Getting member's profile using address
+      operationId: MemberProfile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Member Profile
+      tags:
+      - Member
   /member/nonce/{address}:
     get:
       consumes:
       - application/json
+      description: Getting nonce string to be signed
       operationId: MemberNonce
       produces:
       - application/json
@@ -40,7 +74,7 @@ paths:
                 data:
                   $ref: '#/definitions/model.MemberNonceRes'
               type: object
-      summary: Get Member Signin Nonce String
+      summary: Member Signin Nonce
       tags:
       - Member
   /memeber:

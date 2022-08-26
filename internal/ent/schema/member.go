@@ -6,6 +6,7 @@ import (
     "entgo.io/ent/schema"
     "entgo.io/ent/schema/edge"
     "entgo.io/ent/schema/field"
+    "entgo.io/ent/schema/index"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
 )
 
@@ -49,5 +50,7 @@ func (Member) Mixin() []ent.Mixin {
 }
 
 func (Member) Indexes() []ent.Index {
-    return []ent.Index{}
+    return []ent.Index{
+        index.Fields("nonce"),
+    }
 }

@@ -1,5 +1,11 @@
 package model
 
+import "regexp"
+
+func IsValidAddress(address string) bool {
+    return regexp.MustCompile(`^0x[a-fA-F0-9]{40}$`).MatchString(address)
+}
+
 type MemberAddressParam struct {
     Address string `json:"address" param:"address" validate:"required,address"`
 }
@@ -15,5 +21,13 @@ type MemberSigninReq struct {
 }
 
 type MemberSigninRes struct {
-    Token string
+    Token   string         `json:"token"`
+    Profile *MemberProfile `json:"profile"`
+}
+
+type MemberProfile struct {
+    Address  string `json:"address"`
+    Nickname string `json:"nickname,omitempty"` // optional
+    Avatar   string `json:"avatar,omitempty"`   // optional
+    Intro    string `json:"intro,omitempty"`    // optional
 }

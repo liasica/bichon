@@ -5,6 +5,8 @@ const (
     HeaderDispositionType = "Content-Disposition"
     // HeaderContentType the ContentType Header
     HeaderContentType = "Content-Type"
-    // HeaderMemberToken memeber's token
-    HeaderMemberToken = "X-Member-Token"
+    // HeaderMemberAddress memeber's eth address
+    HeaderMemberAddress = "X-Member-Address"
+    // HeaderAuthorization the Authorization header
+    HeaderAuthorization = "Authorization"
 )

@@ -15,12 +15,16 @@ func NewContext(c echo.Context) *BaseContext {
     }
 }
 
+// Context getting base context
 func Context(c echo.Context) *BaseContext {
-    ctx, ok := c.(*BaseContext)
-    if ok {
+    switch ctx := c.(type) {
+    case *BaseContext:
         return ctx
+    case *MemberContext:
+        return ctx.BaseContext
+    default:
+        return nil
     }
-    return nil
 }
 
 // BindValidate Bind and validate data
@@ -40,5 +44,21 @@ func ContextBinding[T any](c echo.Context) (*BaseContext, *T) {
     ctx := Context(c)
     req := new(T)
     ctx.BindValidate(req)
+    return ctx, req
+}
+
+type ContextWrapper interface {
+    MemberContext
+}
+
+func ContextX[T ContextWrapper](c any) *T {
+    ctx, _ := c.(*T)
+    return ctx
+}
+
+func ContextBindingX[K ContextWrapper, T any](c echo.Context) (*K, *T) {
+    ctx := ContextX[K](c)
+    req := new(T)
+    Context(c).BindValidate(req)
     return ctx, req
 }

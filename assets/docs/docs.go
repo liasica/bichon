@@ -18,6 +18,7 @@ const docTemplate = `{
     "paths": {
         "/member/nonce/{address}": {
             "get": {
+                "description": "Getting nonce string to be signed",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,7 +28,7 @@ const docTemplate = `{
                 "tags": [
                     "Member"
                 ],
-                "summary": "Get Member Signin Nonce String",
+                "summary": "Member Signin Nonce",
                 "operationId": "MemberNonce",
                 "responses": {
                     "200": {
@@ -46,6 +47,30 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/member/{address}": {
+            "get": {
+                "description": "Getting member's profile using address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Member"
+                ],
+                "summary": "Member Profile",
+                "operationId": "MemberProfile",
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
                         }
                     }
                 }
@@ -108,9 +133,36 @@ const docTemplate = `{
                 }
             }
         },
+        "model.MemberProfile": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "description": "optional",
+                    "type": "string"
+                },
+                "intro": {
+                    "description": "optional",
+                    "type": "string"
+                },
+                "nickname": {
+                    "description": "optional",
+                    "type": "string"
+                }
+            }
+        },
         "model.MemberSigninRes": {
             "type": "object",
             "properties": {
+                "profile": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.MemberProfile"
+                        }
+                    ]
+                },
                 "token": {
                     "type": "string"
                 }

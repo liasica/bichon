@@ -10,6 +10,7 @@ import (
     "github.com/ethereum/go-ethereum/accounts"
     "github.com/ethereum/go-ethereum/common/hexutil"
     "github.com/ethereum/go-ethereum/crypto"
+    "github.com/golang-jwt/jwt/v4"
     "math/big"
     "strings"
     "time"
@@ -25,6 +26,29 @@ func NewMember() *memberService {
         ctx: context.Background(),
         orm: ent.Database.Member,
     }
+}
+
+// QueryAddress getting member from address
+func (s *memberService) QueryAddress(address string) (*ent.Member, error) {
+    return s.orm.Query().Where(member.Address(address)).First(s.ctx)
+}
+
+// Authenticate getting and Authenticate member
+func (s *memberService) Authenticate(address string, token string) (*ent.Member, error) {
+    mem, err := s.QueryAddress(address)
+    if err != nil {
+        return nil, err
+    }
+    jws := NewJwt(mem.Nonce, mem.Address, 24*time.Hour)
+    var jrc *jwt.RegisteredClaims
+    jrc, err = jws.Verify(token)
+    if err != nil {
+        return nil, err
+    }
+    if jrc.Subject == mem.Address {
+        return mem, nil
+    }
+    return nil, model.ErrAuthError
 }
 
 // Nonce generate auth nonce string for member's address
@@ -55,6 +79,12 @@ func (s *memberService) Nonce(req *model.MemberAddressParam) (res *model.MemberN
 
 // Signin member signin, return jwt token
 func (s *memberService) Signin(req *model.MemberSigninReq) (res *model.MemberSigninRes, err error) {
+    // getting member from database with nonce string
+    mem, _ := s.orm.Query().Where(member.Address(req.Address), member.Nonce(req.Nonce)).First(s.ctx)
+    if mem == nil {
+        err = model.ErrAuthError
+        return
+    }
     // decode the provided signature
     sig := hexutil.MustDecode(req.Signature)
     // see at https://github.com/ethereum/go-ethereum/blob/master/internal/ethapi/api.go#L516
@@ -80,6 +110,30 @@ func (s *memberService) Signin(req *model.MemberSigninReq) (res *model.MemberSig
     if err != nil {
         return
     }
-    res = &model.MemberSigninRes{Token: token}
+    res = &model.MemberSigninRes{Token: token, Profile: s.Profile(mem)}
     return
+}
+
+// Profile returns member's profile
+func (s *memberService) Profile(param any) *model.MemberProfile {
+    var mem *ent.Member
+    switch p := param.(type) {
+    case string:
+        mem, _ = s.QueryAddress(p)
+        break
+    case *ent.Member:
+        mem = p
+        break
+    default:
+        return nil
+    }
+    if mem == nil {
+        return nil
+    }
+    return &model.MemberProfile{
+        Address:  mem.Address,
+        Nickname: mem.Nickname,
+        Avatar:   mem.Avatar,
+        Intro:    mem.Intro,
+    }
 }

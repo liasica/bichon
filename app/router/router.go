@@ -1,7 +1,7 @@
 package router
 
 import (
-    "errors"
+    "fmt"
     "github.com/chatpuppy/puppychat/app"
     "github.com/chatpuppy/puppychat/app/middleware"
     "github.com/chatpuppy/puppychat/app/request"
@@ -18,7 +18,7 @@ func Run() {
     corsConfig := mw.DefaultCORSConfig
     corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, []string{
         app.HeaderContentType,
-        app.HeaderMemberToken,
+        app.HeaderMemberAddress,
     }...)
     corsConfig.ExposeHeaders = append(corsConfig.ExposeHeaders, []string{
         app.HeaderContentType,
@@ -62,7 +62,7 @@ func Run() {
         case *echo.HTTPError:
             target := err.(*echo.HTTPError)
             code = target.Code
-            err = errors.New(target.Error())
+            err = fmt.Errorf("%v", target.Message)
             break
         }
         _ = ctx.SendResponse(data, err, code)

@@ -6,6 +6,10 @@ import (
     "net/http"
 )
 
+const (
+    CodeEmpty = 0
+)
+
 type Response struct {
     Code    int    `json:"code"`
     Message string `json:"message"`
@@ -13,23 +17,30 @@ type Response struct {
 }
 
 // SendResponse Send api response
-func (c *BaseContext) SendResponse(data any, err error, params ...int) error {
-    var r *Response
-    if err != nil {
-        r = &Response{
-            Message: err.Error(),
-            Code:    http.StatusBadRequest,
-        }
-    } else {
-        r = &Response{
-            Message: "ok",
-            Data:    data,
-            Code:    http.StatusOK,
+func (c *BaseContext) SendResponse(data any, params ...any) error {
+    r := &Response{
+        Message: "ok",
+    }
+    for _, param := range params {
+        switch p := param.(type) {
+        case error:
+            r.Message = p.Error()
+            if r.Code == CodeEmpty {
+                r.Code = http.StatusBadRequest
+            }
+            break
+        case int:
+            r.Code = p
+            break
         }
     }
 
-    if len(params) > 0 {
-        r.Code = params[0]
+    if r.Code == CodeEmpty {
+        r.Code = http.StatusOK
+    }
+
+    if data != nil {
+        r.Data = data
     }
 
     buffer := &bytes.Buffer{}
