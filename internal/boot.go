@@ -4,9 +4,6 @@ import (
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/g"
     "github.com/chatpuppy/puppychat/pkg/logger"
-    "github.com/golang-module/carbon/v2"
-    "os"
-    "time"
 )
 
 var (
@@ -28,13 +25,6 @@ func Bootstrap() {
 
     // load configure from file
     g.InitializeConfig()
-
-    // set timezone to UTC
-    tz := time.UTC.String()
-    _ = os.Setenv("TZ", tz)
-    loc, _ := time.LoadLocation(tz)
-    time.Local = loc
-    carbon.SetTimezone(tz)
 
     // connect database
     ent.OpenDatabase(g.Config.Database.Dsn, g.Config.Database.Debug)

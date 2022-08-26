@@ -20,7 +20,7 @@ var Group = new(group)
 // @Accept       json
 // @Produce      json
 // @Param        body  body     model.GroupCreateReq  true  "Group info"
-// @Success      200  {object}  app.Response  "Response success"
+// @Success      200  {object}  app.Response{data=model.GroupDetail}  "Response success"
 func (*group) Create(c echo.Context) (err error) {
     ctx, req := app.MemberContextAndBinding[model.GroupCreateReq](c)
     return ctx.SendResponse(service.NewGroup().Create(ctx.Member, req))

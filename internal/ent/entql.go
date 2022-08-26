@@ -31,13 +31,14 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Fields: map[string]*sqlgraph.FieldSpec{
 			group.FieldCreatedAt:    {Type: field.TypeTime, Column: group.FieldCreatedAt},
 			group.FieldName:         {Type: field.TypeString, Column: group.FieldName},
+			group.FieldCategory:     {Type: field.TypeString, Column: group.FieldCategory},
 			group.FieldMemberID:     {Type: field.TypeUint64, Column: group.FieldMemberID},
 			group.FieldMembersMax:   {Type: field.TypeInt, Column: group.FieldMembersMax},
 			group.FieldMembersCount: {Type: field.TypeInt, Column: group.FieldMembersCount},
 			group.FieldPublic:       {Type: field.TypeBool, Column: group.FieldPublic},
 			group.FieldAddress:      {Type: field.TypeString, Column: group.FieldAddress},
 			group.FieldIntro:        {Type: field.TypeString, Column: group.FieldIntro},
-			group.FieldKeys:         {Type: field.TypeJSON, Column: group.FieldKeys},
+			group.FieldKeys:         {Type: field.TypeString, Column: group.FieldKeys},
 		},
 	}
 	graph.Nodes[1] = &sqlgraph.Node{
@@ -252,6 +253,11 @@ func (f *GroupFilter) WhereName(p entql.StringP) {
 	f.Where(p.Field(group.FieldName))
 }
 
+// WhereCategory applies the entql string predicate on the category field.
+func (f *GroupFilter) WhereCategory(p entql.StringP) {
+	f.Where(p.Field(group.FieldCategory))
+}
+
 // WhereMemberID applies the entql uint64 predicate on the member_id field.
 func (f *GroupFilter) WhereMemberID(p entql.Uint64P) {
 	f.Where(p.Field(group.FieldMemberID))
@@ -282,8 +288,8 @@ func (f *GroupFilter) WhereIntro(p entql.StringP) {
 	f.Where(p.Field(group.FieldIntro))
 }
 
-// WhereKeys applies the entql json.RawMessage predicate on the keys field.
-func (f *GroupFilter) WhereKeys(p entql.BytesP) {
+// WhereKeys applies the entql string predicate on the keys field.
+func (f *GroupFilter) WhereKeys(p entql.StringP) {
 	f.Where(p.Field(group.FieldKeys))
 }
 

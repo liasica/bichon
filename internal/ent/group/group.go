@@ -17,6 +17,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
 	// FieldMemberID holds the string denoting the member_id field in the database.
 	FieldMemberID = "member_id"
 	// FieldMembersMax holds the string denoting the members_max field in the database.
@@ -65,6 +67,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldName,
+	FieldCategory,
 	FieldMemberID,
 	FieldMembersMax,
 	FieldMembersCount,

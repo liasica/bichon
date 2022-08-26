@@ -95,6 +95,13 @@ func Name(v string) predicate.Group {
 	})
 }
 
+// Category applies equality check predicate on the "category" field. It's identical to CategoryEQ.
+func Category(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCategory), v))
+	})
+}
+
 // MemberID applies equality check predicate on the "member_id" field. It's identical to MemberIDEQ.
 func MemberID(v uint64) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
@@ -134,6 +141,13 @@ func Address(v string) predicate.Group {
 func Intro(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldIntro), v))
+	})
+}
+
+// Keys applies equality check predicate on the "keys" field. It's identical to KeysEQ.
+func Keys(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldKeys), v))
 	})
 }
 
@@ -297,6 +311,105 @@ func NameEqualFold(v string) predicate.Group {
 func NameContainsFold(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
+	})
+}
+
+// CategoryEQ applies the EQ predicate on the "category" field.
+func CategoryEQ(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryNEQ applies the NEQ predicate on the "category" field.
+func CategoryNEQ(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryIn applies the In predicate on the "category" field.
+func CategoryIn(vs ...string) predicate.Group {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCategory), v...))
+	})
+}
+
+// CategoryNotIn applies the NotIn predicate on the "category" field.
+func CategoryNotIn(vs ...string) predicate.Group {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCategory), v...))
+	})
+}
+
+// CategoryGT applies the GT predicate on the "category" field.
+func CategoryGT(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryGTE applies the GTE predicate on the "category" field.
+func CategoryGTE(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryLT applies the LT predicate on the "category" field.
+func CategoryLT(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryLTE applies the LTE predicate on the "category" field.
+func CategoryLTE(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryContains applies the Contains predicate on the "category" field.
+func CategoryContains(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryHasPrefix applies the HasPrefix predicate on the "category" field.
+func CategoryHasPrefix(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryHasSuffix applies the HasSuffix predicate on the "category" field.
+func CategoryHasSuffix(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryEqualFold applies the EqualFold predicate on the "category" field.
+func CategoryEqualFold(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldCategory), v))
+	})
+}
+
+// CategoryContainsFold applies the ContainsFold predicate on the "category" field.
+func CategoryContainsFold(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldCategory), v))
 	})
 }
 
@@ -687,6 +800,105 @@ func IntroEqualFold(v string) predicate.Group {
 func IntroContainsFold(v string) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldIntro), v))
+	})
+}
+
+// KeysEQ applies the EQ predicate on the "keys" field.
+func KeysEQ(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldKeys), v))
+	})
+}
+
+// KeysNEQ applies the NEQ predicate on the "keys" field.
+func KeysNEQ(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldKeys), v))
+	})
+}
+
+// KeysIn applies the In predicate on the "keys" field.
+func KeysIn(vs ...string) predicate.Group {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldKeys), v...))
+	})
+}
+
+// KeysNotIn applies the NotIn predicate on the "keys" field.
+func KeysNotIn(vs ...string) predicate.Group {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldKeys), v...))
+	})
+}
+
+// KeysGT applies the GT predicate on the "keys" field.
+func KeysGT(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldKeys), v))
+	})
+}
+
+// KeysGTE applies the GTE predicate on the "keys" field.
+func KeysGTE(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldKeys), v))
+	})
+}
+
+// KeysLT applies the LT predicate on the "keys" field.
+func KeysLT(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldKeys), v))
+	})
+}
+
+// KeysLTE applies the LTE predicate on the "keys" field.
+func KeysLTE(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldKeys), v))
+	})
+}
+
+// KeysContains applies the Contains predicate on the "keys" field.
+func KeysContains(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldKeys), v))
+	})
+}
+
+// KeysHasPrefix applies the HasPrefix predicate on the "keys" field.
+func KeysHasPrefix(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldKeys), v))
+	})
+}
+
+// KeysHasSuffix applies the HasSuffix predicate on the "keys" field.
+func KeysHasSuffix(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldKeys), v))
+	})
+}
+
+// KeysEqualFold applies the EqualFold predicate on the "keys" field.
+func KeysEqualFold(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldKeys), v))
+	})
+}
+
+// KeysContainsFold applies the ContainsFold predicate on the "keys" field.
+func KeysContainsFold(v string) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldKeys), v))
 	})
 }
 

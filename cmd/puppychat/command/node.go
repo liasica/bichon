@@ -27,7 +27,7 @@ func nodeGenerate() *cobra.Command {
         Use:   "generate",
         Short: "Generate new node's rsa keys",
         Run: func(_ *cobra.Command, _ []string) {
-            public, private := utils.NewRsa().GenRsaKey()
+            private, public := utils.NewRsa().GenRsaKey()
             n := &g.Node{
                 PublicKey:  public,
                 PrivateKey: private,

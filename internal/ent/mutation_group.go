@@ -9,7 +9,6 @@ import (
     "errors"
     "time"
     "github.com/chatpuppy/puppychat/internal/ent/group"
-    "encoding/json"
     "github.com/chatpuppy/puppychat/internal/ent/predicate"
 
     "entgo.io/ent"
@@ -24,6 +23,7 @@ type GroupMutation struct {
 	id               *uint64
 	created_at       *time.Time
 	name             *string
+	category         *string
 	members_max      *int
 	addmembers_max   *int
 	members_count    *int
@@ -31,7 +31,7 @@ type GroupMutation struct {
 	public           *bool
 	address          *string
 	intro            *string
-	keys             *json.RawMessage
+	keys             *string
 	clearedFields    map[string]struct{}
 	owner            *uint64
 	clearedowner     bool
@@ -220,6 +220,42 @@ func (m *GroupMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *GroupMutation) ResetName() {
 	m.name = nil
+}
+
+// SetCategory sets the "category" field.
+func (m *GroupMutation) SetCategory(s string) {
+	m.category = &s
+}
+
+// Category returns the value of the "category" field in the mutation.
+func (m *GroupMutation) Category() (r string, exists bool) {
+	v := m.category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategory returns the old "category" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldCategory(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
+	}
+	return oldValue.Category, nil
+}
+
+// ResetCategory resets all changes to the "category" field.
+func (m *GroupMutation) ResetCategory() {
+	m.category = nil
 }
 
 // SetMemberID sets the "member_id" field.
@@ -492,12 +528,12 @@ func (m *GroupMutation) ResetIntro() {
 }
 
 // SetKeys sets the "keys" field.
-func (m *GroupMutation) SetKeys(jm json.RawMessage) {
-	m.keys = &jm
+func (m *GroupMutation) SetKeys(s string) {
+	m.keys = &s
 }
 
 // Keys returns the value of the "keys" field in the mutation.
-func (m *GroupMutation) Keys() (r json.RawMessage, exists bool) {
+func (m *GroupMutation) Keys() (r string, exists bool) {
 	v := m.keys
 	if v == nil {
 		return
@@ -508,7 +544,7 @@ func (m *GroupMutation) Keys() (r json.RawMessage, exists bool) {
 // OldKeys returns the old "keys" field's value of the Group entity.
 // If the Group object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldKeys(ctx context.Context) (v json.RawMessage, err error) {
+func (m *GroupMutation) OldKeys(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldKeys is only allowed on UpdateOne operations")
 	}
@@ -693,12 +729,15 @@ func (m *GroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, group.FieldCreatedAt)
 	}
 	if m.name != nil {
 		fields = append(fields, group.FieldName)
+	}
+	if m.category != nil {
+		fields = append(fields, group.FieldCategory)
 	}
 	if m.owner != nil {
 		fields = append(fields, group.FieldMemberID)
@@ -733,6 +772,8 @@ func (m *GroupMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case group.FieldName:
 		return m.Name()
+	case group.FieldCategory:
+		return m.Category()
 	case group.FieldMemberID:
 		return m.MemberID()
 	case group.FieldMembersMax:
@@ -760,6 +801,8 @@ func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldCreatedAt(ctx)
 	case group.FieldName:
 		return m.OldName(ctx)
+	case group.FieldCategory:
+		return m.OldCategory(ctx)
 	case group.FieldMemberID:
 		return m.OldMemberID(ctx)
 	case group.FieldMembersMax:
@@ -796,6 +839,13 @@ func (m *GroupMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case group.FieldCategory:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategory(v)
 		return nil
 	case group.FieldMemberID:
 		v, ok := value.(uint64)
@@ -840,7 +890,7 @@ func (m *GroupMutation) SetField(name string, value ent.Value) error {
 		m.SetIntro(v)
 		return nil
 	case group.FieldKeys:
-		v, ok := value.(json.RawMessage)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -936,6 +986,9 @@ func (m *GroupMutation) ResetField(name string) error {
 		return nil
 	case group.FieldName:
 		m.ResetName()
+		return nil
+	case group.FieldCategory:
+		m.ResetCategory()
 		return nil
 	case group.FieldMemberID:
 		m.ResetMemberID()

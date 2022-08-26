@@ -23,7 +23,7 @@ func NewGroup() *groupService {
 }
 
 // Create create group
-func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (gro any, err error) {
+func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *model.GroupDetail, err error) {
     // check if the number of created groups exceeds the maximum number
     cnt, _ := s.orm.Query().Where(group.MemberID(mem.ID)).Count(s.ctx)
     if cnt >= model.GroupMax {
@@ -53,14 +53,37 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (gro a
 
     address := crypto.PubkeyToAddress(pub).Hex()
 
+    gp := true
+    if req.Public != nil {
+        gp = *req.Public
+    }
+
     // create group
-    _, _ = s.orm.Create().
+    var gro *ent.Group
+    gro, err = s.orm.Create().
         SetName(req.Name).
+        SetMembersMax(req.MaxMembers).
         SetNillableIntro(req.Intro).
-        SetKeys(b).
+        SetPublic(gp).
+        SetKeys(hexutil.Encode(b)).
         SetAddress(address).
         SetMemberID(mem.ID).
+        SetCategory(req.Category).
         Save(s.ctx)
 
+    res = s.detail(gro, mem)
+
     return
+}
+
+func (s *groupService) detail(gro *ent.Group, mem *ent.Member) *model.GroupDetail {
+    return &model.GroupDetail{
+        Name:       gro.Name,
+        Address:    gro.Address,
+        Intro:      gro.Intro,
+        MembersMax: gro.MembersMax,
+        Public:     gro.Public,
+        Owner:      mem.ID == gro.MemberID,
+        Category:   gro.Category,
+    }
 }

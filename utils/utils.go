@@ -1,6 +1,8 @@
 package utils
 
 import (
+    "crypto/md5"
+    "encoding/hex"
     "fmt"
     "github.com/denisbrodbeck/machineid"
     "log"
@@ -40,4 +42,11 @@ func StrToSnakeCase(str string) string {
     snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
     snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
     return strings.ToLower(snake)
+}
+
+// Md5String hashes using md5 algorithm
+func Md5String(b []byte) string {
+    algorithm := md5.New()
+    algorithm.Write(b)
+    return hex.EncodeToString(algorithm.Sum(nil))
 }

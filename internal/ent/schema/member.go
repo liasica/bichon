@@ -29,7 +29,7 @@ func (Member) Fields() []ent.Field {
         field.String("nickname").Optional(),
         field.String("avatar").Optional(),
         field.String("intro").Optional(),
-        field.String("public_key").Optional(),
+        field.Text("public_key").Optional(),
         field.String("nonce"),
         field.Bool("show_nickname").Default(true),
     }

@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -42,6 +41,12 @@ func (gc *GroupCreate) SetNillableCreatedAt(t *time.Time) *GroupCreate {
 // SetName sets the "name" field.
 func (gc *GroupCreate) SetName(s string) *GroupCreate {
 	gc.mutation.SetName(s)
+	return gc
+}
+
+// SetCategory sets the "category" field.
+func (gc *GroupCreate) SetCategory(s string) *GroupCreate {
+	gc.mutation.SetCategory(s)
 	return gc
 }
 
@@ -98,8 +103,8 @@ func (gc *GroupCreate) SetNillableIntro(s *string) *GroupCreate {
 }
 
 // SetKeys sets the "keys" field.
-func (gc *GroupCreate) SetKeys(jm json.RawMessage) *GroupCreate {
-	gc.mutation.SetKeys(jm)
+func (gc *GroupCreate) SetKeys(s string) *GroupCreate {
+	gc.mutation.SetKeys(s)
 	return gc
 }
 
@@ -248,6 +253,9 @@ func (gc *GroupCreate) check() error {
 	if _, ok := gc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Group.name"`)}
 	}
+	if _, ok := gc.mutation.Category(); !ok {
+		return &ValidationError{Name: "category", err: errors.New(`ent: missing required field "Group.category"`)}
+	}
 	if _, ok := gc.mutation.MemberID(); !ok {
 		return &ValidationError{Name: "member_id", err: errors.New(`ent: missing required field "Group.member_id"`)}
 	}
@@ -319,6 +327,14 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		})
 		_node.Name = value
 	}
+	if value, ok := gc.mutation.Category(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: group.FieldCategory,
+		})
+		_node.Category = value
+	}
 	if value, ok := gc.mutation.MembersMax(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -361,7 +377,7 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := gc.mutation.Keys(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
+			Type:   field.TypeString,
 			Value:  value,
 			Column: group.FieldKeys,
 		})
@@ -501,6 +517,18 @@ func (u *GroupUpsert) UpdateName() *GroupUpsert {
 	return u
 }
 
+// SetCategory sets the "category" field.
+func (u *GroupUpsert) SetCategory(v string) *GroupUpsert {
+	u.Set(group.FieldCategory, v)
+	return u
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateCategory() *GroupUpsert {
+	u.SetExcluded(group.FieldCategory)
+	return u
+}
+
 // SetMemberID sets the "member_id" field.
 func (u *GroupUpsert) SetMemberID(v uint64) *GroupUpsert {
 	u.Set(group.FieldMemberID, v)
@@ -592,7 +620,7 @@ func (u *GroupUpsert) ClearIntro() *GroupUpsert {
 }
 
 // SetKeys sets the "keys" field.
-func (u *GroupUpsert) SetKeys(v json.RawMessage) *GroupUpsert {
+func (u *GroupUpsert) SetKeys(v string) *GroupUpsert {
 	u.Set(group.FieldKeys, v)
 	return u
 }
@@ -682,6 +710,20 @@ func (u *GroupUpsertOne) SetName(v string) *GroupUpsertOne {
 func (u *GroupUpsertOne) UpdateName() *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetCategory sets the "category" field.
+func (u *GroupUpsertOne) SetCategory(v string) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetCategory(v)
+	})
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateCategory() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateCategory()
 	})
 }
 
@@ -791,7 +833,7 @@ func (u *GroupUpsertOne) ClearIntro() *GroupUpsertOne {
 }
 
 // SetKeys sets the "keys" field.
-func (u *GroupUpsertOne) SetKeys(v json.RawMessage) *GroupUpsertOne {
+func (u *GroupUpsertOne) SetKeys(v string) *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
 		s.SetKeys(v)
 	})
@@ -1049,6 +1091,20 @@ func (u *GroupUpsertBulk) UpdateName() *GroupUpsertBulk {
 	})
 }
 
+// SetCategory sets the "category" field.
+func (u *GroupUpsertBulk) SetCategory(v string) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetCategory(v)
+	})
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateCategory() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateCategory()
+	})
+}
+
 // SetMemberID sets the "member_id" field.
 func (u *GroupUpsertBulk) SetMemberID(v uint64) *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
@@ -1155,7 +1211,7 @@ func (u *GroupUpsertBulk) ClearIntro() *GroupUpsertBulk {
 }
 
 // SetKeys sets the "keys" field.
-func (u *GroupUpsertBulk) SetKeys(v json.RawMessage) *GroupUpsertBulk {
+func (u *GroupUpsertBulk) SetKeys(v string) *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
 		s.SetKeys(v)
 	})

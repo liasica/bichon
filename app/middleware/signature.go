@@ -1,6 +1,7 @@
 package middleware
 
 import (
+    "bytes"
     "fmt"
     "github.com/chatpuppy/puppychat/app"
     "github.com/chatpuppy/puppychat/app/model"
@@ -20,7 +21,7 @@ var (
 // Signature signature verifying middleware
 func Signature() echo.MiddlewareFunc {
     return func(next echo.HandlerFunc) echo.HandlerFunc {
-        return func(c echo.Context) error {
+        return func(c echo.Context) (err error) {
             // logged member
             var mem *ent.Member
             if ctx, ok := c.(*app.MemberContext); ok && ctx.Member != nil {
@@ -34,11 +35,18 @@ func Signature() echo.MiddlewareFunc {
                     return app.Context(c).SendResponse(nil, model.ErrAuthError, http.StatusUnauthorized)
                 }
 
-                b, _ := io.ReadAll(c.Request().Body)
+                var b []byte
+                // read body
+                if c.Request().Body != nil {
+                    // reset body
+                    b, _ = io.ReadAll(c.Request().Body)
+                }
+                c.Request().Body = io.NopCloser(bytes.NewBuffer(b)) // Reset
                 // if invaild signature
-                if !request.VerifyingSignature(b, c.Request().Header.Get(app.HeaderSignature), mem.PublicKey) {
+                if !request.VerifyingSignature(b, c.Request().Header.Get(app.HeaderSignature), mem) {
                     return app.Context(c).SendResponse(nil, model.ErrInvalidSignature, http.StatusBadRequest)
                 }
+
             }
             return next(c)
         }

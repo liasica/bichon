@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -34,6 +33,12 @@ func (gu *GroupUpdate) Where(ps ...predicate.Group) *GroupUpdate {
 // SetName sets the "name" field.
 func (gu *GroupUpdate) SetName(s string) *GroupUpdate {
 	gu.mutation.SetName(s)
+	return gu
+}
+
+// SetCategory sets the "category" field.
+func (gu *GroupUpdate) SetCategory(s string) *GroupUpdate {
+	gu.mutation.SetCategory(s)
 	return gu
 }
 
@@ -104,8 +109,8 @@ func (gu *GroupUpdate) ClearIntro() *GroupUpdate {
 }
 
 // SetKeys sets the "keys" field.
-func (gu *GroupUpdate) SetKeys(jm json.RawMessage) *GroupUpdate {
-	gu.mutation.SetKeys(jm)
+func (gu *GroupUpdate) SetKeys(s string) *GroupUpdate {
+	gu.mutation.SetKeys(s)
 	return gu
 }
 
@@ -302,6 +307,13 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: group.FieldName,
 		})
 	}
+	if value, ok := gu.mutation.Category(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: group.FieldCategory,
+		})
+	}
 	if value, ok := gu.mutation.MembersMax(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -352,7 +364,7 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.Keys(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
+			Type:   field.TypeString,
 			Value:  value,
 			Column: group.FieldKeys,
 		})
@@ -527,6 +539,12 @@ func (guo *GroupUpdateOne) SetName(s string) *GroupUpdateOne {
 	return guo
 }
 
+// SetCategory sets the "category" field.
+func (guo *GroupUpdateOne) SetCategory(s string) *GroupUpdateOne {
+	guo.mutation.SetCategory(s)
+	return guo
+}
+
 // SetMemberID sets the "member_id" field.
 func (guo *GroupUpdateOne) SetMemberID(u uint64) *GroupUpdateOne {
 	guo.mutation.SetMemberID(u)
@@ -594,8 +612,8 @@ func (guo *GroupUpdateOne) ClearIntro() *GroupUpdateOne {
 }
 
 // SetKeys sets the "keys" field.
-func (guo *GroupUpdateOne) SetKeys(jm json.RawMessage) *GroupUpdateOne {
-	guo.mutation.SetKeys(jm)
+func (guo *GroupUpdateOne) SetKeys(s string) *GroupUpdateOne {
+	guo.mutation.SetKeys(s)
 	return guo
 }
 
@@ -822,6 +840,13 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 			Column: group.FieldName,
 		})
 	}
+	if value, ok := guo.mutation.Category(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: group.FieldCategory,
+		})
+	}
 	if value, ok := guo.mutation.MembersMax(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -872,7 +897,7 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 	}
 	if value, ok := guo.mutation.Keys(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
+			Type:   field.TypeString,
 			Value:  value,
 			Column: group.FieldKeys,
 		})

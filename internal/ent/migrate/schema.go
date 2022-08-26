@@ -14,12 +14,13 @@ var (
 		{Name: "id", Type: field.TypeUint64, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
+		{Name: "category", Type: field.TypeString},
 		{Name: "members_max", Type: field.TypeInt},
 		{Name: "members_count", Type: field.TypeInt, Default: 1},
 		{Name: "public", Type: field.TypeBool},
 		{Name: "address", Type: field.TypeString, Unique: true},
 		{Name: "intro", Type: field.TypeString, Nullable: true},
-		{Name: "keys", Type: field.TypeJSON},
+		{Name: "keys", Type: field.TypeString, Size: 2147483647},
 		{Name: "member_id", Type: field.TypeUint64},
 	}
 	// GroupTable holds the schema information for the "group" table.
@@ -30,7 +31,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "group_member_own_groups",
-				Columns:    []*schema.Column{GroupColumns[9]},
+				Columns:    []*schema.Column{GroupColumns[10]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -54,7 +55,7 @@ var (
 			{
 				Name:    "group_member_id",
 				Unique:  false,
-				Columns: []*schema.Column{GroupColumns[9]},
+				Columns: []*schema.Column{GroupColumns[10]},
 			},
 		},
 	}
@@ -98,7 +99,7 @@ var (
 		{Name: "nickname", Type: field.TypeString, Nullable: true},
 		{Name: "avatar", Type: field.TypeString, Nullable: true},
 		{Name: "intro", Type: field.TypeString, Nullable: true},
-		{Name: "public_key", Type: field.TypeString, Nullable: true},
+		{Name: "public_key", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "nonce", Type: field.TypeString},
 		{Name: "show_nickname", Type: field.TypeBool, Default: true},
 	}

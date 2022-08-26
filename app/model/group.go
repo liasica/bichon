@@ -9,17 +9,26 @@ import (
 const (
     // GroupMax Maximum number of groups to create
     GroupMax = 100
+    // GroupMaxMembers Maximum members of group
+    GroupMaxMembers = 1000
 )
 
 type GroupCreateReq struct {
-    Name  string  `json:"name" validate:"required,min=2,max=20"`
-    Intro *string `json:"intro"`
+    Category   string  `json:"category" validate:"required"` // group's category
+    Name       string  `json:"name" validate:"required,min=2,max=20"`
+    Intro      *string `json:"intro,omitempty"`  // group intro
+    Public     *bool   `json:"public,omitempty"` // `true` create public group, `false` create private group
+    MaxMembers int     `json:"maxMembers"`       // group's max members
 }
 
-type GroupCreateRes struct {
-    Name    string  `json:"name"`
-    Address string  `json:"address"`
-    Intro   *string `json:"intro,omitempty"`
+type GroupDetail struct {
+    Name       string `json:"name"`
+    Category   string `json:"category"`
+    Address    string `json:"address"`
+    MembersMax int    `json:"membersMax"`
+    Intro      string `json:"intro"`
+    Public     bool   `json:"public"`          // group is public or private
+    Owner      bool   `json:"owner,omitempty"` // group is belongs to current member
 }
 
 type GroupJoinReq struct {

@@ -1,7 +1,6 @@
 package schema
 
 import (
-    "encoding/json"
     "entgo.io/ent"
     "entgo.io/ent/dialect"
     "entgo.io/ent/dialect/entsql"
@@ -28,13 +27,14 @@ func (Group) Annotations() []schema.Annotation {
 func (Group) Fields() []ent.Field {
     return []ent.Field{
         field.String("name"),
+        field.String("category"),
         field.Uint64("member_id").Comment("created by"),
         field.Int("members_max"),
         field.Int("members_count").Default(1).Comment("members count of group"),
         field.Bool("public"),
         field.String("address").Immutable().Unique(),
         field.String("intro").Optional(),
-        field.JSON("keys", json.RawMessage{}).Comment("group's ethereum keys"),
+        field.Text("keys").Comment("group's ethereum keys"),
     }
 }
 
