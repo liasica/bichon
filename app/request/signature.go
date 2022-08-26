@@ -11,9 +11,9 @@ import (
 )
 
 // VerifyingSignature verify the authenticiy of the signature
-func VerifyingSignature(data []byte, signature string, mem *ent.Member) (matches bool) {
+func VerifyingSignature(data []byte, signature, timestamp string, mem *ent.Member) (matches bool) {
     var err error
-    data = []byte(utils.Md5String(data))
+    data = []byte(utils.Md5String(data) + timestamp)
     sig := hexutil.MustDecode(signature)
     sig[crypto.RecoveryIDOffset] -= 27
     msg := accounts.TextHash(data)

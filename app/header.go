@@ -11,4 +11,6 @@ const (
     HeaderAuthorization = "Authorization"
     // HeaderSignature data signature string
     HeaderSignature = "X-Signature"
+    // HeaderTimestamp set timestamp for signature
+    HeaderTimestamp = "X-Timestamp"
 )

@@ -20,6 +20,7 @@ func Run() {
         app.HeaderContentType,
         app.HeaderMemberAddress,
         app.HeaderSignature,
+        app.HeaderTimestamp,
         app.HeaderAuthorization,
     }...)
     corsConfig.ExposeHeaders = append(corsConfig.ExposeHeaders, []string{

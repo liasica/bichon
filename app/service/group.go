@@ -8,6 +8,7 @@ import (
     "github.com/chatpuppy/puppychat/internal/ent/group"
     "github.com/ethereum/go-ethereum/common/hexutil"
     "github.com/ethereum/go-ethereum/crypto"
+    "strings"
 )
 
 type groupService struct {
@@ -24,6 +25,8 @@ func NewGroup() *groupService {
 
 // Create create group
 func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *model.GroupDetail, err error) {
+    if req.MaxMembers > model.GroupMaxMembers {
+    }
     // check if the number of created groups exceeds the maximum number
     cnt, _ := s.orm.Query().Where(group.MemberID(mem.ID)).Count(s.ctx)
     if cnt >= model.GroupMax {
@@ -51,7 +54,7 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *
         return
     }
 
-    address := crypto.PubkeyToAddress(pub).Hex()
+    address := strings.ToLower(crypto.PubkeyToAddress(pub).Hex())
 
     gp := true
     if req.Public != nil {

@@ -43,7 +43,8 @@ func Signature() echo.MiddlewareFunc {
                 }
                 c.Request().Body = io.NopCloser(bytes.NewBuffer(b)) // Reset
                 // if invaild signature
-                if !request.VerifyingSignature(b, c.Request().Header.Get(app.HeaderSignature), mem) {
+                h := c.Request().Header
+                if !request.VerifyingSignature(b, h.Get(app.HeaderSignature), h.Get(app.HeaderTimestamp), mem) {
                     return app.Context(c).SendResponse(nil, model.ErrInvalidSignature, http.StatusBadRequest)
                 }
 
