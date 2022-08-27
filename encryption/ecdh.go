@@ -7,7 +7,7 @@ import (
     "crypto/sha256"
     "crypto/x509"
     "encoding/hex"
-    "fmt"
+    "github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // ECDHGenerateKey generate ecdh private and public keys
@@ -27,14 +27,14 @@ func ECDHPrivateKeyEncode(priv *ecdsa.PrivateKey) (str string, err error) {
     if err != nil {
         return
     }
-    str = fmt.Sprintf("%x", b)
+    str = hexutil.Encode(b)
     return
 }
 
 // ECDHPrivateKeyDecode ECDH private key decode from hex string
 func ECDHPrivateKeyDecode(str string) (priv *ecdsa.PrivateKey, err error) {
     var b []byte
-    b, err = hex.DecodeString(str)
+    b, err = hexutil.Decode(str)
     if err != nil {
         return
     }
@@ -43,14 +43,13 @@ func ECDHPrivateKeyDecode(str string) (priv *ecdsa.PrivateKey, err error) {
 
 // ECDHPublicKeyEncode ECDH public key encode to hex string
 func ECDHPublicKeyEncode(pub *ecdsa.PublicKey) string {
-    b := elliptic.MarshalCompressed(elliptic.P256(), pub.X, pub.Y)
-    return fmt.Sprintf("%x", b)
+    return hexutil.Encode(elliptic.MarshalCompressed(elliptic.P256(), pub.X, pub.Y))
 }
 
 // ECDHPublicKeyDecode ECDH public key decode from hex string
 func ECDHPublicKeyDecode(str string) (pub *ecdsa.PublicKey, err error) {
     var b []byte
-    b, err = hex.DecodeString(str)
+    b, err = hexutil.Decode(str)
     if err != nil {
         return
     }
