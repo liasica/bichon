@@ -1,9 +1,9 @@
 package model
 
 import (
-    "github.com/chatpuppy/puppychat/encryption"
     "github.com/chatpuppy/puppychat/internal/g"
     jsoniter "github.com/json-iterator/go"
+    "github.com/liasica/go-encryption/rsa"
 )
 
 const (
@@ -57,13 +57,13 @@ func (keys *GroupKeys) Encrypt() (b []byte, err error) {
     if err != nil {
         return
     }
-    return encryption.RSAEncrypt(data, g.RsaPublicKey())
+    return rsa.Encrypt(data, g.RsaPublicKey())
 }
 
 // Decrypt decrypt group keys
 func (keys *GroupKeys) Decrypt(b []byte) (err error) {
     var data []byte
-    data, err = encryption.RSADecrypt(b, g.RsaPrivateKey())
+    data, err = rsa.Decrypt(b, g.RsaPrivateKey())
     if err != nil {
         return
     }
