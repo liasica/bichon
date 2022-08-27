@@ -283,7 +283,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "ChatPuppy Api Doc",
-	Description:      "",
+	Description:      "# ChatPuppy Api Document\n\n## Auth\n- Add headers `Authorization Bearer {token}`\n- Add headers `X-Member-Address ${address}`\n\n## Signature\n1. Just post request\n2. Encrypt raw post body string to `MD5`, getting string `bodyMD5`\n3. Concatenate `timestamp` (from 1970, 10 digits) string end of step 2, getting string `s = bodyMD5 + timestamp`\n4. Sign `s` getting `signature` string\n5. Add headers `X-Signature ${signature}`\n6. Add headers `X-Timestamp ${timestamp}`\n\n",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }
