@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -40,20 +41,20 @@ func (gmc *GroupMemberCreate) SetNillableCreatedAt(t *time.Time) *GroupMemberCre
 }
 
 // SetMemberID sets the "member_id" field.
-func (gmc *GroupMemberCreate) SetMemberID(u uint64) *GroupMemberCreate {
-	gmc.mutation.SetMemberID(u)
+func (gmc *GroupMemberCreate) SetMemberID(s string) *GroupMemberCreate {
+	gmc.mutation.SetMemberID(s)
 	return gmc
 }
 
 // SetGroupID sets the "group_id" field.
-func (gmc *GroupMemberCreate) SetGroupID(u uint64) *GroupMemberCreate {
-	gmc.mutation.SetGroupID(u)
+func (gmc *GroupMemberCreate) SetGroupID(s string) *GroupMemberCreate {
+	gmc.mutation.SetGroupID(s)
 	return gmc
 }
 
 // SetKeyID sets the "key_id" field.
-func (gmc *GroupMemberCreate) SetKeyID(u uint64) *GroupMemberCreate {
-	gmc.mutation.SetKeyID(u)
+func (gmc *GroupMemberCreate) SetKeyID(s string) *GroupMemberCreate {
+	gmc.mutation.SetKeyID(s)
 	return gmc
 }
 
@@ -78,8 +79,8 @@ func (gmc *GroupMemberCreate) SetSn(s string) *GroupMemberCreate {
 }
 
 // SetID sets the "id" field.
-func (gmc *GroupMemberCreate) SetID(u uint64) *GroupMemberCreate {
-	gmc.mutation.SetID(u)
+func (gmc *GroupMemberCreate) SetID(s string) *GroupMemberCreate {
+	gmc.mutation.SetID(s)
 	return gmc
 }
 
@@ -208,6 +209,11 @@ func (gmc *GroupMemberCreate) check() error {
 	if _, ok := gmc.mutation.Sn(); !ok {
 		return &ValidationError{Name: "sn", err: errors.New(`ent: missing required field "GroupMember.sn"`)}
 	}
+	if v, ok := gmc.mutation.ID(); ok {
+		if err := groupmember.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "GroupMember.id": %w`, err)}
+		}
+	}
 	if _, ok := gmc.mutation.MemberID(); !ok {
 		return &ValidationError{Name: "member", err: errors.New(`ent: missing required edge "GroupMember.member"`)}
 	}
@@ -228,9 +234,12 @@ func (gmc *GroupMemberCreate) sqlSave(ctx context.Context) (*GroupMember, error)
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = uint64(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected GroupMember.ID type: %T", _spec.ID.Value)
+		}
 	}
 	return _node, nil
 }
@@ -241,7 +250,7 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 		_spec = &sqlgraph.CreateSpec{
 			Table: groupmember.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: groupmember.FieldID,
 			},
 		}
@@ -284,7 +293,7 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -304,7 +313,7 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -324,7 +333,7 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -400,7 +409,7 @@ func (u *GroupMemberUpsert) UpdateCreatedAt() *GroupMemberUpsert {
 }
 
 // SetMemberID sets the "member_id" field.
-func (u *GroupMemberUpsert) SetMemberID(v uint64) *GroupMemberUpsert {
+func (u *GroupMemberUpsert) SetMemberID(v string) *GroupMemberUpsert {
 	u.Set(groupmember.FieldMemberID, v)
 	return u
 }
@@ -412,7 +421,7 @@ func (u *GroupMemberUpsert) UpdateMemberID() *GroupMemberUpsert {
 }
 
 // SetGroupID sets the "group_id" field.
-func (u *GroupMemberUpsert) SetGroupID(v uint64) *GroupMemberUpsert {
+func (u *GroupMemberUpsert) SetGroupID(v string) *GroupMemberUpsert {
 	u.Set(groupmember.FieldGroupID, v)
 	return u
 }
@@ -424,7 +433,7 @@ func (u *GroupMemberUpsert) UpdateGroupID() *GroupMemberUpsert {
 }
 
 // SetKeyID sets the "key_id" field.
-func (u *GroupMemberUpsert) SetKeyID(v uint64) *GroupMemberUpsert {
+func (u *GroupMemberUpsert) SetKeyID(v string) *GroupMemberUpsert {
 	u.Set(groupmember.FieldKeyID, v)
 	return u
 }
@@ -531,7 +540,7 @@ func (u *GroupMemberUpsertOne) UpdateCreatedAt() *GroupMemberUpsertOne {
 }
 
 // SetMemberID sets the "member_id" field.
-func (u *GroupMemberUpsertOne) SetMemberID(v uint64) *GroupMemberUpsertOne {
+func (u *GroupMemberUpsertOne) SetMemberID(v string) *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.SetMemberID(v)
 	})
@@ -545,7 +554,7 @@ func (u *GroupMemberUpsertOne) UpdateMemberID() *GroupMemberUpsertOne {
 }
 
 // SetGroupID sets the "group_id" field.
-func (u *GroupMemberUpsertOne) SetGroupID(v uint64) *GroupMemberUpsertOne {
+func (u *GroupMemberUpsertOne) SetGroupID(v string) *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.SetGroupID(v)
 	})
@@ -559,7 +568,7 @@ func (u *GroupMemberUpsertOne) UpdateGroupID() *GroupMemberUpsertOne {
 }
 
 // SetKeyID sets the "key_id" field.
-func (u *GroupMemberUpsertOne) SetKeyID(v uint64) *GroupMemberUpsertOne {
+func (u *GroupMemberUpsertOne) SetKeyID(v string) *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.SetKeyID(v)
 	})
@@ -623,7 +632,12 @@ func (u *GroupMemberUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *GroupMemberUpsertOne) ID(ctx context.Context) (id uint64, err error) {
+func (u *GroupMemberUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: GroupMemberUpsertOne.ID is not supported by MySQL driver. Use GroupMemberUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -632,7 +646,7 @@ func (u *GroupMemberUpsertOne) ID(ctx context.Context) (id uint64, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *GroupMemberUpsertOne) IDX(ctx context.Context) uint64 {
+func (u *GroupMemberUpsertOne) IDX(ctx context.Context) string {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -683,10 +697,6 @@ func (gmcb *GroupMemberCreateBulk) Save(ctx context.Context) ([]*GroupMember, er
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = uint64(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -836,7 +846,7 @@ func (u *GroupMemberUpsertBulk) UpdateCreatedAt() *GroupMemberUpsertBulk {
 }
 
 // SetMemberID sets the "member_id" field.
-func (u *GroupMemberUpsertBulk) SetMemberID(v uint64) *GroupMemberUpsertBulk {
+func (u *GroupMemberUpsertBulk) SetMemberID(v string) *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.SetMemberID(v)
 	})
@@ -850,7 +860,7 @@ func (u *GroupMemberUpsertBulk) UpdateMemberID() *GroupMemberUpsertBulk {
 }
 
 // SetGroupID sets the "group_id" field.
-func (u *GroupMemberUpsertBulk) SetGroupID(v uint64) *GroupMemberUpsertBulk {
+func (u *GroupMemberUpsertBulk) SetGroupID(v string) *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.SetGroupID(v)
 	})
@@ -864,7 +874,7 @@ func (u *GroupMemberUpsertBulk) UpdateGroupID() *GroupMemberUpsertBulk {
 }
 
 // SetKeyID sets the "key_id" field.
-func (u *GroupMemberUpsertBulk) SetKeyID(v uint64) *GroupMemberUpsertBulk {
+func (u *GroupMemberUpsertBulk) SetKeyID(v string) *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.SetKeyID(v)
 	})

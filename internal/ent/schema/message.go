@@ -24,8 +24,8 @@ func (Message) Annotations() []schema.Annotation {
 // Fields of the Message.
 func (Message) Fields() []ent.Field {
     return []ent.Field{
-        field.Uint64("group_id"),
-        field.Uint64("member_id"),
+        field.String("group_id"),
+        field.String("member_id"),
         field.Text("content"),
     }
 }

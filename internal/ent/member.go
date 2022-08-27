@@ -15,7 +15,7 @@ import (
 type Member struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uint64 `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Address holds the value of the "address" field.
@@ -95,9 +95,7 @@ func (*Member) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case member.FieldShowNickname:
 			values[i] = new(sql.NullBool)
-		case member.FieldID:
-			values[i] = new(sql.NullInt64)
-		case member.FieldAddress, member.FieldNickname, member.FieldAvatar, member.FieldIntro, member.FieldPublicKey, member.FieldNonce:
+		case member.FieldID, member.FieldAddress, member.FieldNickname, member.FieldAvatar, member.FieldIntro, member.FieldPublicKey, member.FieldNonce:
 			values[i] = new(sql.NullString)
 		case member.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -117,11 +115,11 @@ func (m *Member) assignValues(columns []string, values []interface{}) error {
 	for i := range columns {
 		switch columns[i] {
 		case member.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				m.ID = value.String
 			}
-			m.ID = uint64(value.Int64)
 		case member.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])

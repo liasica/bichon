@@ -156,8 +156,8 @@ func (gmq *GroupMemberQuery) FirstX(ctx context.Context) *GroupMember {
 
 // FirstID returns the first GroupMember ID from the query.
 // Returns a *NotFoundError when no GroupMember ID was found.
-func (gmq *GroupMemberQuery) FirstID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (gmq *GroupMemberQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = gmq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -169,7 +169,7 @@ func (gmq *GroupMemberQuery) FirstID(ctx context.Context) (id uint64, err error)
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (gmq *GroupMemberQuery) FirstIDX(ctx context.Context) uint64 {
+func (gmq *GroupMemberQuery) FirstIDX(ctx context.Context) string {
 	id, err := gmq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -207,8 +207,8 @@ func (gmq *GroupMemberQuery) OnlyX(ctx context.Context) *GroupMember {
 // OnlyID is like Only, but returns the only GroupMember ID in the query.
 // Returns a *NotSingularError when more than one GroupMember ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (gmq *GroupMemberQuery) OnlyID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (gmq *GroupMemberQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = gmq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -224,7 +224,7 @@ func (gmq *GroupMemberQuery) OnlyID(ctx context.Context) (id uint64, err error) 
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (gmq *GroupMemberQuery) OnlyIDX(ctx context.Context) uint64 {
+func (gmq *GroupMemberQuery) OnlyIDX(ctx context.Context) string {
 	id, err := gmq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -250,8 +250,8 @@ func (gmq *GroupMemberQuery) AllX(ctx context.Context) []*GroupMember {
 }
 
 // IDs executes the query and returns a list of GroupMember IDs.
-func (gmq *GroupMemberQuery) IDs(ctx context.Context) ([]uint64, error) {
-	var ids []uint64
+func (gmq *GroupMemberQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	if err := gmq.Select(groupmember.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func (gmq *GroupMemberQuery) IDs(ctx context.Context) ([]uint64, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (gmq *GroupMemberQuery) IDsX(ctx context.Context) []uint64 {
+func (gmq *GroupMemberQuery) IDsX(ctx context.Context) []string {
 	ids, err := gmq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -473,8 +473,8 @@ func (gmq *GroupMemberQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 }
 
 func (gmq *GroupMemberQuery) loadMember(ctx context.Context, query *MemberQuery, nodes []*GroupMember, init func(*GroupMember), assign func(*GroupMember, *Member)) error {
-	ids := make([]uint64, 0, len(nodes))
-	nodeids := make(map[uint64][]*GroupMember)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*GroupMember)
 	for i := range nodes {
 		fk := nodes[i].MemberID
 		if _, ok := nodeids[fk]; !ok {
@@ -499,8 +499,8 @@ func (gmq *GroupMemberQuery) loadMember(ctx context.Context, query *MemberQuery,
 	return nil
 }
 func (gmq *GroupMemberQuery) loadGroup(ctx context.Context, query *GroupQuery, nodes []*GroupMember, init func(*GroupMember), assign func(*GroupMember, *Group)) error {
-	ids := make([]uint64, 0, len(nodes))
-	nodeids := make(map[uint64][]*GroupMember)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*GroupMember)
 	for i := range nodes {
 		fk := nodes[i].GroupID
 		if _, ok := nodeids[fk]; !ok {
@@ -525,8 +525,8 @@ func (gmq *GroupMemberQuery) loadGroup(ctx context.Context, query *GroupQuery, n
 	return nil
 }
 func (gmq *GroupMemberQuery) loadKey(ctx context.Context, query *KeyQuery, nodes []*GroupMember, init func(*GroupMember), assign func(*GroupMember, *Key)) error {
-	ids := make([]uint64, 0, len(nodes))
-	nodeids := make(map[uint64][]*GroupMember)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*GroupMember)
 	for i := range nodes {
 		fk := nodes[i].KeyID
 		if _, ok := nodeids[fk]; !ok {
@@ -577,7 +577,7 @@ func (gmq *GroupMemberQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   groupmember.Table,
 			Columns: groupmember.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: groupmember.FieldID,
 			},
 		},

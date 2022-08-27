@@ -20,15 +20,15 @@ type MessageMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *uint64
+	id            *string
 	created_at    *time.Time
 	content       *string
 	clearedFields map[string]struct{}
-	key           *uint64
+	key           *string
 	clearedkey    bool
-	owner         *uint64
+	owner         *string
 	clearedowner  bool
-	group         *uint64
+	group         *string
 	clearedgroup  bool
 	done          bool
 	oldValue      func(context.Context) (*Message, error)
@@ -55,7 +55,7 @@ func newMessageMutation(c config, op Op, opts ...messageOption) *MessageMutation
 }
 
 // withMessageID sets the ID field of the mutation.
-func withMessageID(id uint64) messageOption {
+func withMessageID(id string) messageOption {
 	return func(m *MessageMutation) {
 		var (
 			err   error
@@ -107,13 +107,13 @@ func (m MessageMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Message entities.
-func (m *MessageMutation) SetID(id uint64) {
+func (m *MessageMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *MessageMutation) ID() (id uint64, exists bool) {
+func (m *MessageMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -124,12 +124,12 @@ func (m *MessageMutation) ID() (id uint64, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *MessageMutation) IDs(ctx context.Context) ([]uint64, error) {
+func (m *MessageMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uint64{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -176,12 +176,12 @@ func (m *MessageMutation) ResetCreatedAt() {
 }
 
 // SetKeyID sets the "key_id" field.
-func (m *MessageMutation) SetKeyID(u uint64) {
-	m.key = &u
+func (m *MessageMutation) SetKeyID(s string) {
+	m.key = &s
 }
 
 // KeyID returns the value of the "key_id" field in the mutation.
-func (m *MessageMutation) KeyID() (r uint64, exists bool) {
+func (m *MessageMutation) KeyID() (r string, exists bool) {
 	v := m.key
 	if v == nil {
 		return
@@ -192,7 +192,7 @@ func (m *MessageMutation) KeyID() (r uint64, exists bool) {
 // OldKeyID returns the old "key_id" field's value of the Message entity.
 // If the Message object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageMutation) OldKeyID(ctx context.Context) (v uint64, err error) {
+func (m *MessageMutation) OldKeyID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldKeyID is only allowed on UpdateOne operations")
 	}
@@ -212,12 +212,12 @@ func (m *MessageMutation) ResetKeyID() {
 }
 
 // SetGroupID sets the "group_id" field.
-func (m *MessageMutation) SetGroupID(u uint64) {
-	m.group = &u
+func (m *MessageMutation) SetGroupID(s string) {
+	m.group = &s
 }
 
 // GroupID returns the value of the "group_id" field in the mutation.
-func (m *MessageMutation) GroupID() (r uint64, exists bool) {
+func (m *MessageMutation) GroupID() (r string, exists bool) {
 	v := m.group
 	if v == nil {
 		return
@@ -228,7 +228,7 @@ func (m *MessageMutation) GroupID() (r uint64, exists bool) {
 // OldGroupID returns the old "group_id" field's value of the Message entity.
 // If the Message object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageMutation) OldGroupID(ctx context.Context) (v uint64, err error) {
+func (m *MessageMutation) OldGroupID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
 	}
@@ -248,12 +248,12 @@ func (m *MessageMutation) ResetGroupID() {
 }
 
 // SetMemberID sets the "member_id" field.
-func (m *MessageMutation) SetMemberID(u uint64) {
-	m.owner = &u
+func (m *MessageMutation) SetMemberID(s string) {
+	m.owner = &s
 }
 
 // MemberID returns the value of the "member_id" field in the mutation.
-func (m *MessageMutation) MemberID() (r uint64, exists bool) {
+func (m *MessageMutation) MemberID() (r string, exists bool) {
 	v := m.owner
 	if v == nil {
 		return
@@ -264,7 +264,7 @@ func (m *MessageMutation) MemberID() (r uint64, exists bool) {
 // OldMemberID returns the old "member_id" field's value of the Message entity.
 // If the Message object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageMutation) OldMemberID(ctx context.Context) (v uint64, err error) {
+func (m *MessageMutation) OldMemberID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMemberID is only allowed on UpdateOne operations")
 	}
@@ -332,7 +332,7 @@ func (m *MessageMutation) KeyCleared() bool {
 // KeyIDs returns the "key" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // KeyID instead. It exists only for internal usage by the builders.
-func (m *MessageMutation) KeyIDs() (ids []uint64) {
+func (m *MessageMutation) KeyIDs() (ids []string) {
 	if id := m.key; id != nil {
 		ids = append(ids, *id)
 	}
@@ -346,7 +346,7 @@ func (m *MessageMutation) ResetKey() {
 }
 
 // SetOwnerID sets the "owner" edge to the Member entity by id.
-func (m *MessageMutation) SetOwnerID(id uint64) {
+func (m *MessageMutation) SetOwnerID(id string) {
 	m.owner = &id
 }
 
@@ -361,7 +361,7 @@ func (m *MessageMutation) OwnerCleared() bool {
 }
 
 // OwnerID returns the "owner" edge ID in the mutation.
-func (m *MessageMutation) OwnerID() (id uint64, exists bool) {
+func (m *MessageMutation) OwnerID() (id string, exists bool) {
 	if m.owner != nil {
 		return *m.owner, true
 	}
@@ -371,7 +371,7 @@ func (m *MessageMutation) OwnerID() (id uint64, exists bool) {
 // OwnerIDs returns the "owner" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // OwnerID instead. It exists only for internal usage by the builders.
-func (m *MessageMutation) OwnerIDs() (ids []uint64) {
+func (m *MessageMutation) OwnerIDs() (ids []string) {
 	if id := m.owner; id != nil {
 		ids = append(ids, *id)
 	}
@@ -397,7 +397,7 @@ func (m *MessageMutation) GroupCleared() bool {
 // GroupIDs returns the "group" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // GroupID instead. It exists only for internal usage by the builders.
-func (m *MessageMutation) GroupIDs() (ids []uint64) {
+func (m *MessageMutation) GroupIDs() (ids []string) {
 	if id := m.group; id != nil {
 		ids = append(ids, *id)
 	}
@@ -499,21 +499,21 @@ func (m *MessageMutation) SetField(name string, value ent.Value) error {
 		m.SetCreatedAt(v)
 		return nil
 	case message.FieldKeyID:
-		v, ok := value.(uint64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetKeyID(v)
 		return nil
 	case message.FieldGroupID:
-		v, ok := value.(uint64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGroupID(v)
 		return nil
 	case message.FieldMemberID:
-		v, ok := value.(uint64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -533,16 +533,13 @@ func (m *MessageMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *MessageMutation) AddedFields() []string {
-	var fields []string
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *MessageMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
 	return nil, false
 }
 

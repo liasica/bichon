@@ -2,7 +2,9 @@ package app
 
 import (
     "bytes"
+    "github.com/chatpuppy/puppychat/app/model"
     jsoniter "github.com/json-iterator/go"
+    "github.com/modern-go/reflect2"
     "net/http"
 )
 
@@ -26,7 +28,7 @@ func (c *BaseContext) SendResponse(data any, params ...any) error {
         case error:
             r.Message = p.Error()
             if r.Code == CodeEmpty {
-                r.Code = http.StatusBadRequest
+                r.Code = model.ErrStatus(p)
             }
             break
         case int:
@@ -41,6 +43,10 @@ func (c *BaseContext) SendResponse(data any, params ...any) error {
 
     if data != nil {
         r.Data = data
+    }
+
+    if reflect2.IsNil(data) {
+        r.Data = nil
     }
 
     buffer := &bytes.Buffer{}

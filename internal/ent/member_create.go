@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -122,20 +123,20 @@ func (mc *MemberCreate) SetNillableShowNickname(b *bool) *MemberCreate {
 }
 
 // SetID sets the "id" field.
-func (mc *MemberCreate) SetID(u uint64) *MemberCreate {
-	mc.mutation.SetID(u)
+func (mc *MemberCreate) SetID(s string) *MemberCreate {
+	mc.mutation.SetID(s)
 	return mc
 }
 
 // AddOwnGroupIDs adds the "own_groups" edge to the Group entity by IDs.
-func (mc *MemberCreate) AddOwnGroupIDs(ids ...uint64) *MemberCreate {
+func (mc *MemberCreate) AddOwnGroupIDs(ids ...string) *MemberCreate {
 	mc.mutation.AddOwnGroupIDs(ids...)
 	return mc
 }
 
 // AddOwnGroups adds the "own_groups" edges to the Group entity.
 func (mc *MemberCreate) AddOwnGroups(g ...*Group) *MemberCreate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -143,14 +144,14 @@ func (mc *MemberCreate) AddOwnGroups(g ...*Group) *MemberCreate {
 }
 
 // AddMessageIDs adds the "messages" edge to the Message entity by IDs.
-func (mc *MemberCreate) AddMessageIDs(ids ...uint64) *MemberCreate {
+func (mc *MemberCreate) AddMessageIDs(ids ...string) *MemberCreate {
 	mc.mutation.AddMessageIDs(ids...)
 	return mc
 }
 
 // AddMessages adds the "messages" edges to the Message entity.
 func (mc *MemberCreate) AddMessages(m ...*Message) *MemberCreate {
-	ids := make([]uint64, len(m))
+	ids := make([]string, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -158,14 +159,14 @@ func (mc *MemberCreate) AddMessages(m ...*Message) *MemberCreate {
 }
 
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (mc *MemberCreate) AddGroupIDs(ids ...uint64) *MemberCreate {
+func (mc *MemberCreate) AddGroupIDs(ids ...string) *MemberCreate {
 	mc.mutation.AddGroupIDs(ids...)
 	return mc
 }
 
 // AddGroups adds the "groups" edges to the Group entity.
 func (mc *MemberCreate) AddGroups(g ...*Group) *MemberCreate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -173,14 +174,14 @@ func (mc *MemberCreate) AddGroups(g ...*Group) *MemberCreate {
 }
 
 // AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by IDs.
-func (mc *MemberCreate) AddGroupMemberIDs(ids ...uint64) *MemberCreate {
+func (mc *MemberCreate) AddGroupMemberIDs(ids ...string) *MemberCreate {
 	mc.mutation.AddGroupMemberIDs(ids...)
 	return mc
 }
 
 // AddGroupMembers adds the "group_members" edges to the GroupMember entity.
 func (mc *MemberCreate) AddGroupMembers(g ...*GroupMember) *MemberCreate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -291,6 +292,11 @@ func (mc *MemberCreate) check() error {
 	if _, ok := mc.mutation.ShowNickname(); !ok {
 		return &ValidationError{Name: "show_nickname", err: errors.New(`ent: missing required field "Member.show_nickname"`)}
 	}
+	if v, ok := mc.mutation.ID(); ok {
+		if err := member.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Member.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -302,9 +308,12 @@ func (mc *MemberCreate) sqlSave(ctx context.Context) (*Member, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = uint64(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Member.ID type: %T", _spec.ID.Value)
+		}
 	}
 	return _node, nil
 }
@@ -315,7 +324,7 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: member.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: member.FieldID,
 			},
 		}
@@ -398,7 +407,7 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -417,7 +426,7 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: message.FieldID,
 				},
 			},
@@ -436,7 +445,7 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -459,7 +468,7 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: groupmember.FieldID,
 				},
 			},
@@ -848,7 +857,12 @@ func (u *MemberUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *MemberUpsertOne) ID(ctx context.Context) (id uint64, err error) {
+func (u *MemberUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: MemberUpsertOne.ID is not supported by MySQL driver. Use MemberUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -857,7 +871,7 @@ func (u *MemberUpsertOne) ID(ctx context.Context) (id uint64, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *MemberUpsertOne) IDX(ctx context.Context) uint64 {
+func (u *MemberUpsertOne) IDX(ctx context.Context) string {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -908,10 +922,6 @@ func (mcb *MemberCreateBulk) Save(ctx context.Context) ([]*Member, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = uint64(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

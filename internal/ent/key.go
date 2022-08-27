@@ -15,7 +15,7 @@ import (
 type Key struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uint64 `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Keys holds the value of the "keys" field.
@@ -27,9 +27,7 @@ func (*Key) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case key.FieldID:
-			values[i] = new(sql.NullInt64)
-		case key.FieldKeys:
+		case key.FieldID, key.FieldKeys:
 			values[i] = new(sql.NullString)
 		case key.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -49,11 +47,11 @@ func (k *Key) assignValues(columns []string, values []interface{}) error {
 	for i := range columns {
 		switch columns[i] {
 		case key.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				k.ID = value.String
 			}
-			k.ID = uint64(value.Int64)
 		case key.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])

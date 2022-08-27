@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -40,20 +41,20 @@ func (mc *MessageCreate) SetNillableCreatedAt(t *time.Time) *MessageCreate {
 }
 
 // SetKeyID sets the "key_id" field.
-func (mc *MessageCreate) SetKeyID(u uint64) *MessageCreate {
-	mc.mutation.SetKeyID(u)
+func (mc *MessageCreate) SetKeyID(s string) *MessageCreate {
+	mc.mutation.SetKeyID(s)
 	return mc
 }
 
 // SetGroupID sets the "group_id" field.
-func (mc *MessageCreate) SetGroupID(u uint64) *MessageCreate {
-	mc.mutation.SetGroupID(u)
+func (mc *MessageCreate) SetGroupID(s string) *MessageCreate {
+	mc.mutation.SetGroupID(s)
 	return mc
 }
 
 // SetMemberID sets the "member_id" field.
-func (mc *MessageCreate) SetMemberID(u uint64) *MessageCreate {
-	mc.mutation.SetMemberID(u)
+func (mc *MessageCreate) SetMemberID(s string) *MessageCreate {
+	mc.mutation.SetMemberID(s)
 	return mc
 }
 
@@ -64,8 +65,8 @@ func (mc *MessageCreate) SetContent(s string) *MessageCreate {
 }
 
 // SetID sets the "id" field.
-func (mc *MessageCreate) SetID(u uint64) *MessageCreate {
-	mc.mutation.SetID(u)
+func (mc *MessageCreate) SetID(s string) *MessageCreate {
+	mc.mutation.SetID(s)
 	return mc
 }
 
@@ -75,7 +76,7 @@ func (mc *MessageCreate) SetKey(k *Key) *MessageCreate {
 }
 
 // SetOwnerID sets the "owner" edge to the Member entity by ID.
-func (mc *MessageCreate) SetOwnerID(id uint64) *MessageCreate {
+func (mc *MessageCreate) SetOwnerID(id string) *MessageCreate {
 	mc.mutation.SetOwnerID(id)
 	return mc
 }
@@ -193,6 +194,11 @@ func (mc *MessageCreate) check() error {
 	if _, ok := mc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Message.content"`)}
 	}
+	if v, ok := mc.mutation.ID(); ok {
+		if err := message.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Message.id": %w`, err)}
+		}
+	}
 	if _, ok := mc.mutation.KeyID(); !ok {
 		return &ValidationError{Name: "key", err: errors.New(`ent: missing required edge "Message.key"`)}
 	}
@@ -213,9 +219,12 @@ func (mc *MessageCreate) sqlSave(ctx context.Context) (*Message, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = uint64(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Message.ID type: %T", _spec.ID.Value)
+		}
 	}
 	return _node, nil
 }
@@ -226,7 +235,7 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: message.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: message.FieldID,
 			},
 		}
@@ -261,7 +270,7 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -281,7 +290,7 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -301,7 +310,7 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -377,7 +386,7 @@ func (u *MessageUpsert) UpdateCreatedAt() *MessageUpsert {
 }
 
 // SetKeyID sets the "key_id" field.
-func (u *MessageUpsert) SetKeyID(v uint64) *MessageUpsert {
+func (u *MessageUpsert) SetKeyID(v string) *MessageUpsert {
 	u.Set(message.FieldKeyID, v)
 	return u
 }
@@ -389,7 +398,7 @@ func (u *MessageUpsert) UpdateKeyID() *MessageUpsert {
 }
 
 // SetGroupID sets the "group_id" field.
-func (u *MessageUpsert) SetGroupID(v uint64) *MessageUpsert {
+func (u *MessageUpsert) SetGroupID(v string) *MessageUpsert {
 	u.Set(message.FieldGroupID, v)
 	return u
 }
@@ -401,7 +410,7 @@ func (u *MessageUpsert) UpdateGroupID() *MessageUpsert {
 }
 
 // SetMemberID sets the "member_id" field.
-func (u *MessageUpsert) SetMemberID(v uint64) *MessageUpsert {
+func (u *MessageUpsert) SetMemberID(v string) *MessageUpsert {
 	u.Set(message.FieldMemberID, v)
 	return u
 }
@@ -490,7 +499,7 @@ func (u *MessageUpsertOne) UpdateCreatedAt() *MessageUpsertOne {
 }
 
 // SetKeyID sets the "key_id" field.
-func (u *MessageUpsertOne) SetKeyID(v uint64) *MessageUpsertOne {
+func (u *MessageUpsertOne) SetKeyID(v string) *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetKeyID(v)
 	})
@@ -504,7 +513,7 @@ func (u *MessageUpsertOne) UpdateKeyID() *MessageUpsertOne {
 }
 
 // SetGroupID sets the "group_id" field.
-func (u *MessageUpsertOne) SetGroupID(v uint64) *MessageUpsertOne {
+func (u *MessageUpsertOne) SetGroupID(v string) *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetGroupID(v)
 	})
@@ -518,7 +527,7 @@ func (u *MessageUpsertOne) UpdateGroupID() *MessageUpsertOne {
 }
 
 // SetMemberID sets the "member_id" field.
-func (u *MessageUpsertOne) SetMemberID(v uint64) *MessageUpsertOne {
+func (u *MessageUpsertOne) SetMemberID(v string) *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetMemberID(v)
 	})
@@ -561,7 +570,12 @@ func (u *MessageUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *MessageUpsertOne) ID(ctx context.Context) (id uint64, err error) {
+func (u *MessageUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: MessageUpsertOne.ID is not supported by MySQL driver. Use MessageUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -570,7 +584,7 @@ func (u *MessageUpsertOne) ID(ctx context.Context) (id uint64, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *MessageUpsertOne) IDX(ctx context.Context) uint64 {
+func (u *MessageUpsertOne) IDX(ctx context.Context) string {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -621,10 +635,6 @@ func (mcb *MessageCreateBulk) Save(ctx context.Context) ([]*Message, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = uint64(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -774,7 +784,7 @@ func (u *MessageUpsertBulk) UpdateCreatedAt() *MessageUpsertBulk {
 }
 
 // SetKeyID sets the "key_id" field.
-func (u *MessageUpsertBulk) SetKeyID(v uint64) *MessageUpsertBulk {
+func (u *MessageUpsertBulk) SetKeyID(v string) *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetKeyID(v)
 	})
@@ -788,7 +798,7 @@ func (u *MessageUpsertBulk) UpdateKeyID() *MessageUpsertBulk {
 }
 
 // SetGroupID sets the "group_id" field.
-func (u *MessageUpsertBulk) SetGroupID(v uint64) *MessageUpsertBulk {
+func (u *MessageUpsertBulk) SetGroupID(v string) *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetGroupID(v)
 	})
@@ -802,7 +812,7 @@ func (u *MessageUpsertBulk) UpdateGroupID() *MessageUpsertBulk {
 }
 
 // SetMemberID sets the "member_id" field.
-func (u *MessageUpsertBulk) SetMemberID(v uint64) *MessageUpsertBulk {
+func (u *MessageUpsertBulk) SetMemberID(v string) *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetMemberID(v)
 	})

@@ -17,7 +17,7 @@ type MemberMixin struct {
 }
 
 func (m MemberMixin) Fields() []ent.Field {
-    f := field.Uint64("member_id")
+    f := field.String("member_id")
     if m.Optional {
         f.Optional().Nillable()
     }

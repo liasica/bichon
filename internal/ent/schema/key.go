@@ -16,7 +16,7 @@ type KeyMixin struct {
 }
 
 func (m KeyMixin) Fields() []ent.Field {
-    f := field.Uint64("key_id")
+    f := field.String("key_id")
     if m.Optional {
         f.Optional().Nillable()
     }

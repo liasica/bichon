@@ -18,15 +18,15 @@ import (
 type GroupMember struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uint64 `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// MemberID holds the value of the "member_id" field.
-	MemberID uint64 `json:"member_id,omitempty"`
+	MemberID string `json:"member_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
-	GroupID uint64 `json:"group_id,omitempty"`
+	GroupID string `json:"group_id,omitempty"`
 	// KeyID holds the value of the "key_id" field.
-	KeyID uint64 `json:"key_id,omitempty"`
+	KeyID string `json:"key_id,omitempty"`
 	// member's permission in group
 	Permission uint8 `json:"permission,omitempty"`
 	// user's share sn
@@ -93,9 +93,9 @@ func (*GroupMember) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldKeyID, groupmember.FieldPermission:
+		case groupmember.FieldPermission:
 			values[i] = new(sql.NullInt64)
-		case groupmember.FieldSn:
+		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldKeyID, groupmember.FieldSn:
 			values[i] = new(sql.NullString)
 		case groupmember.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -115,11 +115,11 @@ func (gm *GroupMember) assignValues(columns []string, values []interface{}) erro
 	for i := range columns {
 		switch columns[i] {
 		case groupmember.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				gm.ID = value.String
 			}
-			gm.ID = uint64(value.Int64)
 		case groupmember.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -127,22 +127,22 @@ func (gm *GroupMember) assignValues(columns []string, values []interface{}) erro
 				gm.CreatedAt = value.Time
 			}
 		case groupmember.FieldMemberID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field member_id", values[i])
 			} else if value.Valid {
-				gm.MemberID = uint64(value.Int64)
+				gm.MemberID = value.String
 			}
 		case groupmember.FieldGroupID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field group_id", values[i])
 			} else if value.Valid {
-				gm.GroupID = uint64(value.Int64)
+				gm.GroupID = value.String
 			}
 		case groupmember.FieldKeyID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field key_id", values[i])
 			} else if value.Valid {
-				gm.KeyID = uint64(value.Int64)
+				gm.KeyID = value.String
 			}
 		case groupmember.FieldPermission:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -203,13 +203,13 @@ func (gm *GroupMember) String() string {
 	builder.WriteString(gm.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("member_id=")
-	builder.WriteString(fmt.Sprintf("%v", gm.MemberID))
+	builder.WriteString(gm.MemberID)
 	builder.WriteString(", ")
 	builder.WriteString("group_id=")
-	builder.WriteString(fmt.Sprintf("%v", gm.GroupID))
+	builder.WriteString(gm.GroupID)
 	builder.WriteString(", ")
 	builder.WriteString("key_id=")
-	builder.WriteString(fmt.Sprintf("%v", gm.KeyID))
+	builder.WriteString(gm.KeyID)
 	builder.WriteString(", ")
 	builder.WriteString("permission=")
 	builder.WriteString(fmt.Sprintf("%v", gm.Permission))

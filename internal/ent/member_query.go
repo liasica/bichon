@@ -180,8 +180,8 @@ func (mq *MemberQuery) FirstX(ctx context.Context) *Member {
 
 // FirstID returns the first Member ID from the query.
 // Returns a *NotFoundError when no Member ID was found.
-func (mq *MemberQuery) FirstID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (mq *MemberQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = mq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -193,7 +193,7 @@ func (mq *MemberQuery) FirstID(ctx context.Context) (id uint64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (mq *MemberQuery) FirstIDX(ctx context.Context) uint64 {
+func (mq *MemberQuery) FirstIDX(ctx context.Context) string {
 	id, err := mq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -231,8 +231,8 @@ func (mq *MemberQuery) OnlyX(ctx context.Context) *Member {
 // OnlyID is like Only, but returns the only Member ID in the query.
 // Returns a *NotSingularError when more than one Member ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (mq *MemberQuery) OnlyID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (mq *MemberQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = mq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -248,7 +248,7 @@ func (mq *MemberQuery) OnlyID(ctx context.Context) (id uint64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (mq *MemberQuery) OnlyIDX(ctx context.Context) uint64 {
+func (mq *MemberQuery) OnlyIDX(ctx context.Context) string {
 	id, err := mq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -274,8 +274,8 @@ func (mq *MemberQuery) AllX(ctx context.Context) []*Member {
 }
 
 // IDs executes the query and returns a list of Member IDs.
-func (mq *MemberQuery) IDs(ctx context.Context) ([]uint64, error) {
-	var ids []uint64
+func (mq *MemberQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	if err := mq.Select(member.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -283,7 +283,7 @@ func (mq *MemberQuery) IDs(ctx context.Context) ([]uint64, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (mq *MemberQuery) IDsX(ctx context.Context) []uint64 {
+func (mq *MemberQuery) IDsX(ctx context.Context) []string {
 	ids, err := mq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -521,7 +521,7 @@ func (mq *MemberQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Membe
 
 func (mq *MemberQuery) loadOwnGroups(ctx context.Context, query *GroupQuery, nodes []*Member, init func(*Member), assign func(*Member, *Group)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uint64]*Member)
+	nodeids := make(map[string]*Member)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -548,7 +548,7 @@ func (mq *MemberQuery) loadOwnGroups(ctx context.Context, query *GroupQuery, nod
 }
 func (mq *MemberQuery) loadMessages(ctx context.Context, query *MessageQuery, nodes []*Member, init func(*Member), assign func(*Member, *Message)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uint64]*Member)
+	nodeids := make(map[string]*Member)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -575,8 +575,8 @@ func (mq *MemberQuery) loadMessages(ctx context.Context, query *MessageQuery, no
 }
 func (mq *MemberQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []*Member, init func(*Member), assign func(*Member, *Group)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[uint64]*Member)
-	nids := make(map[uint64]map[*Member]struct{})
+	byID := make(map[string]*Member)
+	nids := make(map[string]map[*Member]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -604,11 +604,11 @@ func (mq *MemberQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes 
 			if err != nil {
 				return nil, err
 			}
-			return append([]interface{}{new(sql.NullInt64)}, values...), nil
+			return append([]interface{}{new(sql.NullString)}, values...), nil
 		}
 		spec.Assign = func(columns []string, values []interface{}) error {
-			outValue := uint64(values[0].(*sql.NullInt64).Int64)
-			inValue := uint64(values[1].(*sql.NullInt64).Int64)
+			outValue := values[0].(*sql.NullString).String
+			inValue := values[1].(*sql.NullString).String
 			if nids[inValue] == nil {
 				nids[inValue] = map[*Member]struct{}{byID[outValue]: struct{}{}}
 				return assign(columns[1:], values[1:])
@@ -633,7 +633,7 @@ func (mq *MemberQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes 
 }
 func (mq *MemberQuery) loadGroupMembers(ctx context.Context, query *GroupMemberQuery, nodes []*Member, init func(*Member), assign func(*Member, *GroupMember)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uint64]*Member)
+	nodeids := make(map[string]*Member)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -685,7 +685,7 @@ func (mq *MemberQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   member.Table,
 			Columns: member.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: member.FieldID,
 			},
 		},

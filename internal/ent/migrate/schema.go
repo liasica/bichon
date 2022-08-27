@@ -11,7 +11,7 @@ import (
 var (
 	// GroupColumns holds the columns for the "group" table.
 	GroupColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "category", Type: field.TypeString},
@@ -21,7 +21,7 @@ var (
 		{Name: "address", Type: field.TypeString, Unique: true},
 		{Name: "intro", Type: field.TypeString, Nullable: true},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
-		{Name: "owner_id", Type: field.TypeUint64},
+		{Name: "owner_id", Type: field.TypeString, Size: 25},
 	}
 	// GroupTable holds the schema information for the "group" table.
 	GroupTable = &schema.Table{
@@ -61,13 +61,13 @@ var (
 	}
 	// GroupMemberColumns holds the columns for the "group_member" table.
 	GroupMemberColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "permission", Type: field.TypeUint8, Default: 0},
 		{Name: "sn", Type: field.TypeString, Unique: true},
-		{Name: "member_id", Type: field.TypeUint64},
-		{Name: "group_id", Type: field.TypeUint64},
-		{Name: "key_id", Type: field.TypeUint64},
+		{Name: "member_id", Type: field.TypeString, Size: 25},
+		{Name: "group_id", Type: field.TypeString, Size: 25},
+		{Name: "key_id", Type: field.TypeString, Size: 25},
 	}
 	// GroupMemberTable holds the schema information for the "group_member" table.
 	GroupMemberTable = &schema.Table{
@@ -109,7 +109,7 @@ var (
 	}
 	// KeyColumns holds the columns for the "key" table.
 	KeyColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
 	}
@@ -128,7 +128,7 @@ var (
 	}
 	// MemberColumns holds the columns for the "member" table.
 	MemberColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "address", Type: field.TypeString, Unique: true},
 		{Name: "nickname", Type: field.TypeString, Nullable: true},
@@ -158,12 +158,12 @@ var (
 	}
 	// MessageColumns holds the columns for the "message" table.
 	MessageColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
-		{Name: "group_id", Type: field.TypeUint64},
-		{Name: "member_id", Type: field.TypeUint64},
-		{Name: "key_id", Type: field.TypeUint64},
+		{Name: "group_id", Type: field.TypeString, Size: 25},
+		{Name: "member_id", Type: field.TypeString, Size: 25},
+		{Name: "key_id", Type: field.TypeString, Size: 25},
 	}
 	// MessageTable holds the schema information for the "message" table.
 	MessageTable = &schema.Table{

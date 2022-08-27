@@ -5,6 +5,8 @@ const (
     GroupMax = 100
     // GroupMaxMembers Maximum members of group
     GroupMaxMembers = 1000
+    // GroupCreateFrequency create group interval seconds
+    GroupCreateFrequency = 60
 )
 
 type GroupCreateReq struct {
@@ -16,6 +18,12 @@ type GroupCreateReq struct {
     *GroupMemberKeyShareReq
 }
 
+type GroupDetailWithPublicKey struct {
+    GroupPublicKey string `json:"groupPublicKey"`
+    KeyID          string `json:"keyId"`
+    *GroupDetail
+}
+
 type GroupDetail struct {
     Name       string `json:"name"`
     Category   string `json:"category"`
@@ -24,10 +32,6 @@ type GroupDetail struct {
     Intro      string `json:"intro"`
     Public     bool   `json:"public"`          // group is public or private
     Owner      bool   `json:"owner,omitempty"` // group is belongs to current member
-}
-
-type GroupJoinReq struct {
-    GroupID uint64 `json:"groupId" validate:"required" trans:"Group ID"`
 }
 
 type GroupKeys struct {
@@ -49,4 +53,9 @@ func (keys *GroupKeys) Decrypt(hex string) (err error) {
     }
     *keys = *decrypted
     return
+}
+
+type GroupJoinReq struct {
+    GroupID string `json:"groupId" validate:"required"`
+    *GroupMemberKeyShareReq
 }

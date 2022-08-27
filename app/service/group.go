@@ -7,6 +7,7 @@ import (
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/group"
+    "github.com/chatpuppy/puppychat/internal/ent/groupmember"
     "github.com/chatpuppy/puppychat/utils"
     "github.com/ethereum/go-ethereum/common/hexutil"
     "github.com/ethereum/go-ethereum/crypto"
@@ -26,8 +27,19 @@ func NewGroup() *groupService {
     }
 }
 
+func (s *groupService) QueryID(id string) (*ent.Group, error) {
+    return s.orm.Query().Where(group.ID(id)).First(s.ctx)
+}
+
 // Create create group
-func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *model.GroupDetail, err error) {
+func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *model.GroupDetailWithPublicKey, err error) {
+    // check group create frequency limit
+    if exist, _ := s.orm.Query().Where(group.OwnerID(mem.ID), group.CreatedAtGT(time.Now().Add(-time.Duration(model.GroupCreateFrequency)*time.Second))).Exist(s.ctx); exist {
+        err = model.ErrCreateFrequency
+        return
+    }
+
+    // check group max members count
     if req.MaxMembers > model.GroupMaxMembers {
         err = model.ErrMaximunMembers
     }
@@ -84,25 +96,59 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *
         }
 
         // join group
-        err = s.joinGroup(tx, mem, gro, model.GroupMemberPermOwner, req.SharedPublic, true)
+        var gkeys *model.GroupMemberKeys
+        var keyID string
+        gkeys, keyID, err = s.joinGroup(tx, mem, gro, model.GroupMemberPermOwner, req.SharedPublic, true)
         if err != nil {
             return
         }
 
-        res = s.detail(gro, mem)
+        res = &model.GroupDetailWithPublicKey{
+            GroupPublicKey: gkeys.Public,
+            KeyID:          keyID,
+            GroupDetail:    s.detail(gro, mem),
+        }
         return
     })
 
     return
 }
 
-func (s *groupService) Join(groupID uint64, memberID uint64, keys *model.GroupMemberKeys) {
+// Join join group
+func (s *groupService) Join(mem *ent.Member, req *model.GroupJoinReq) (res *model.GroupDetailWithPublicKey, err error) {
+    var gro *ent.Group
+    gro, _ = s.QueryID(req.GroupID)
+    if gro == nil {
+        err = model.ErrNotFoundGroup
+        return
+    }
+    s.orm.Query().Where(group.ID(req.GroupID))
+    if exists, _ := ent.Database.GroupMember.Query().Where(groupmember.GroupID(req.GroupID), groupmember.MemberID(mem.ID)).Exist(s.ctx); exists {
+        err = model.ErrAlreadyInGroup
+        return
+    }
 
+    var keys *model.GroupMemberKeys
+    var keyID string
+    err = ent.WithTx(s.ctx, func(tx *ent.Tx) error {
+        keys, keyID, err = s.joinGroup(tx, mem, gro, model.GroupMemberPermDefault, req.SharedPublic, false)
+        return err
+    })
+    if err != nil {
+        return
+    }
+
+    res = &model.GroupDetailWithPublicKey{
+        GroupPublicKey: keys.Public,
+        KeyID:          keyID,
+        GroupDetail:    s.detail(gro, mem),
+    }
+    return
 }
 
-func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, perm uint8, spKey string, isCreate bool) (err error) {
+// joinGroup join group and share ecdh key
+func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, perm uint8, spKey string, isCreate bool) (keys *model.GroupMemberKeys, keyID string, err error) {
     // generate keys
-    var keys *model.GroupMemberKeys
     keys, err = NewKey().GenerateAndShare(spKey)
     if err != nil {
         return
@@ -121,9 +167,10 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
         return
     }
 
+    keyID = k.ID
+
     // create group member set share sn and permission
-    var gm *ent.GroupMember
-    gm, err = tx.GroupMember.Create().
+    _, err = tx.GroupMember.Create().
         SetGroup(gro).
         SetMember(mem).
         SetSn(utils.Md5String([]byte(fmt.Sprintf("%d%d%d", mem.ID, gro.ID, time.Now().UnixNano())))).
@@ -136,7 +183,7 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
 
     if !isCreate {
         // update group's member count
-        _, err = tx.Group.UpdateOne(gro).AddMembersCount(1).AddGroupMembers(gm).Save(s.ctx)
+        _, err = tx.Group.UpdateOne(gro).AddMembersCount(1).Save(s.ctx)
     }
     return
 }
@@ -151,4 +198,9 @@ func (s *groupService) detail(gro *ent.Group, mem *ent.Member) *model.GroupDetai
         Owner:      mem.ID == gro.OwnerID,
         Category:   gro.Category,
     }
+}
+
+// KeyValidate verify key
+// TODO Generation frequency
+func (s *groupService) KeyValidate() {
 }

@@ -18,7 +18,7 @@ type GroupMixin struct {
 }
 
 func (m GroupMixin) Fields() []ent.Field {
-    f := field.Uint64("group_id")
+    f := field.String("group_id")
     if m.Optional {
         f.Optional().Nillable()
     }
@@ -50,7 +50,7 @@ func (Group) Fields() []ent.Field {
     return []ent.Field{
         field.String("name"),
         field.String("category"),
-        field.Uint64("owner_id").Comment("created by"),
+        field.String("owner_id").Comment("created by"),
         field.Int("members_max"),
         field.Int("members_count").Default(1).Comment("members count of group"),
         field.Bool("public"),

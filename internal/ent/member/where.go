@@ -11,28 +11,28 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id uint64) predicate.Member {
+func ID(id string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id uint64) predicate.Member {
+func IDEQ(id string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id uint64) predicate.Member {
+func IDNEQ(id string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...uint64) predicate.Member {
+func IDIn(ids ...string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		v := make([]interface{}, len(ids))
 		for i := range v {
@@ -43,7 +43,7 @@ func IDIn(ids ...uint64) predicate.Member {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...uint64) predicate.Member {
+func IDNotIn(ids ...string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		v := make([]interface{}, len(ids))
 		for i := range v {
@@ -54,28 +54,28 @@ func IDNotIn(ids ...uint64) predicate.Member {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id uint64) predicate.Member {
+func IDGT(id string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id uint64) predicate.Member {
+func IDGTE(id string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id uint64) predicate.Member {
+func IDLT(id string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id uint64) predicate.Member {
+func IDLTE(id string) predicate.Member {
 	return predicate.Member(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
 	})

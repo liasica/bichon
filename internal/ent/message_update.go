@@ -32,20 +32,20 @@ func (mu *MessageUpdate) Where(ps ...predicate.Message) *MessageUpdate {
 }
 
 // SetKeyID sets the "key_id" field.
-func (mu *MessageUpdate) SetKeyID(u uint64) *MessageUpdate {
-	mu.mutation.SetKeyID(u)
+func (mu *MessageUpdate) SetKeyID(s string) *MessageUpdate {
+	mu.mutation.SetKeyID(s)
 	return mu
 }
 
 // SetGroupID sets the "group_id" field.
-func (mu *MessageUpdate) SetGroupID(u uint64) *MessageUpdate {
-	mu.mutation.SetGroupID(u)
+func (mu *MessageUpdate) SetGroupID(s string) *MessageUpdate {
+	mu.mutation.SetGroupID(s)
 	return mu
 }
 
 // SetMemberID sets the "member_id" field.
-func (mu *MessageUpdate) SetMemberID(u uint64) *MessageUpdate {
-	mu.mutation.SetMemberID(u)
+func (mu *MessageUpdate) SetMemberID(s string) *MessageUpdate {
+	mu.mutation.SetMemberID(s)
 	return mu
 }
 
@@ -61,7 +61,7 @@ func (mu *MessageUpdate) SetKey(k *Key) *MessageUpdate {
 }
 
 // SetOwnerID sets the "owner" edge to the Member entity by ID.
-func (mu *MessageUpdate) SetOwnerID(id uint64) *MessageUpdate {
+func (mu *MessageUpdate) SetOwnerID(id string) *MessageUpdate {
 	mu.mutation.SetOwnerID(id)
 	return mu
 }
@@ -185,7 +185,7 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   message.Table,
 			Columns: message.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: message.FieldID,
 			},
 		},
@@ -213,7 +213,7 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -229,7 +229,7 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -248,7 +248,7 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -264,7 +264,7 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -283,7 +283,7 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -299,7 +299,7 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -331,20 +331,20 @@ type MessageUpdateOne struct {
 }
 
 // SetKeyID sets the "key_id" field.
-func (muo *MessageUpdateOne) SetKeyID(u uint64) *MessageUpdateOne {
-	muo.mutation.SetKeyID(u)
+func (muo *MessageUpdateOne) SetKeyID(s string) *MessageUpdateOne {
+	muo.mutation.SetKeyID(s)
 	return muo
 }
 
 // SetGroupID sets the "group_id" field.
-func (muo *MessageUpdateOne) SetGroupID(u uint64) *MessageUpdateOne {
-	muo.mutation.SetGroupID(u)
+func (muo *MessageUpdateOne) SetGroupID(s string) *MessageUpdateOne {
+	muo.mutation.SetGroupID(s)
 	return muo
 }
 
 // SetMemberID sets the "member_id" field.
-func (muo *MessageUpdateOne) SetMemberID(u uint64) *MessageUpdateOne {
-	muo.mutation.SetMemberID(u)
+func (muo *MessageUpdateOne) SetMemberID(s string) *MessageUpdateOne {
+	muo.mutation.SetMemberID(s)
 	return muo
 }
 
@@ -360,7 +360,7 @@ func (muo *MessageUpdateOne) SetKey(k *Key) *MessageUpdateOne {
 }
 
 // SetOwnerID sets the "owner" edge to the Member entity by ID.
-func (muo *MessageUpdateOne) SetOwnerID(id uint64) *MessageUpdateOne {
+func (muo *MessageUpdateOne) SetOwnerID(id string) *MessageUpdateOne {
 	muo.mutation.SetOwnerID(id)
 	return muo
 }
@@ -497,7 +497,7 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Table:   message.Table,
 			Columns: message.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: message.FieldID,
 			},
 		},
@@ -542,7 +542,7 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -558,7 +558,7 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -577,7 +577,7 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -593,7 +593,7 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -612,7 +612,7 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -628,7 +628,7 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},

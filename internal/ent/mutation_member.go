@@ -20,7 +20,7 @@ type MemberMutation struct {
 	config
 	op                   Op
 	typ                  string
-	id                   *uint64
+	id                   *string
 	created_at           *time.Time
 	address              *string
 	nickname             *string
@@ -30,17 +30,17 @@ type MemberMutation struct {
 	nonce                *string
 	show_nickname        *bool
 	clearedFields        map[string]struct{}
-	own_groups           map[uint64]struct{}
-	removedown_groups    map[uint64]struct{}
+	own_groups           map[string]struct{}
+	removedown_groups    map[string]struct{}
 	clearedown_groups    bool
-	messages             map[uint64]struct{}
-	removedmessages      map[uint64]struct{}
+	messages             map[string]struct{}
+	removedmessages      map[string]struct{}
 	clearedmessages      bool
-	groups               map[uint64]struct{}
-	removedgroups        map[uint64]struct{}
+	groups               map[string]struct{}
+	removedgroups        map[string]struct{}
 	clearedgroups        bool
-	group_members        map[uint64]struct{}
-	removedgroup_members map[uint64]struct{}
+	group_members        map[string]struct{}
+	removedgroup_members map[string]struct{}
 	clearedgroup_members bool
 	done                 bool
 	oldValue             func(context.Context) (*Member, error)
@@ -67,7 +67,7 @@ func newMemberMutation(c config, op Op, opts ...memberOption) *MemberMutation {
 }
 
 // withMemberID sets the ID field of the mutation.
-func withMemberID(id uint64) memberOption {
+func withMemberID(id string) memberOption {
 	return func(m *MemberMutation) {
 		var (
 			err   error
@@ -119,13 +119,13 @@ func (m MemberMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Member entities.
-func (m *MemberMutation) SetID(id uint64) {
+func (m *MemberMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *MemberMutation) ID() (id uint64, exists bool) {
+func (m *MemberMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -136,12 +136,12 @@ func (m *MemberMutation) ID() (id uint64, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *MemberMutation) IDs(ctx context.Context) ([]uint64, error) {
+func (m *MemberMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uint64{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -492,9 +492,9 @@ func (m *MemberMutation) ResetShowNickname() {
 }
 
 // AddOwnGroupIDs adds the "own_groups" edge to the Group entity by ids.
-func (m *MemberMutation) AddOwnGroupIDs(ids ...uint64) {
+func (m *MemberMutation) AddOwnGroupIDs(ids ...string) {
 	if m.own_groups == nil {
-		m.own_groups = make(map[uint64]struct{})
+		m.own_groups = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.own_groups[ids[i]] = struct{}{}
@@ -512,9 +512,9 @@ func (m *MemberMutation) OwnGroupsCleared() bool {
 }
 
 // RemoveOwnGroupIDs removes the "own_groups" edge to the Group entity by IDs.
-func (m *MemberMutation) RemoveOwnGroupIDs(ids ...uint64) {
+func (m *MemberMutation) RemoveOwnGroupIDs(ids ...string) {
 	if m.removedown_groups == nil {
-		m.removedown_groups = make(map[uint64]struct{})
+		m.removedown_groups = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.own_groups, ids[i])
@@ -523,7 +523,7 @@ func (m *MemberMutation) RemoveOwnGroupIDs(ids ...uint64) {
 }
 
 // RemovedOwnGroups returns the removed IDs of the "own_groups" edge to the Group entity.
-func (m *MemberMutation) RemovedOwnGroupsIDs() (ids []uint64) {
+func (m *MemberMutation) RemovedOwnGroupsIDs() (ids []string) {
 	for id := range m.removedown_groups {
 		ids = append(ids, id)
 	}
@@ -531,7 +531,7 @@ func (m *MemberMutation) RemovedOwnGroupsIDs() (ids []uint64) {
 }
 
 // OwnGroupsIDs returns the "own_groups" edge IDs in the mutation.
-func (m *MemberMutation) OwnGroupsIDs() (ids []uint64) {
+func (m *MemberMutation) OwnGroupsIDs() (ids []string) {
 	for id := range m.own_groups {
 		ids = append(ids, id)
 	}
@@ -546,9 +546,9 @@ func (m *MemberMutation) ResetOwnGroups() {
 }
 
 // AddMessageIDs adds the "messages" edge to the Message entity by ids.
-func (m *MemberMutation) AddMessageIDs(ids ...uint64) {
+func (m *MemberMutation) AddMessageIDs(ids ...string) {
 	if m.messages == nil {
-		m.messages = make(map[uint64]struct{})
+		m.messages = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.messages[ids[i]] = struct{}{}
@@ -566,9 +566,9 @@ func (m *MemberMutation) MessagesCleared() bool {
 }
 
 // RemoveMessageIDs removes the "messages" edge to the Message entity by IDs.
-func (m *MemberMutation) RemoveMessageIDs(ids ...uint64) {
+func (m *MemberMutation) RemoveMessageIDs(ids ...string) {
 	if m.removedmessages == nil {
-		m.removedmessages = make(map[uint64]struct{})
+		m.removedmessages = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.messages, ids[i])
@@ -577,7 +577,7 @@ func (m *MemberMutation) RemoveMessageIDs(ids ...uint64) {
 }
 
 // RemovedMessages returns the removed IDs of the "messages" edge to the Message entity.
-func (m *MemberMutation) RemovedMessagesIDs() (ids []uint64) {
+func (m *MemberMutation) RemovedMessagesIDs() (ids []string) {
 	for id := range m.removedmessages {
 		ids = append(ids, id)
 	}
@@ -585,7 +585,7 @@ func (m *MemberMutation) RemovedMessagesIDs() (ids []uint64) {
 }
 
 // MessagesIDs returns the "messages" edge IDs in the mutation.
-func (m *MemberMutation) MessagesIDs() (ids []uint64) {
+func (m *MemberMutation) MessagesIDs() (ids []string) {
 	for id := range m.messages {
 		ids = append(ids, id)
 	}
@@ -600,9 +600,9 @@ func (m *MemberMutation) ResetMessages() {
 }
 
 // AddGroupIDs adds the "groups" edge to the Group entity by ids.
-func (m *MemberMutation) AddGroupIDs(ids ...uint64) {
+func (m *MemberMutation) AddGroupIDs(ids ...string) {
 	if m.groups == nil {
-		m.groups = make(map[uint64]struct{})
+		m.groups = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.groups[ids[i]] = struct{}{}
@@ -620,9 +620,9 @@ func (m *MemberMutation) GroupsCleared() bool {
 }
 
 // RemoveGroupIDs removes the "groups" edge to the Group entity by IDs.
-func (m *MemberMutation) RemoveGroupIDs(ids ...uint64) {
+func (m *MemberMutation) RemoveGroupIDs(ids ...string) {
 	if m.removedgroups == nil {
-		m.removedgroups = make(map[uint64]struct{})
+		m.removedgroups = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.groups, ids[i])
@@ -631,7 +631,7 @@ func (m *MemberMutation) RemoveGroupIDs(ids ...uint64) {
 }
 
 // RemovedGroups returns the removed IDs of the "groups" edge to the Group entity.
-func (m *MemberMutation) RemovedGroupsIDs() (ids []uint64) {
+func (m *MemberMutation) RemovedGroupsIDs() (ids []string) {
 	for id := range m.removedgroups {
 		ids = append(ids, id)
 	}
@@ -639,7 +639,7 @@ func (m *MemberMutation) RemovedGroupsIDs() (ids []uint64) {
 }
 
 // GroupsIDs returns the "groups" edge IDs in the mutation.
-func (m *MemberMutation) GroupsIDs() (ids []uint64) {
+func (m *MemberMutation) GroupsIDs() (ids []string) {
 	for id := range m.groups {
 		ids = append(ids, id)
 	}
@@ -654,9 +654,9 @@ func (m *MemberMutation) ResetGroups() {
 }
 
 // AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by ids.
-func (m *MemberMutation) AddGroupMemberIDs(ids ...uint64) {
+func (m *MemberMutation) AddGroupMemberIDs(ids ...string) {
 	if m.group_members == nil {
-		m.group_members = make(map[uint64]struct{})
+		m.group_members = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.group_members[ids[i]] = struct{}{}
@@ -674,9 +674,9 @@ func (m *MemberMutation) GroupMembersCleared() bool {
 }
 
 // RemoveGroupMemberIDs removes the "group_members" edge to the GroupMember entity by IDs.
-func (m *MemberMutation) RemoveGroupMemberIDs(ids ...uint64) {
+func (m *MemberMutation) RemoveGroupMemberIDs(ids ...string) {
 	if m.removedgroup_members == nil {
-		m.removedgroup_members = make(map[uint64]struct{})
+		m.removedgroup_members = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.group_members, ids[i])
@@ -685,7 +685,7 @@ func (m *MemberMutation) RemoveGroupMemberIDs(ids ...uint64) {
 }
 
 // RemovedGroupMembers returns the removed IDs of the "group_members" edge to the GroupMember entity.
-func (m *MemberMutation) RemovedGroupMembersIDs() (ids []uint64) {
+func (m *MemberMutation) RemovedGroupMembersIDs() (ids []string) {
 	for id := range m.removedgroup_members {
 		ids = append(ids, id)
 	}
@@ -693,7 +693,7 @@ func (m *MemberMutation) RemovedGroupMembersIDs() (ids []uint64) {
 }
 
 // GroupMembersIDs returns the "group_members" edge IDs in the mutation.
-func (m *MemberMutation) GroupMembersIDs() (ids []uint64) {
+func (m *MemberMutation) GroupMembersIDs() (ids []string) {
 	for id := range m.group_members {
 		ids = append(ids, id)
 	}

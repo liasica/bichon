@@ -7,6 +7,7 @@ import (
     "github.com/denisbrodbeck/machineid"
     "log"
     "regexp"
+    "strconv"
     "strings"
     "time"
     "unicode"
@@ -49,4 +50,9 @@ func Md5String(b []byte) string {
     algorithm := md5.New()
     algorithm.Write(b)
     return hex.EncodeToString(algorithm.Sum(nil))
+}
+
+func ParseID(str string) uint64 {
+    id, _ := strconv.ParseUint(str, 10, 64)
+    return id
 }

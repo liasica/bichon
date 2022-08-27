@@ -20,17 +20,17 @@ type GroupMemberMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *uint64
+	id            *string
 	created_at    *time.Time
 	permission    *uint8
 	addpermission *int8
 	sn            *string
 	clearedFields map[string]struct{}
-	member        *uint64
+	member        *string
 	clearedmember bool
-	group         *uint64
+	group         *string
 	clearedgroup  bool
-	key           *uint64
+	key           *string
 	clearedkey    bool
 	done          bool
 	oldValue      func(context.Context) (*GroupMember, error)
@@ -57,7 +57,7 @@ func newGroupMemberMutation(c config, op Op, opts ...groupmemberOption) *GroupMe
 }
 
 // withGroupMemberID sets the ID field of the mutation.
-func withGroupMemberID(id uint64) groupmemberOption {
+func withGroupMemberID(id string) groupmemberOption {
 	return func(m *GroupMemberMutation) {
 		var (
 			err   error
@@ -109,13 +109,13 @@ func (m GroupMemberMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of GroupMember entities.
-func (m *GroupMemberMutation) SetID(id uint64) {
+func (m *GroupMemberMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *GroupMemberMutation) ID() (id uint64, exists bool) {
+func (m *GroupMemberMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -126,12 +126,12 @@ func (m *GroupMemberMutation) ID() (id uint64, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *GroupMemberMutation) IDs(ctx context.Context) ([]uint64, error) {
+func (m *GroupMemberMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uint64{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -178,12 +178,12 @@ func (m *GroupMemberMutation) ResetCreatedAt() {
 }
 
 // SetMemberID sets the "member_id" field.
-func (m *GroupMemberMutation) SetMemberID(u uint64) {
-	m.member = &u
+func (m *GroupMemberMutation) SetMemberID(s string) {
+	m.member = &s
 }
 
 // MemberID returns the value of the "member_id" field in the mutation.
-func (m *GroupMemberMutation) MemberID() (r uint64, exists bool) {
+func (m *GroupMemberMutation) MemberID() (r string, exists bool) {
 	v := m.member
 	if v == nil {
 		return
@@ -194,7 +194,7 @@ func (m *GroupMemberMutation) MemberID() (r uint64, exists bool) {
 // OldMemberID returns the old "member_id" field's value of the GroupMember entity.
 // If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMemberMutation) OldMemberID(ctx context.Context) (v uint64, err error) {
+func (m *GroupMemberMutation) OldMemberID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMemberID is only allowed on UpdateOne operations")
 	}
@@ -214,12 +214,12 @@ func (m *GroupMemberMutation) ResetMemberID() {
 }
 
 // SetGroupID sets the "group_id" field.
-func (m *GroupMemberMutation) SetGroupID(u uint64) {
-	m.group = &u
+func (m *GroupMemberMutation) SetGroupID(s string) {
+	m.group = &s
 }
 
 // GroupID returns the value of the "group_id" field in the mutation.
-func (m *GroupMemberMutation) GroupID() (r uint64, exists bool) {
+func (m *GroupMemberMutation) GroupID() (r string, exists bool) {
 	v := m.group
 	if v == nil {
 		return
@@ -230,7 +230,7 @@ func (m *GroupMemberMutation) GroupID() (r uint64, exists bool) {
 // OldGroupID returns the old "group_id" field's value of the GroupMember entity.
 // If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMemberMutation) OldGroupID(ctx context.Context) (v uint64, err error) {
+func (m *GroupMemberMutation) OldGroupID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
 	}
@@ -250,12 +250,12 @@ func (m *GroupMemberMutation) ResetGroupID() {
 }
 
 // SetKeyID sets the "key_id" field.
-func (m *GroupMemberMutation) SetKeyID(u uint64) {
-	m.key = &u
+func (m *GroupMemberMutation) SetKeyID(s string) {
+	m.key = &s
 }
 
 // KeyID returns the value of the "key_id" field in the mutation.
-func (m *GroupMemberMutation) KeyID() (r uint64, exists bool) {
+func (m *GroupMemberMutation) KeyID() (r string, exists bool) {
 	v := m.key
 	if v == nil {
 		return
@@ -266,7 +266,7 @@ func (m *GroupMemberMutation) KeyID() (r uint64, exists bool) {
 // OldKeyID returns the old "key_id" field's value of the GroupMember entity.
 // If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMemberMutation) OldKeyID(ctx context.Context) (v uint64, err error) {
+func (m *GroupMemberMutation) OldKeyID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldKeyID is only allowed on UpdateOne operations")
 	}
@@ -390,7 +390,7 @@ func (m *GroupMemberMutation) MemberCleared() bool {
 // MemberIDs returns the "member" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // MemberID instead. It exists only for internal usage by the builders.
-func (m *GroupMemberMutation) MemberIDs() (ids []uint64) {
+func (m *GroupMemberMutation) MemberIDs() (ids []string) {
 	if id := m.member; id != nil {
 		ids = append(ids, *id)
 	}
@@ -416,7 +416,7 @@ func (m *GroupMemberMutation) GroupCleared() bool {
 // GroupIDs returns the "group" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // GroupID instead. It exists only for internal usage by the builders.
-func (m *GroupMemberMutation) GroupIDs() (ids []uint64) {
+func (m *GroupMemberMutation) GroupIDs() (ids []string) {
 	if id := m.group; id != nil {
 		ids = append(ids, *id)
 	}
@@ -442,7 +442,7 @@ func (m *GroupMemberMutation) KeyCleared() bool {
 // KeyIDs returns the "key" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // KeyID instead. It exists only for internal usage by the builders.
-func (m *GroupMemberMutation) KeyIDs() (ids []uint64) {
+func (m *GroupMemberMutation) KeyIDs() (ids []string) {
 	if id := m.key; id != nil {
 		ids = append(ids, *id)
 	}
@@ -551,21 +551,21 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 		m.SetCreatedAt(v)
 		return nil
 	case groupmember.FieldMemberID:
-		v, ok := value.(uint64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMemberID(v)
 		return nil
 	case groupmember.FieldGroupID:
-		v, ok := value.(uint64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGroupID(v)
 		return nil
 	case groupmember.FieldKeyID:
-		v, ok := value.(uint64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

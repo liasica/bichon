@@ -105,7 +105,7 @@ func (ku *KeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   key.Table,
 			Columns: key.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: key.FieldID,
 			},
 		},
@@ -235,7 +235,7 @@ func (kuo *KeyUpdateOne) sqlSave(ctx context.Context) (_node *Key, err error) {
 			Table:   key.Table,
 			Columns: key.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: key.FieldID,
 			},
 		},

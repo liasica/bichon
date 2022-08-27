@@ -19,4 +19,5 @@ func loadAppRoutes(r *echo.Echo) {
 
     // group routes
     g.POST("/group", endpoint.Group.Create, middleware.Signature())
+    g.POST("/group/join", endpoint.Group.Join, middleware.Signature())
 }

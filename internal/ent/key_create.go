@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -43,8 +44,8 @@ func (kc *KeyCreate) SetKeys(s string) *KeyCreate {
 }
 
 // SetID sets the "id" field.
-func (kc *KeyCreate) SetID(u uint64) *KeyCreate {
-	kc.mutation.SetID(u)
+func (kc *KeyCreate) SetID(s string) *KeyCreate {
+	kc.mutation.SetID(s)
 	return kc
 }
 
@@ -142,6 +143,11 @@ func (kc *KeyCreate) check() error {
 	if _, ok := kc.mutation.Keys(); !ok {
 		return &ValidationError{Name: "keys", err: errors.New(`ent: missing required field "Key.keys"`)}
 	}
+	if v, ok := kc.mutation.ID(); ok {
+		if err := key.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Key.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -153,9 +159,12 @@ func (kc *KeyCreate) sqlSave(ctx context.Context) (*Key, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = uint64(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Key.ID type: %T", _spec.ID.Value)
+		}
 	}
 	return _node, nil
 }
@@ -166,7 +175,7 @@ func (kc *KeyCreate) createSpec() (*Key, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: key.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: key.FieldID,
 			},
 		}
@@ -363,7 +372,12 @@ func (u *KeyUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *KeyUpsertOne) ID(ctx context.Context) (id uint64, err error) {
+func (u *KeyUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: KeyUpsertOne.ID is not supported by MySQL driver. Use KeyUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -372,7 +386,7 @@ func (u *KeyUpsertOne) ID(ctx context.Context) (id uint64, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *KeyUpsertOne) IDX(ctx context.Context) uint64 {
+func (u *KeyUpsertOne) IDX(ctx context.Context) string {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -423,10 +437,6 @@ func (kcb *KeyCreateBulk) Save(ctx context.Context) ([]*Key, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = uint64(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

@@ -53,7 +53,53 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/model.GroupDetail"
+                                            "$ref": "#/definitions/model.GroupDetailWithPublicKey"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/group/join": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Join Group",
+                "operationId": "GroupJoin",
+                "parameters": [
+                    {
+                        "description": "Join info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GroupJoinReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/app.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.GroupDetailWithPublicKey"
                                         }
                                     }
                                 }
@@ -207,7 +253,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.GroupDetail": {
+        "model.GroupDetailWithPublicKey": {
             "type": "object",
             "properties": {
                 "address": {
@@ -216,7 +262,13 @@ const docTemplate = `{
                 "category": {
                     "type": "string"
                 },
+                "groupPublicKey": {
+                    "type": "string"
+                },
                 "intro": {
+                    "type": "string"
+                },
+                "keyId": {
                     "type": "string"
                 },
                 "membersMax": {
@@ -232,6 +284,22 @@ const docTemplate = `{
                 "public": {
                     "description": "group is public or private",
                     "type": "boolean"
+                }
+            }
+        },
+        "model.GroupJoinReq": {
+            "type": "object",
+            "required": [
+                "groupId",
+                "sharedPublic"
+            ],
+            "properties": {
+                "groupId": {
+                    "type": "string"
+                },
+                "sharedPublic": {
+                    "description": "Member's public key for ` + "`" + `ecdh` + "`" + ` exchange",
+                    "type": "string"
                 }
             }
         },

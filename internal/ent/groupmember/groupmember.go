@@ -88,4 +88,6 @@ var (
 	DefaultCreatedAt time.Time
 	// DefaultPermission holds the default value on creation for the "permission" field.
 	DefaultPermission uint8
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )

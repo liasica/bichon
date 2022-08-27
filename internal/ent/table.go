@@ -8,7 +8,7 @@ func (gr *Group) GetTableName() string {
 }
 
 // GetID returns id for Group.
-func (gr *Group) GetID() uint64 {
+func (gr *Group) GetID() string {
 	return gr.ID
 }
 
@@ -22,7 +22,7 @@ func (gm *GroupMember) GetTableName() string {
 }
 
 // GetID returns id for GroupMember.
-func (gm *GroupMember) GetID() uint64 {
+func (gm *GroupMember) GetID() string {
 	return gm.ID
 }
 
@@ -32,7 +32,7 @@ func (k *Key) GetTableName() string {
 }
 
 // GetID returns id for Key.
-func (k *Key) GetID() uint64 {
+func (k *Key) GetID() string {
 	return k.ID
 }
 
@@ -42,7 +42,7 @@ func (m *Member) GetTableName() string {
 }
 
 // GetID returns id for Member.
-func (m *Member) GetID() uint64 {
+func (m *Member) GetID() string {
 	return m.ID
 }
 
@@ -52,6 +52,6 @@ func (m *Message) GetTableName() string {
 }
 
 // GetID returns id for Message.
-func (m *Message) GetID() uint64 {
+func (m *Message) GetID() string {
 	return m.ID
 }

@@ -18,15 +18,15 @@ import (
 type Message struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uint64 `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// KeyID holds the value of the "key_id" field.
-	KeyID uint64 `json:"key_id,omitempty"`
+	KeyID string `json:"key_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
-	GroupID uint64 `json:"group_id,omitempty"`
+	GroupID string `json:"group_id,omitempty"`
 	// MemberID holds the value of the "member_id" field.
-	MemberID uint64 `json:"member_id,omitempty"`
+	MemberID string `json:"member_id,omitempty"`
 	// Content holds the value of the "content" field.
 	Content string `json:"content,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -91,9 +91,7 @@ func (*Message) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case message.FieldID, message.FieldKeyID, message.FieldGroupID, message.FieldMemberID:
-			values[i] = new(sql.NullInt64)
-		case message.FieldContent:
+		case message.FieldID, message.FieldKeyID, message.FieldGroupID, message.FieldMemberID, message.FieldContent:
 			values[i] = new(sql.NullString)
 		case message.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -113,11 +111,11 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 	for i := range columns {
 		switch columns[i] {
 		case message.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				m.ID = value.String
 			}
-			m.ID = uint64(value.Int64)
 		case message.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -125,22 +123,22 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 				m.CreatedAt = value.Time
 			}
 		case message.FieldKeyID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field key_id", values[i])
 			} else if value.Valid {
-				m.KeyID = uint64(value.Int64)
+				m.KeyID = value.String
 			}
 		case message.FieldGroupID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field group_id", values[i])
 			} else if value.Valid {
-				m.GroupID = uint64(value.Int64)
+				m.GroupID = value.String
 			}
 		case message.FieldMemberID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field member_id", values[i])
 			} else if value.Valid {
-				m.MemberID = uint64(value.Int64)
+				m.MemberID = value.String
 			}
 		case message.FieldContent:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -195,13 +193,13 @@ func (m *Message) String() string {
 	builder.WriteString(m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("key_id=")
-	builder.WriteString(fmt.Sprintf("%v", m.KeyID))
+	builder.WriteString(m.KeyID)
 	builder.WriteString(", ")
 	builder.WriteString("group_id=")
-	builder.WriteString(fmt.Sprintf("%v", m.GroupID))
+	builder.WriteString(m.GroupID)
 	builder.WriteString(", ")
 	builder.WriteString("member_id=")
-	builder.WriteString(fmt.Sprintf("%v", m.MemberID))
+	builder.WriteString(m.MemberID)
 	builder.WriteString(", ")
 	builder.WriteString("content=")
 	builder.WriteString(m.Content)

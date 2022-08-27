@@ -138,14 +138,14 @@ func (mu *MemberUpdate) SetNillableShowNickname(b *bool) *MemberUpdate {
 }
 
 // AddOwnGroupIDs adds the "own_groups" edge to the Group entity by IDs.
-func (mu *MemberUpdate) AddOwnGroupIDs(ids ...uint64) *MemberUpdate {
+func (mu *MemberUpdate) AddOwnGroupIDs(ids ...string) *MemberUpdate {
 	mu.mutation.AddOwnGroupIDs(ids...)
 	return mu
 }
 
 // AddOwnGroups adds the "own_groups" edges to the Group entity.
 func (mu *MemberUpdate) AddOwnGroups(g ...*Group) *MemberUpdate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -153,14 +153,14 @@ func (mu *MemberUpdate) AddOwnGroups(g ...*Group) *MemberUpdate {
 }
 
 // AddMessageIDs adds the "messages" edge to the Message entity by IDs.
-func (mu *MemberUpdate) AddMessageIDs(ids ...uint64) *MemberUpdate {
+func (mu *MemberUpdate) AddMessageIDs(ids ...string) *MemberUpdate {
 	mu.mutation.AddMessageIDs(ids...)
 	return mu
 }
 
 // AddMessages adds the "messages" edges to the Message entity.
 func (mu *MemberUpdate) AddMessages(m ...*Message) *MemberUpdate {
-	ids := make([]uint64, len(m))
+	ids := make([]string, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -168,14 +168,14 @@ func (mu *MemberUpdate) AddMessages(m ...*Message) *MemberUpdate {
 }
 
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (mu *MemberUpdate) AddGroupIDs(ids ...uint64) *MemberUpdate {
+func (mu *MemberUpdate) AddGroupIDs(ids ...string) *MemberUpdate {
 	mu.mutation.AddGroupIDs(ids...)
 	return mu
 }
 
 // AddGroups adds the "groups" edges to the Group entity.
 func (mu *MemberUpdate) AddGroups(g ...*Group) *MemberUpdate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -183,14 +183,14 @@ func (mu *MemberUpdate) AddGroups(g ...*Group) *MemberUpdate {
 }
 
 // AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by IDs.
-func (mu *MemberUpdate) AddGroupMemberIDs(ids ...uint64) *MemberUpdate {
+func (mu *MemberUpdate) AddGroupMemberIDs(ids ...string) *MemberUpdate {
 	mu.mutation.AddGroupMemberIDs(ids...)
 	return mu
 }
 
 // AddGroupMembers adds the "group_members" edges to the GroupMember entity.
 func (mu *MemberUpdate) AddGroupMembers(g ...*GroupMember) *MemberUpdate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -209,14 +209,14 @@ func (mu *MemberUpdate) ClearOwnGroups() *MemberUpdate {
 }
 
 // RemoveOwnGroupIDs removes the "own_groups" edge to Group entities by IDs.
-func (mu *MemberUpdate) RemoveOwnGroupIDs(ids ...uint64) *MemberUpdate {
+func (mu *MemberUpdate) RemoveOwnGroupIDs(ids ...string) *MemberUpdate {
 	mu.mutation.RemoveOwnGroupIDs(ids...)
 	return mu
 }
 
 // RemoveOwnGroups removes "own_groups" edges to Group entities.
 func (mu *MemberUpdate) RemoveOwnGroups(g ...*Group) *MemberUpdate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -230,14 +230,14 @@ func (mu *MemberUpdate) ClearMessages() *MemberUpdate {
 }
 
 // RemoveMessageIDs removes the "messages" edge to Message entities by IDs.
-func (mu *MemberUpdate) RemoveMessageIDs(ids ...uint64) *MemberUpdate {
+func (mu *MemberUpdate) RemoveMessageIDs(ids ...string) *MemberUpdate {
 	mu.mutation.RemoveMessageIDs(ids...)
 	return mu
 }
 
 // RemoveMessages removes "messages" edges to Message entities.
 func (mu *MemberUpdate) RemoveMessages(m ...*Message) *MemberUpdate {
-	ids := make([]uint64, len(m))
+	ids := make([]string, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -251,14 +251,14 @@ func (mu *MemberUpdate) ClearGroups() *MemberUpdate {
 }
 
 // RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
-func (mu *MemberUpdate) RemoveGroupIDs(ids ...uint64) *MemberUpdate {
+func (mu *MemberUpdate) RemoveGroupIDs(ids ...string) *MemberUpdate {
 	mu.mutation.RemoveGroupIDs(ids...)
 	return mu
 }
 
 // RemoveGroups removes "groups" edges to Group entities.
 func (mu *MemberUpdate) RemoveGroups(g ...*Group) *MemberUpdate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -272,14 +272,14 @@ func (mu *MemberUpdate) ClearGroupMembers() *MemberUpdate {
 }
 
 // RemoveGroupMemberIDs removes the "group_members" edge to GroupMember entities by IDs.
-func (mu *MemberUpdate) RemoveGroupMemberIDs(ids ...uint64) *MemberUpdate {
+func (mu *MemberUpdate) RemoveGroupMemberIDs(ids ...string) *MemberUpdate {
 	mu.mutation.RemoveGroupMemberIDs(ids...)
 	return mu
 }
 
 // RemoveGroupMembers removes "group_members" edges to GroupMember entities.
 func (mu *MemberUpdate) RemoveGroupMembers(g ...*GroupMember) *MemberUpdate {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -352,7 +352,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   member.Table,
 			Columns: member.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: member.FieldID,
 			},
 		},
@@ -446,7 +446,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -462,7 +462,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -481,7 +481,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -500,7 +500,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: message.FieldID,
 				},
 			},
@@ -516,7 +516,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: message.FieldID,
 				},
 			},
@@ -535,7 +535,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: message.FieldID,
 				},
 			},
@@ -554,7 +554,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -574,7 +574,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -597,7 +597,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -620,7 +620,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: groupmember.FieldID,
 				},
 			},
@@ -636,7 +636,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: groupmember.FieldID,
 				},
 			},
@@ -655,7 +655,7 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: groupmember.FieldID,
 				},
 			},
@@ -793,14 +793,14 @@ func (muo *MemberUpdateOne) SetNillableShowNickname(b *bool) *MemberUpdateOne {
 }
 
 // AddOwnGroupIDs adds the "own_groups" edge to the Group entity by IDs.
-func (muo *MemberUpdateOne) AddOwnGroupIDs(ids ...uint64) *MemberUpdateOne {
+func (muo *MemberUpdateOne) AddOwnGroupIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.AddOwnGroupIDs(ids...)
 	return muo
 }
 
 // AddOwnGroups adds the "own_groups" edges to the Group entity.
 func (muo *MemberUpdateOne) AddOwnGroups(g ...*Group) *MemberUpdateOne {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -808,14 +808,14 @@ func (muo *MemberUpdateOne) AddOwnGroups(g ...*Group) *MemberUpdateOne {
 }
 
 // AddMessageIDs adds the "messages" edge to the Message entity by IDs.
-func (muo *MemberUpdateOne) AddMessageIDs(ids ...uint64) *MemberUpdateOne {
+func (muo *MemberUpdateOne) AddMessageIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.AddMessageIDs(ids...)
 	return muo
 }
 
 // AddMessages adds the "messages" edges to the Message entity.
 func (muo *MemberUpdateOne) AddMessages(m ...*Message) *MemberUpdateOne {
-	ids := make([]uint64, len(m))
+	ids := make([]string, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -823,14 +823,14 @@ func (muo *MemberUpdateOne) AddMessages(m ...*Message) *MemberUpdateOne {
 }
 
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (muo *MemberUpdateOne) AddGroupIDs(ids ...uint64) *MemberUpdateOne {
+func (muo *MemberUpdateOne) AddGroupIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.AddGroupIDs(ids...)
 	return muo
 }
 
 // AddGroups adds the "groups" edges to the Group entity.
 func (muo *MemberUpdateOne) AddGroups(g ...*Group) *MemberUpdateOne {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -838,14 +838,14 @@ func (muo *MemberUpdateOne) AddGroups(g ...*Group) *MemberUpdateOne {
 }
 
 // AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by IDs.
-func (muo *MemberUpdateOne) AddGroupMemberIDs(ids ...uint64) *MemberUpdateOne {
+func (muo *MemberUpdateOne) AddGroupMemberIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.AddGroupMemberIDs(ids...)
 	return muo
 }
 
 // AddGroupMembers adds the "group_members" edges to the GroupMember entity.
 func (muo *MemberUpdateOne) AddGroupMembers(g ...*GroupMember) *MemberUpdateOne {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -864,14 +864,14 @@ func (muo *MemberUpdateOne) ClearOwnGroups() *MemberUpdateOne {
 }
 
 // RemoveOwnGroupIDs removes the "own_groups" edge to Group entities by IDs.
-func (muo *MemberUpdateOne) RemoveOwnGroupIDs(ids ...uint64) *MemberUpdateOne {
+func (muo *MemberUpdateOne) RemoveOwnGroupIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.RemoveOwnGroupIDs(ids...)
 	return muo
 }
 
 // RemoveOwnGroups removes "own_groups" edges to Group entities.
 func (muo *MemberUpdateOne) RemoveOwnGroups(g ...*Group) *MemberUpdateOne {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -885,14 +885,14 @@ func (muo *MemberUpdateOne) ClearMessages() *MemberUpdateOne {
 }
 
 // RemoveMessageIDs removes the "messages" edge to Message entities by IDs.
-func (muo *MemberUpdateOne) RemoveMessageIDs(ids ...uint64) *MemberUpdateOne {
+func (muo *MemberUpdateOne) RemoveMessageIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.RemoveMessageIDs(ids...)
 	return muo
 }
 
 // RemoveMessages removes "messages" edges to Message entities.
 func (muo *MemberUpdateOne) RemoveMessages(m ...*Message) *MemberUpdateOne {
-	ids := make([]uint64, len(m))
+	ids := make([]string, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -906,14 +906,14 @@ func (muo *MemberUpdateOne) ClearGroups() *MemberUpdateOne {
 }
 
 // RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
-func (muo *MemberUpdateOne) RemoveGroupIDs(ids ...uint64) *MemberUpdateOne {
+func (muo *MemberUpdateOne) RemoveGroupIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.RemoveGroupIDs(ids...)
 	return muo
 }
 
 // RemoveGroups removes "groups" edges to Group entities.
 func (muo *MemberUpdateOne) RemoveGroups(g ...*Group) *MemberUpdateOne {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -927,14 +927,14 @@ func (muo *MemberUpdateOne) ClearGroupMembers() *MemberUpdateOne {
 }
 
 // RemoveGroupMemberIDs removes the "group_members" edge to GroupMember entities by IDs.
-func (muo *MemberUpdateOne) RemoveGroupMemberIDs(ids ...uint64) *MemberUpdateOne {
+func (muo *MemberUpdateOne) RemoveGroupMemberIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.RemoveGroupMemberIDs(ids...)
 	return muo
 }
 
 // RemoveGroupMembers removes "group_members" edges to GroupMember entities.
 func (muo *MemberUpdateOne) RemoveGroupMembers(g ...*GroupMember) *MemberUpdateOne {
-	ids := make([]uint64, len(g))
+	ids := make([]string, len(g))
 	for i := range g {
 		ids[i] = g[i].ID
 	}
@@ -1020,7 +1020,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Table:   member.Table,
 			Columns: member.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: member.FieldID,
 			},
 		},
@@ -1131,7 +1131,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -1147,7 +1147,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -1166,7 +1166,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -1185,7 +1185,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: message.FieldID,
 				},
 			},
@@ -1201,7 +1201,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: message.FieldID,
 				},
 			},
@@ -1220,7 +1220,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: message.FieldID,
 				},
 			},
@@ -1239,7 +1239,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -1259,7 +1259,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -1282,7 +1282,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -1305,7 +1305,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: groupmember.FieldID,
 				},
 			},
@@ -1321,7 +1321,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: groupmember.FieldID,
 				},
 			},
@@ -1340,7 +1340,7 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: groupmember.FieldID,
 				},
 			},

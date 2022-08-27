@@ -20,8 +20,22 @@ var Group = new(group)
 // @Accept       json
 // @Produce      json
 // @Param        body  body     model.GroupCreateReq  true  "Group info"
-// @Success      200  {object}  app.Response{data=model.GroupDetail}  "Response success"
+// @Success      200  {object}  app.Response{data=model.GroupDetailWithPublicKey}  "Response success"
 func (*group) Create(c echo.Context) (err error) {
     ctx, req := app.MemberContextAndBinding[model.GroupCreateReq](c)
     return ctx.SendResponse(service.NewGroup().Create(ctx.Member, req))
+}
+
+// Join
+// @ID           GroupJoin
+// @Router       /group/join [POST]
+// @Summary      Join Group
+// @Tags         Group
+// @Accept       json
+// @Produce      json
+// @Param        body  body     model.GroupJoinReq  true  "Join info"
+// @Success      200  {object}  app.Response{data=model.GroupDetailWithPublicKey}  "Response success"
+func (*group) Join(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.GroupJoinReq](c)
+    return ctx.SendResponse(service.NewGroup().Join(ctx.Member, req))
 }

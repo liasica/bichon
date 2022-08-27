@@ -16,7 +16,7 @@ import (
 type Group struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uint64 `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Name holds the value of the "name" field.
@@ -24,7 +24,7 @@ type Group struct {
 	// Category holds the value of the "category" field.
 	Category string `json:"category,omitempty"`
 	// created by
-	OwnerID uint64 `json:"owner_id,omitempty"`
+	OwnerID string `json:"owner_id,omitempty"`
 	// MembersMax holds the value of the "members_max" field.
 	MembersMax int `json:"members_max,omitempty"`
 	// members count of group
@@ -104,9 +104,9 @@ func (*Group) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case group.FieldPublic:
 			values[i] = new(sql.NullBool)
-		case group.FieldID, group.FieldOwnerID, group.FieldMembersMax, group.FieldMembersCount:
+		case group.FieldMembersMax, group.FieldMembersCount:
 			values[i] = new(sql.NullInt64)
-		case group.FieldName, group.FieldCategory, group.FieldAddress, group.FieldIntro, group.FieldKeys:
+		case group.FieldID, group.FieldName, group.FieldCategory, group.FieldOwnerID, group.FieldAddress, group.FieldIntro, group.FieldKeys:
 			values[i] = new(sql.NullString)
 		case group.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -126,11 +126,11 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 	for i := range columns {
 		switch columns[i] {
 		case group.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				gr.ID = value.String
 			}
-			gr.ID = uint64(value.Int64)
 		case group.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -150,10 +150,10 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 				gr.Category = value.String
 			}
 		case group.FieldOwnerID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
 			} else if value.Valid {
-				gr.OwnerID = uint64(value.Int64)
+				gr.OwnerID = value.String
 			}
 		case group.FieldMembersMax:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -249,7 +249,7 @@ func (gr *Group) String() string {
 	builder.WriteString(gr.Category)
 	builder.WriteString(", ")
 	builder.WriteString("owner_id=")
-	builder.WriteString(fmt.Sprintf("%v", gr.OwnerID))
+	builder.WriteString(gr.OwnerID)
 	builder.WriteString(", ")
 	builder.WriteString("members_max=")
 	builder.WriteString(fmt.Sprintf("%v", gr.MembersMax))

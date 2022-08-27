@@ -156,8 +156,8 @@ func (mq *MessageQuery) FirstX(ctx context.Context) *Message {
 
 // FirstID returns the first Message ID from the query.
 // Returns a *NotFoundError when no Message ID was found.
-func (mq *MessageQuery) FirstID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (mq *MessageQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = mq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -169,7 +169,7 @@ func (mq *MessageQuery) FirstID(ctx context.Context) (id uint64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (mq *MessageQuery) FirstIDX(ctx context.Context) uint64 {
+func (mq *MessageQuery) FirstIDX(ctx context.Context) string {
 	id, err := mq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -207,8 +207,8 @@ func (mq *MessageQuery) OnlyX(ctx context.Context) *Message {
 // OnlyID is like Only, but returns the only Message ID in the query.
 // Returns a *NotSingularError when more than one Message ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (mq *MessageQuery) OnlyID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (mq *MessageQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = mq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -224,7 +224,7 @@ func (mq *MessageQuery) OnlyID(ctx context.Context) (id uint64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (mq *MessageQuery) OnlyIDX(ctx context.Context) uint64 {
+func (mq *MessageQuery) OnlyIDX(ctx context.Context) string {
 	id, err := mq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -250,8 +250,8 @@ func (mq *MessageQuery) AllX(ctx context.Context) []*Message {
 }
 
 // IDs executes the query and returns a list of Message IDs.
-func (mq *MessageQuery) IDs(ctx context.Context) ([]uint64, error) {
-	var ids []uint64
+func (mq *MessageQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	if err := mq.Select(message.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func (mq *MessageQuery) IDs(ctx context.Context) ([]uint64, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (mq *MessageQuery) IDsX(ctx context.Context) []uint64 {
+func (mq *MessageQuery) IDsX(ctx context.Context) []string {
 	ids, err := mq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -473,8 +473,8 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 }
 
 func (mq *MessageQuery) loadKey(ctx context.Context, query *KeyQuery, nodes []*Message, init func(*Message), assign func(*Message, *Key)) error {
-	ids := make([]uint64, 0, len(nodes))
-	nodeids := make(map[uint64][]*Message)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Message)
 	for i := range nodes {
 		fk := nodes[i].KeyID
 		if _, ok := nodeids[fk]; !ok {
@@ -499,8 +499,8 @@ func (mq *MessageQuery) loadKey(ctx context.Context, query *KeyQuery, nodes []*M
 	return nil
 }
 func (mq *MessageQuery) loadOwner(ctx context.Context, query *MemberQuery, nodes []*Message, init func(*Message), assign func(*Message, *Member)) error {
-	ids := make([]uint64, 0, len(nodes))
-	nodeids := make(map[uint64][]*Message)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Message)
 	for i := range nodes {
 		fk := nodes[i].MemberID
 		if _, ok := nodeids[fk]; !ok {
@@ -525,8 +525,8 @@ func (mq *MessageQuery) loadOwner(ctx context.Context, query *MemberQuery, nodes
 	return nil
 }
 func (mq *MessageQuery) loadGroup(ctx context.Context, query *GroupQuery, nodes []*Message, init func(*Message), assign func(*Message, *Group)) error {
-	ids := make([]uint64, 0, len(nodes))
-	nodeids := make(map[uint64][]*Message)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Message)
 	for i := range nodes {
 		fk := nodes[i].GroupID
 		if _, ok := nodeids[fk]; !ok {
@@ -577,7 +577,7 @@ func (mq *MessageQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   message.Table,
 			Columns: message.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: message.FieldID,
 			},
 		},

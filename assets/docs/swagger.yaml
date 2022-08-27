@@ -34,13 +34,17 @@ definitions:
     - name
     - sharedPublic
     type: object
-  model.GroupDetail:
+  model.GroupDetailWithPublicKey:
     properties:
       address:
         type: string
       category:
         type: string
+      groupPublicKey:
+        type: string
       intro:
+        type: string
+      keyId:
         type: string
       membersMax:
         type: integer
@@ -52,6 +56,17 @@ definitions:
       public:
         description: group is public or private
         type: boolean
+    type: object
+  model.GroupJoinReq:
+    properties:
+      groupId:
+        type: string
+      sharedPublic:
+        description: Member's public key for `ecdh` exchange
+        type: string
+    required:
+    - groupId
+    - sharedPublic
     type: object
   model.MemberNonceRes:
     properties:
@@ -123,9 +138,36 @@ paths:
             - $ref: '#/definitions/app.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/model.GroupDetail'
+                  $ref: '#/definitions/model.GroupDetailWithPublicKey'
               type: object
       summary: Group Create
+      tags:
+      - Group
+  /group/join:
+    post:
+      consumes:
+      - application/json
+      operationId: GroupJoin
+      parameters:
+      - description: Join info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.GroupJoinReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.GroupDetailWithPublicKey'
+              type: object
+      summary: Join Group
       tags:
       - Group
   /member/{address}:

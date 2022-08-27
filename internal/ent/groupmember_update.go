@@ -32,20 +32,20 @@ func (gmu *GroupMemberUpdate) Where(ps ...predicate.GroupMember) *GroupMemberUpd
 }
 
 // SetMemberID sets the "member_id" field.
-func (gmu *GroupMemberUpdate) SetMemberID(u uint64) *GroupMemberUpdate {
-	gmu.mutation.SetMemberID(u)
+func (gmu *GroupMemberUpdate) SetMemberID(s string) *GroupMemberUpdate {
+	gmu.mutation.SetMemberID(s)
 	return gmu
 }
 
 // SetGroupID sets the "group_id" field.
-func (gmu *GroupMemberUpdate) SetGroupID(u uint64) *GroupMemberUpdate {
-	gmu.mutation.SetGroupID(u)
+func (gmu *GroupMemberUpdate) SetGroupID(s string) *GroupMemberUpdate {
+	gmu.mutation.SetGroupID(s)
 	return gmu
 }
 
 // SetKeyID sets the "key_id" field.
-func (gmu *GroupMemberUpdate) SetKeyID(u uint64) *GroupMemberUpdate {
-	gmu.mutation.SetKeyID(u)
+func (gmu *GroupMemberUpdate) SetKeyID(s string) *GroupMemberUpdate {
+	gmu.mutation.SetKeyID(s)
 	return gmu
 }
 
@@ -200,7 +200,7 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   groupmember.Table,
 			Columns: groupmember.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: groupmember.FieldID,
 			},
 		},
@@ -242,7 +242,7 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -258,7 +258,7 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -277,7 +277,7 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -293,7 +293,7 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -312,7 +312,7 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -328,7 +328,7 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -360,20 +360,20 @@ type GroupMemberUpdateOne struct {
 }
 
 // SetMemberID sets the "member_id" field.
-func (gmuo *GroupMemberUpdateOne) SetMemberID(u uint64) *GroupMemberUpdateOne {
-	gmuo.mutation.SetMemberID(u)
+func (gmuo *GroupMemberUpdateOne) SetMemberID(s string) *GroupMemberUpdateOne {
+	gmuo.mutation.SetMemberID(s)
 	return gmuo
 }
 
 // SetGroupID sets the "group_id" field.
-func (gmuo *GroupMemberUpdateOne) SetGroupID(u uint64) *GroupMemberUpdateOne {
-	gmuo.mutation.SetGroupID(u)
+func (gmuo *GroupMemberUpdateOne) SetGroupID(s string) *GroupMemberUpdateOne {
+	gmuo.mutation.SetGroupID(s)
 	return gmuo
 }
 
 // SetKeyID sets the "key_id" field.
-func (gmuo *GroupMemberUpdateOne) SetKeyID(u uint64) *GroupMemberUpdateOne {
-	gmuo.mutation.SetKeyID(u)
+func (gmuo *GroupMemberUpdateOne) SetKeyID(s string) *GroupMemberUpdateOne {
+	gmuo.mutation.SetKeyID(s)
 	return gmuo
 }
 
@@ -541,7 +541,7 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			Table:   groupmember.Table,
 			Columns: groupmember.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: groupmember.FieldID,
 			},
 		},
@@ -600,7 +600,7 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -616,7 +616,7 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: member.FieldID,
 				},
 			},
@@ -635,7 +635,7 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -651,7 +651,7 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: group.FieldID,
 				},
 			},
@@ -670,7 +670,7 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},
@@ -686,7 +686,7 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint64,
+					Type:   field.TypeString,
 					Column: key.FieldID,
 				},
 			},

@@ -16,7 +16,7 @@ func ({{ $receiver }} *{{ $n.Name }}) GetTableName() string {
 }
 
 // GetID returns id for {{ $n.Name }}.
-func ({{ $receiver }} *{{ $n.Name }}) GetID() uint64 {
+func ({{ $receiver }} *{{ $n.Name }}) GetID() string {
     return {{ $receiver }}.ID
 }
 

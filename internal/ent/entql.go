@@ -24,7 +24,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			Table:   group.Table,
 			Columns: group.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: group.FieldID,
 			},
 		},
@@ -33,7 +33,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			group.FieldCreatedAt:    {Type: field.TypeTime, Column: group.FieldCreatedAt},
 			group.FieldName:         {Type: field.TypeString, Column: group.FieldName},
 			group.FieldCategory:     {Type: field.TypeString, Column: group.FieldCategory},
-			group.FieldOwnerID:      {Type: field.TypeUint64, Column: group.FieldOwnerID},
+			group.FieldOwnerID:      {Type: field.TypeString, Column: group.FieldOwnerID},
 			group.FieldMembersMax:   {Type: field.TypeInt, Column: group.FieldMembersMax},
 			group.FieldMembersCount: {Type: field.TypeInt, Column: group.FieldMembersCount},
 			group.FieldPublic:       {Type: field.TypeBool, Column: group.FieldPublic},
@@ -47,16 +47,16 @@ var schemaGraph = func() *sqlgraph.Schema {
 			Table:   groupmember.Table,
 			Columns: groupmember.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: groupmember.FieldID,
 			},
 		},
 		Type: "GroupMember",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			groupmember.FieldCreatedAt:  {Type: field.TypeTime, Column: groupmember.FieldCreatedAt},
-			groupmember.FieldMemberID:   {Type: field.TypeUint64, Column: groupmember.FieldMemberID},
-			groupmember.FieldGroupID:    {Type: field.TypeUint64, Column: groupmember.FieldGroupID},
-			groupmember.FieldKeyID:      {Type: field.TypeUint64, Column: groupmember.FieldKeyID},
+			groupmember.FieldMemberID:   {Type: field.TypeString, Column: groupmember.FieldMemberID},
+			groupmember.FieldGroupID:    {Type: field.TypeString, Column: groupmember.FieldGroupID},
+			groupmember.FieldKeyID:      {Type: field.TypeString, Column: groupmember.FieldKeyID},
 			groupmember.FieldPermission: {Type: field.TypeUint8, Column: groupmember.FieldPermission},
 			groupmember.FieldSn:         {Type: field.TypeString, Column: groupmember.FieldSn},
 		},
@@ -66,7 +66,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			Table:   key.Table,
 			Columns: key.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: key.FieldID,
 			},
 		},
@@ -81,7 +81,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			Table:   member.Table,
 			Columns: member.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: member.FieldID,
 			},
 		},
@@ -102,16 +102,16 @@ var schemaGraph = func() *sqlgraph.Schema {
 			Table:   message.Table,
 			Columns: message.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: message.FieldID,
 			},
 		},
 		Type: "Message",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			message.FieldCreatedAt: {Type: field.TypeTime, Column: message.FieldCreatedAt},
-			message.FieldKeyID:     {Type: field.TypeUint64, Column: message.FieldKeyID},
-			message.FieldGroupID:   {Type: field.TypeUint64, Column: message.FieldGroupID},
-			message.FieldMemberID:  {Type: field.TypeUint64, Column: message.FieldMemberID},
+			message.FieldKeyID:     {Type: field.TypeString, Column: message.FieldKeyID},
+			message.FieldGroupID:   {Type: field.TypeString, Column: message.FieldGroupID},
+			message.FieldMemberID:  {Type: field.TypeString, Column: message.FieldMemberID},
 			message.FieldContent:   {Type: field.TypeString, Column: message.FieldContent},
 		},
 	}
@@ -327,8 +327,8 @@ func (f *GroupFilter) Where(p entql.P) {
 	})
 }
 
-// WhereID applies the entql uint64 predicate on the id field.
-func (f *GroupFilter) WhereID(p entql.Uint64P) {
+// WhereID applies the entql string predicate on the id field.
+func (f *GroupFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(group.FieldID))
 }
 
@@ -347,8 +347,8 @@ func (f *GroupFilter) WhereCategory(p entql.StringP) {
 	f.Where(p.Field(group.FieldCategory))
 }
 
-// WhereOwnerID applies the entql uint64 predicate on the owner_id field.
-func (f *GroupFilter) WhereOwnerID(p entql.Uint64P) {
+// WhereOwnerID applies the entql string predicate on the owner_id field.
+func (f *GroupFilter) WhereOwnerID(p entql.StringP) {
 	f.Where(p.Field(group.FieldOwnerID))
 }
 
@@ -473,8 +473,8 @@ func (f *GroupMemberFilter) Where(p entql.P) {
 	})
 }
 
-// WhereID applies the entql uint64 predicate on the id field.
-func (f *GroupMemberFilter) WhereID(p entql.Uint64P) {
+// WhereID applies the entql string predicate on the id field.
+func (f *GroupMemberFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(groupmember.FieldID))
 }
 
@@ -483,18 +483,18 @@ func (f *GroupMemberFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(groupmember.FieldCreatedAt))
 }
 
-// WhereMemberID applies the entql uint64 predicate on the member_id field.
-func (f *GroupMemberFilter) WhereMemberID(p entql.Uint64P) {
+// WhereMemberID applies the entql string predicate on the member_id field.
+func (f *GroupMemberFilter) WhereMemberID(p entql.StringP) {
 	f.Where(p.Field(groupmember.FieldMemberID))
 }
 
-// WhereGroupID applies the entql uint64 predicate on the group_id field.
-func (f *GroupMemberFilter) WhereGroupID(p entql.Uint64P) {
+// WhereGroupID applies the entql string predicate on the group_id field.
+func (f *GroupMemberFilter) WhereGroupID(p entql.StringP) {
 	f.Where(p.Field(groupmember.FieldGroupID))
 }
 
-// WhereKeyID applies the entql uint64 predicate on the key_id field.
-func (f *GroupMemberFilter) WhereKeyID(p entql.Uint64P) {
+// WhereKeyID applies the entql string predicate on the key_id field.
+func (f *GroupMemberFilter) WhereKeyID(p entql.StringP) {
 	f.Where(p.Field(groupmember.FieldKeyID))
 }
 
@@ -585,8 +585,8 @@ func (f *KeyFilter) Where(p entql.P) {
 	})
 }
 
-// WhereID applies the entql uint64 predicate on the id field.
-func (f *KeyFilter) WhereID(p entql.Uint64P) {
+// WhereID applies the entql string predicate on the id field.
+func (f *KeyFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(key.FieldID))
 }
 
@@ -635,8 +635,8 @@ func (f *MemberFilter) Where(p entql.P) {
 	})
 }
 
-// WhereID applies the entql uint64 predicate on the id field.
-func (f *MemberFilter) WhereID(p entql.Uint64P) {
+// WhereID applies the entql string predicate on the id field.
+func (f *MemberFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(member.FieldID))
 }
 
@@ -771,8 +771,8 @@ func (f *MessageFilter) Where(p entql.P) {
 	})
 }
 
-// WhereID applies the entql uint64 predicate on the id field.
-func (f *MessageFilter) WhereID(p entql.Uint64P) {
+// WhereID applies the entql string predicate on the id field.
+func (f *MessageFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(message.FieldID))
 }
 
@@ -781,18 +781,18 @@ func (f *MessageFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(message.FieldCreatedAt))
 }
 
-// WhereKeyID applies the entql uint64 predicate on the key_id field.
-func (f *MessageFilter) WhereKeyID(p entql.Uint64P) {
+// WhereKeyID applies the entql string predicate on the key_id field.
+func (f *MessageFilter) WhereKeyID(p entql.StringP) {
 	f.Where(p.Field(message.FieldKeyID))
 }
 
-// WhereGroupID applies the entql uint64 predicate on the group_id field.
-func (f *MessageFilter) WhereGroupID(p entql.Uint64P) {
+// WhereGroupID applies the entql string predicate on the group_id field.
+func (f *MessageFilter) WhereGroupID(p entql.StringP) {
 	f.Where(p.Field(message.FieldGroupID))
 }
 
-// WhereMemberID applies the entql uint64 predicate on the member_id field.
-func (f *MessageFilter) WhereMemberID(p entql.Uint64P) {
+// WhereMemberID applies the entql string predicate on the member_id field.
+func (f *MessageFilter) WhereMemberID(p entql.StringP) {
 	f.Where(p.Field(message.FieldMemberID))
 }
 

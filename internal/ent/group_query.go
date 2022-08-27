@@ -180,8 +180,8 @@ func (gq *GroupQuery) FirstX(ctx context.Context) *Group {
 
 // FirstID returns the first Group ID from the query.
 // Returns a *NotFoundError when no Group ID was found.
-func (gq *GroupQuery) FirstID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (gq *GroupQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = gq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -193,7 +193,7 @@ func (gq *GroupQuery) FirstID(ctx context.Context) (id uint64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (gq *GroupQuery) FirstIDX(ctx context.Context) uint64 {
+func (gq *GroupQuery) FirstIDX(ctx context.Context) string {
 	id, err := gq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -231,8 +231,8 @@ func (gq *GroupQuery) OnlyX(ctx context.Context) *Group {
 // OnlyID is like Only, but returns the only Group ID in the query.
 // Returns a *NotSingularError when more than one Group ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (gq *GroupQuery) OnlyID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (gq *GroupQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = gq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -248,7 +248,7 @@ func (gq *GroupQuery) OnlyID(ctx context.Context) (id uint64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (gq *GroupQuery) OnlyIDX(ctx context.Context) uint64 {
+func (gq *GroupQuery) OnlyIDX(ctx context.Context) string {
 	id, err := gq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -274,8 +274,8 @@ func (gq *GroupQuery) AllX(ctx context.Context) []*Group {
 }
 
 // IDs executes the query and returns a list of Group IDs.
-func (gq *GroupQuery) IDs(ctx context.Context) ([]uint64, error) {
-	var ids []uint64
+func (gq *GroupQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	if err := gq.Select(group.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -283,7 +283,7 @@ func (gq *GroupQuery) IDs(ctx context.Context) ([]uint64, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (gq *GroupQuery) IDsX(ctx context.Context) []uint64 {
+func (gq *GroupQuery) IDsX(ctx context.Context) []string {
 	ids, err := gq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -519,8 +519,8 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 }
 
 func (gq *GroupQuery) loadOwner(ctx context.Context, query *MemberQuery, nodes []*Group, init func(*Group), assign func(*Group, *Member)) error {
-	ids := make([]uint64, 0, len(nodes))
-	nodeids := make(map[uint64][]*Group)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Group)
 	for i := range nodes {
 		fk := nodes[i].OwnerID
 		if _, ok := nodeids[fk]; !ok {
@@ -546,7 +546,7 @@ func (gq *GroupQuery) loadOwner(ctx context.Context, query *MemberQuery, nodes [
 }
 func (gq *GroupQuery) loadMessages(ctx context.Context, query *MessageQuery, nodes []*Group, init func(*Group), assign func(*Group, *Message)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uint64]*Group)
+	nodeids := make(map[string]*Group)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -573,8 +573,8 @@ func (gq *GroupQuery) loadMessages(ctx context.Context, query *MessageQuery, nod
 }
 func (gq *GroupQuery) loadMembers(ctx context.Context, query *MemberQuery, nodes []*Group, init func(*Group), assign func(*Group, *Member)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[uint64]*Group)
-	nids := make(map[uint64]map[*Group]struct{})
+	byID := make(map[string]*Group)
+	nids := make(map[string]map[*Group]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -602,11 +602,11 @@ func (gq *GroupQuery) loadMembers(ctx context.Context, query *MemberQuery, nodes
 			if err != nil {
 				return nil, err
 			}
-			return append([]interface{}{new(sql.NullInt64)}, values...), nil
+			return append([]interface{}{new(sql.NullString)}, values...), nil
 		}
 		spec.Assign = func(columns []string, values []interface{}) error {
-			outValue := uint64(values[0].(*sql.NullInt64).Int64)
-			inValue := uint64(values[1].(*sql.NullInt64).Int64)
+			outValue := values[0].(*sql.NullString).String
+			inValue := values[1].(*sql.NullString).String
 			if nids[inValue] == nil {
 				nids[inValue] = map[*Group]struct{}{byID[outValue]: struct{}{}}
 				return assign(columns[1:], values[1:])
@@ -631,7 +631,7 @@ func (gq *GroupQuery) loadMembers(ctx context.Context, query *MemberQuery, nodes
 }
 func (gq *GroupQuery) loadGroupMembers(ctx context.Context, query *GroupMemberQuery, nodes []*Group, init func(*Group), assign func(*Group, *GroupMember)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uint64]*Group)
+	nodeids := make(map[string]*Group)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -683,7 +683,7 @@ func (gq *GroupQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   group.Table,
 			Columns: group.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: group.FieldID,
 			},
 		},

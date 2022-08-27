@@ -17,7 +17,7 @@ type SonyflakeIDMixin struct {
 
 func (SonyflakeIDMixin) Fields() []ent.Field {
     return []ent.Field{
-        field.Uint64("id"),
+        field.String("id").MaxLen(25).NotEmpty().Unique().Immutable(),
     }
 }
 
@@ -29,7 +29,7 @@ func (SonyflakeIDMixin) Hooks() []ent.Hook {
 }
 
 type IDSetter interface {
-    SetID(uint64)
+    SetID(string)
 }
 
 func IDHook() ent.Hook {
@@ -51,7 +51,7 @@ func IDHook() ent.Hook {
             if err != nil {
                 return nil, err
             }
-            is.SetID(id)
+            is.SetID(fmt.Sprintf("%d", id))
             return next.Mutate(ctx, m)
         })
     }

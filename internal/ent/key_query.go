@@ -84,8 +84,8 @@ func (kq *KeyQuery) FirstX(ctx context.Context) *Key {
 
 // FirstID returns the first Key ID from the query.
 // Returns a *NotFoundError when no Key ID was found.
-func (kq *KeyQuery) FirstID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (kq *KeyQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = kq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -97,7 +97,7 @@ func (kq *KeyQuery) FirstID(ctx context.Context) (id uint64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (kq *KeyQuery) FirstIDX(ctx context.Context) uint64 {
+func (kq *KeyQuery) FirstIDX(ctx context.Context) string {
 	id, err := kq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -135,8 +135,8 @@ func (kq *KeyQuery) OnlyX(ctx context.Context) *Key {
 // OnlyID is like Only, but returns the only Key ID in the query.
 // Returns a *NotSingularError when more than one Key ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (kq *KeyQuery) OnlyID(ctx context.Context) (id uint64, err error) {
-	var ids []uint64
+func (kq *KeyQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = kq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -152,7 +152,7 @@ func (kq *KeyQuery) OnlyID(ctx context.Context) (id uint64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (kq *KeyQuery) OnlyIDX(ctx context.Context) uint64 {
+func (kq *KeyQuery) OnlyIDX(ctx context.Context) string {
 	id, err := kq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,8 +178,8 @@ func (kq *KeyQuery) AllX(ctx context.Context) []*Key {
 }
 
 // IDs executes the query and returns a list of Key IDs.
-func (kq *KeyQuery) IDs(ctx context.Context) ([]uint64, error) {
-	var ids []uint64
+func (kq *KeyQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	if err := kq.Select(key.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func (kq *KeyQuery) IDs(ctx context.Context) ([]uint64, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (kq *KeyQuery) IDsX(ctx context.Context) []uint64 {
+func (kq *KeyQuery) IDsX(ctx context.Context) []string {
 	ids, err := kq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -366,7 +366,7 @@ func (kq *KeyQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   key.Table,
 			Columns: key.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint64,
+				Type:   field.TypeString,
 				Column: key.FieldID,
 			},
 		},
