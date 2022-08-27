@@ -9,6 +9,9 @@ import (
 // Group is the predicate function for group builders.
 type Group func(*sql.Selector)
 
+// GroupMember is the predicate function for groupmember builders.
+type GroupMember func(*sql.Selector)
+
 // Key is the predicate function for key builders.
 type Key func(*sql.Selector)
 

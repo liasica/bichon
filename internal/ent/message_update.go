@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
@@ -32,14 +33,7 @@ func (mu *MessageUpdate) Where(ps ...predicate.Message) *MessageUpdate {
 
 // SetKeyID sets the "key_id" field.
 func (mu *MessageUpdate) SetKeyID(u uint64) *MessageUpdate {
-	mu.mutation.ResetKeyID()
 	mu.mutation.SetKeyID(u)
-	return mu
-}
-
-// AddKeyID adds u to the "key_id" field.
-func (mu *MessageUpdate) AddKeyID(u int64) *MessageUpdate {
-	mu.mutation.AddKeyID(u)
 	return mu
 }
 
@@ -61,6 +55,11 @@ func (mu *MessageUpdate) SetContent(s string) *MessageUpdate {
 	return mu
 }
 
+// SetKey sets the "key" edge to the Key entity.
+func (mu *MessageUpdate) SetKey(k *Key) *MessageUpdate {
+	return mu.SetKeyID(k.ID)
+}
+
 // SetOwnerID sets the "owner" edge to the Member entity by ID.
 func (mu *MessageUpdate) SetOwnerID(id uint64) *MessageUpdate {
 	mu.mutation.SetOwnerID(id)
@@ -80,6 +79,12 @@ func (mu *MessageUpdate) SetGroup(g *Group) *MessageUpdate {
 // Mutation returns the MessageMutation object of the builder.
 func (mu *MessageUpdate) Mutation() *MessageMutation {
 	return mu.mutation
+}
+
+// ClearKey clears the "key" edge to the Key entity.
+func (mu *MessageUpdate) ClearKey() *MessageUpdate {
+	mu.mutation.ClearKey()
+	return mu
 }
 
 // ClearOwner clears the "owner" edge to the Member entity.
@@ -156,6 +161,9 @@ func (mu *MessageUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (mu *MessageUpdate) check() error {
+	if _, ok := mu.mutation.KeyID(); mu.mutation.KeyCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Message.key"`)
+	}
 	if _, ok := mu.mutation.OwnerID(); mu.mutation.OwnerCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Message.owner"`)
 	}
@@ -189,26 +197,47 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := mu.mutation.KeyID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: message.FieldKeyID,
-		})
-	}
-	if value, ok := mu.mutation.AddedKeyID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: message.FieldKeyID,
-		})
-	}
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: message.FieldContent,
 		})
+	}
+	if mu.mutation.KeyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   message.KeyTable,
+			Columns: []string{message.KeyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: key.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.KeyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   message.KeyTable,
+			Columns: []string{message.KeyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: key.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if mu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -303,14 +332,7 @@ type MessageUpdateOne struct {
 
 // SetKeyID sets the "key_id" field.
 func (muo *MessageUpdateOne) SetKeyID(u uint64) *MessageUpdateOne {
-	muo.mutation.ResetKeyID()
 	muo.mutation.SetKeyID(u)
-	return muo
-}
-
-// AddKeyID adds u to the "key_id" field.
-func (muo *MessageUpdateOne) AddKeyID(u int64) *MessageUpdateOne {
-	muo.mutation.AddKeyID(u)
 	return muo
 }
 
@@ -332,6 +354,11 @@ func (muo *MessageUpdateOne) SetContent(s string) *MessageUpdateOne {
 	return muo
 }
 
+// SetKey sets the "key" edge to the Key entity.
+func (muo *MessageUpdateOne) SetKey(k *Key) *MessageUpdateOne {
+	return muo.SetKeyID(k.ID)
+}
+
 // SetOwnerID sets the "owner" edge to the Member entity by ID.
 func (muo *MessageUpdateOne) SetOwnerID(id uint64) *MessageUpdateOne {
 	muo.mutation.SetOwnerID(id)
@@ -351,6 +378,12 @@ func (muo *MessageUpdateOne) SetGroup(g *Group) *MessageUpdateOne {
 // Mutation returns the MessageMutation object of the builder.
 func (muo *MessageUpdateOne) Mutation() *MessageMutation {
 	return muo.mutation
+}
+
+// ClearKey clears the "key" edge to the Key entity.
+func (muo *MessageUpdateOne) ClearKey() *MessageUpdateOne {
+	muo.mutation.ClearKey()
+	return muo
 }
 
 // ClearOwner clears the "owner" edge to the Member entity.
@@ -440,6 +473,9 @@ func (muo *MessageUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (muo *MessageUpdateOne) check() error {
+	if _, ok := muo.mutation.KeyID(); muo.mutation.KeyCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Message.key"`)
+	}
 	if _, ok := muo.mutation.OwnerID(); muo.mutation.OwnerCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Message.owner"`)
 	}
@@ -490,26 +526,47 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			}
 		}
 	}
-	if value, ok := muo.mutation.KeyID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: message.FieldKeyID,
-		})
-	}
-	if value, ok := muo.mutation.AddedKeyID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: message.FieldKeyID,
-		})
-	}
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: message.FieldContent,
 		})
+	}
+	if muo.mutation.KeyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   message.KeyTable,
+			Columns: []string{message.KeyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: key.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.KeyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   message.KeyTable,
+			Columns: []string{message.KeyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: key.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if muo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

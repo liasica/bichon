@@ -22,10 +22,10 @@ type MessageMutation struct {
 	typ           string
 	id            *uint64
 	created_at    *time.Time
-	key_id        *uint64
-	addkey_id     *int64
 	content       *string
 	clearedFields map[string]struct{}
+	key           *uint64
+	clearedkey    bool
 	owner         *uint64
 	clearedowner  bool
 	group         *uint64
@@ -177,13 +177,12 @@ func (m *MessageMutation) ResetCreatedAt() {
 
 // SetKeyID sets the "key_id" field.
 func (m *MessageMutation) SetKeyID(u uint64) {
-	m.key_id = &u
-	m.addkey_id = nil
+	m.key = &u
 }
 
 // KeyID returns the value of the "key_id" field in the mutation.
 func (m *MessageMutation) KeyID() (r uint64, exists bool) {
-	v := m.key_id
+	v := m.key
 	if v == nil {
 		return
 	}
@@ -207,28 +206,9 @@ func (m *MessageMutation) OldKeyID(ctx context.Context) (v uint64, err error) {
 	return oldValue.KeyID, nil
 }
 
-// AddKeyID adds u to the "key_id" field.
-func (m *MessageMutation) AddKeyID(u int64) {
-	if m.addkey_id != nil {
-		*m.addkey_id += u
-	} else {
-		m.addkey_id = &u
-	}
-}
-
-// AddedKeyID returns the value that was added to the "key_id" field in this mutation.
-func (m *MessageMutation) AddedKeyID() (r int64, exists bool) {
-	v := m.addkey_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetKeyID resets all changes to the "key_id" field.
 func (m *MessageMutation) ResetKeyID() {
-	m.key_id = nil
-	m.addkey_id = nil
+	m.key = nil
 }
 
 // SetGroupID sets the "group_id" field.
@@ -339,6 +319,32 @@ func (m *MessageMutation) ResetContent() {
 	m.content = nil
 }
 
+// ClearKey clears the "key" edge to the Key entity.
+func (m *MessageMutation) ClearKey() {
+	m.clearedkey = true
+}
+
+// KeyCleared reports if the "key" edge to the Key entity was cleared.
+func (m *MessageMutation) KeyCleared() bool {
+	return m.clearedkey
+}
+
+// KeyIDs returns the "key" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// KeyID instead. It exists only for internal usage by the builders.
+func (m *MessageMutation) KeyIDs() (ids []uint64) {
+	if id := m.key; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetKey resets all changes to the "key" edge.
+func (m *MessageMutation) ResetKey() {
+	m.key = nil
+	m.clearedkey = false
+}
+
 // SetOwnerID sets the "owner" edge to the Member entity by id.
 func (m *MessageMutation) SetOwnerID(id uint64) {
 	m.owner = &id
@@ -427,7 +433,7 @@ func (m *MessageMutation) Fields() []string {
 	if m.created_at != nil {
 		fields = append(fields, message.FieldCreatedAt)
 	}
-	if m.key_id != nil {
+	if m.key != nil {
 		fields = append(fields, message.FieldKeyID)
 	}
 	if m.group != nil {
@@ -528,9 +534,6 @@ func (m *MessageMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *MessageMutation) AddedFields() []string {
 	var fields []string
-	if m.addkey_id != nil {
-		fields = append(fields, message.FieldKeyID)
-	}
 	return fields
 }
 
@@ -539,8 +542,6 @@ func (m *MessageMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *MessageMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case message.FieldKeyID:
-		return m.AddedKeyID()
 	}
 	return nil, false
 }
@@ -550,13 +551,6 @@ func (m *MessageMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *MessageMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case message.FieldKeyID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddKeyID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Message numeric field %s", name)
 }
@@ -605,7 +599,10 @@ func (m *MessageMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MessageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.key != nil {
+		edges = append(edges, message.EdgeKey)
+	}
 	if m.owner != nil {
 		edges = append(edges, message.EdgeOwner)
 	}
@@ -619,6 +616,10 @@ func (m *MessageMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *MessageMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case message.EdgeKey:
+		if id := m.key; id != nil {
+			return []ent.Value{*id}
+		}
 	case message.EdgeOwner:
 		if id := m.owner; id != nil {
 			return []ent.Value{*id}
@@ -633,7 +634,7 @@ func (m *MessageMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MessageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -647,7 +648,10 @@ func (m *MessageMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MessageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedkey {
+		edges = append(edges, message.EdgeKey)
+	}
 	if m.clearedowner {
 		edges = append(edges, message.EdgeOwner)
 	}
@@ -661,6 +665,8 @@ func (m *MessageMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *MessageMutation) EdgeCleared(name string) bool {
 	switch name {
+	case message.EdgeKey:
+		return m.clearedkey
 	case message.EdgeOwner:
 		return m.clearedowner
 	case message.EdgeGroup:
@@ -673,6 +679,9 @@ func (m *MessageMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *MessageMutation) ClearEdge(name string) error {
 	switch name {
+	case message.EdgeKey:
+		m.ClearKey()
+		return nil
 	case message.EdgeOwner:
 		m.ClearOwner()
 		return nil
@@ -687,6 +696,9 @@ func (m *MessageMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *MessageMutation) ResetEdge(name string) error {
 	switch name {
+	case message.EdgeKey:
+		m.ResetKey()
+		return nil
 	case message.EdgeOwner:
 		m.ResetOwner()
 		return nil

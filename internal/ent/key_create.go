@@ -36,35 +36,9 @@ func (kc *KeyCreate) SetNillableCreatedAt(t *time.Time) *KeyCreate {
 	return kc
 }
 
-// SetGroupID sets the "group_id" field.
-func (kc *KeyCreate) SetGroupID(u uint64) *KeyCreate {
-	kc.mutation.SetGroupID(u)
-	return kc
-}
-
-// SetMemberID sets the "member_id" field.
-func (kc *KeyCreate) SetMemberID(u uint64) *KeyCreate {
-	kc.mutation.SetMemberID(u)
-	return kc
-}
-
-// SetKey sets the "key" field.
-func (kc *KeyCreate) SetKey(s string) *KeyCreate {
-	kc.mutation.SetKey(s)
-	return kc
-}
-
-// SetEnable sets the "enable" field.
-func (kc *KeyCreate) SetEnable(b bool) *KeyCreate {
-	kc.mutation.SetEnable(b)
-	return kc
-}
-
-// SetNillableEnable sets the "enable" field if the given value is not nil.
-func (kc *KeyCreate) SetNillableEnable(b *bool) *KeyCreate {
-	if b != nil {
-		kc.SetEnable(*b)
-	}
+// SetKeys sets the "keys" field.
+func (kc *KeyCreate) SetKeys(s string) *KeyCreate {
+	kc.mutation.SetKeys(s)
 	return kc
 }
 
@@ -157,10 +131,6 @@ func (kc *KeyCreate) defaults() error {
 		v := key.DefaultCreatedAt
 		kc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := kc.mutation.Enable(); !ok {
-		v := key.DefaultEnable
-		kc.mutation.SetEnable(v)
-	}
 	return nil
 }
 
@@ -169,17 +139,8 @@ func (kc *KeyCreate) check() error {
 	if _, ok := kc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Key.created_at"`)}
 	}
-	if _, ok := kc.mutation.GroupID(); !ok {
-		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "Key.group_id"`)}
-	}
-	if _, ok := kc.mutation.MemberID(); !ok {
-		return &ValidationError{Name: "member_id", err: errors.New(`ent: missing required field "Key.member_id"`)}
-	}
-	if _, ok := kc.mutation.Key(); !ok {
-		return &ValidationError{Name: "key", err: errors.New(`ent: missing required field "Key.key"`)}
-	}
-	if _, ok := kc.mutation.Enable(); !ok {
-		return &ValidationError{Name: "enable", err: errors.New(`ent: missing required field "Key.enable"`)}
+	if _, ok := kc.mutation.Keys(); !ok {
+		return &ValidationError{Name: "keys", err: errors.New(`ent: missing required field "Key.keys"`)}
 	}
 	return nil
 }
@@ -223,37 +184,13 @@ func (kc *KeyCreate) createSpec() (*Key, *sqlgraph.CreateSpec) {
 		})
 		_node.CreatedAt = value
 	}
-	if value, ok := kc.mutation.GroupID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldGroupID,
-		})
-		_node.GroupID = value
-	}
-	if value, ok := kc.mutation.MemberID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldMemberID,
-		})
-		_node.MemberID = value
-	}
-	if value, ok := kc.mutation.Key(); ok {
+	if value, ok := kc.mutation.Keys(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: key.FieldKey,
+			Column: key.FieldKeys,
 		})
-		_node.Key = value
-	}
-	if value, ok := kc.mutation.Enable(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: key.FieldEnable,
-		})
-		_node.Enable = value
+		_node.Keys = value
 	}
 	return _node, _spec
 }
@@ -319,63 +256,15 @@ func (u *KeyUpsert) UpdateCreatedAt() *KeyUpsert {
 	return u
 }
 
-// SetGroupID sets the "group_id" field.
-func (u *KeyUpsert) SetGroupID(v uint64) *KeyUpsert {
-	u.Set(key.FieldGroupID, v)
+// SetKeys sets the "keys" field.
+func (u *KeyUpsert) SetKeys(v string) *KeyUpsert {
+	u.Set(key.FieldKeys, v)
 	return u
 }
 
-// UpdateGroupID sets the "group_id" field to the value that was provided on create.
-func (u *KeyUpsert) UpdateGroupID() *KeyUpsert {
-	u.SetExcluded(key.FieldGroupID)
-	return u
-}
-
-// AddGroupID adds v to the "group_id" field.
-func (u *KeyUpsert) AddGroupID(v uint64) *KeyUpsert {
-	u.Add(key.FieldGroupID, v)
-	return u
-}
-
-// SetMemberID sets the "member_id" field.
-func (u *KeyUpsert) SetMemberID(v uint64) *KeyUpsert {
-	u.Set(key.FieldMemberID, v)
-	return u
-}
-
-// UpdateMemberID sets the "member_id" field to the value that was provided on create.
-func (u *KeyUpsert) UpdateMemberID() *KeyUpsert {
-	u.SetExcluded(key.FieldMemberID)
-	return u
-}
-
-// AddMemberID adds v to the "member_id" field.
-func (u *KeyUpsert) AddMemberID(v uint64) *KeyUpsert {
-	u.Add(key.FieldMemberID, v)
-	return u
-}
-
-// SetKey sets the "key" field.
-func (u *KeyUpsert) SetKey(v string) *KeyUpsert {
-	u.Set(key.FieldKey, v)
-	return u
-}
-
-// UpdateKey sets the "key" field to the value that was provided on create.
-func (u *KeyUpsert) UpdateKey() *KeyUpsert {
-	u.SetExcluded(key.FieldKey)
-	return u
-}
-
-// SetEnable sets the "enable" field.
-func (u *KeyUpsert) SetEnable(v bool) *KeyUpsert {
-	u.Set(key.FieldEnable, v)
-	return u
-}
-
-// UpdateEnable sets the "enable" field to the value that was provided on create.
-func (u *KeyUpsert) UpdateEnable() *KeyUpsert {
-	u.SetExcluded(key.FieldEnable)
+// UpdateKeys sets the "keys" field to the value that was provided on create.
+func (u *KeyUpsert) UpdateKeys() *KeyUpsert {
+	u.SetExcluded(key.FieldKeys)
 	return u
 }
 
@@ -444,73 +333,17 @@ func (u *KeyUpsertOne) UpdateCreatedAt() *KeyUpsertOne {
 	})
 }
 
-// SetGroupID sets the "group_id" field.
-func (u *KeyUpsertOne) SetGroupID(v uint64) *KeyUpsertOne {
+// SetKeys sets the "keys" field.
+func (u *KeyUpsertOne) SetKeys(v string) *KeyUpsertOne {
 	return u.Update(func(s *KeyUpsert) {
-		s.SetGroupID(v)
+		s.SetKeys(v)
 	})
 }
 
-// AddGroupID adds v to the "group_id" field.
-func (u *KeyUpsertOne) AddGroupID(v uint64) *KeyUpsertOne {
+// UpdateKeys sets the "keys" field to the value that was provided on create.
+func (u *KeyUpsertOne) UpdateKeys() *KeyUpsertOne {
 	return u.Update(func(s *KeyUpsert) {
-		s.AddGroupID(v)
-	})
-}
-
-// UpdateGroupID sets the "group_id" field to the value that was provided on create.
-func (u *KeyUpsertOne) UpdateGroupID() *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateGroupID()
-	})
-}
-
-// SetMemberID sets the "member_id" field.
-func (u *KeyUpsertOne) SetMemberID(v uint64) *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetMemberID(v)
-	})
-}
-
-// AddMemberID adds v to the "member_id" field.
-func (u *KeyUpsertOne) AddMemberID(v uint64) *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.AddMemberID(v)
-	})
-}
-
-// UpdateMemberID sets the "member_id" field to the value that was provided on create.
-func (u *KeyUpsertOne) UpdateMemberID() *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateMemberID()
-	})
-}
-
-// SetKey sets the "key" field.
-func (u *KeyUpsertOne) SetKey(v string) *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetKey(v)
-	})
-}
-
-// UpdateKey sets the "key" field to the value that was provided on create.
-func (u *KeyUpsertOne) UpdateKey() *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateKey()
-	})
-}
-
-// SetEnable sets the "enable" field.
-func (u *KeyUpsertOne) SetEnable(v bool) *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetEnable(v)
-	})
-}
-
-// UpdateEnable sets the "enable" field to the value that was provided on create.
-func (u *KeyUpsertOne) UpdateEnable() *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateEnable()
+		s.UpdateKeys()
 	})
 }
 
@@ -742,73 +575,17 @@ func (u *KeyUpsertBulk) UpdateCreatedAt() *KeyUpsertBulk {
 	})
 }
 
-// SetGroupID sets the "group_id" field.
-func (u *KeyUpsertBulk) SetGroupID(v uint64) *KeyUpsertBulk {
+// SetKeys sets the "keys" field.
+func (u *KeyUpsertBulk) SetKeys(v string) *KeyUpsertBulk {
 	return u.Update(func(s *KeyUpsert) {
-		s.SetGroupID(v)
+		s.SetKeys(v)
 	})
 }
 
-// AddGroupID adds v to the "group_id" field.
-func (u *KeyUpsertBulk) AddGroupID(v uint64) *KeyUpsertBulk {
+// UpdateKeys sets the "keys" field to the value that was provided on create.
+func (u *KeyUpsertBulk) UpdateKeys() *KeyUpsertBulk {
 	return u.Update(func(s *KeyUpsert) {
-		s.AddGroupID(v)
-	})
-}
-
-// UpdateGroupID sets the "group_id" field to the value that was provided on create.
-func (u *KeyUpsertBulk) UpdateGroupID() *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateGroupID()
-	})
-}
-
-// SetMemberID sets the "member_id" field.
-func (u *KeyUpsertBulk) SetMemberID(v uint64) *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetMemberID(v)
-	})
-}
-
-// AddMemberID adds v to the "member_id" field.
-func (u *KeyUpsertBulk) AddMemberID(v uint64) *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.AddMemberID(v)
-	})
-}
-
-// UpdateMemberID sets the "member_id" field to the value that was provided on create.
-func (u *KeyUpsertBulk) UpdateMemberID() *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateMemberID()
-	})
-}
-
-// SetKey sets the "key" field.
-func (u *KeyUpsertBulk) SetKey(v string) *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetKey(v)
-	})
-}
-
-// UpdateKey sets the "key" field to the value that was provided on create.
-func (u *KeyUpsertBulk) UpdateKey() *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateKey()
-	})
-}
-
-// SetEnable sets the "enable" field.
-func (u *KeyUpsertBulk) SetEnable(v bool) *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetEnable(v)
-	})
-}
-
-// UpdateEnable sets the "enable" field to the value that was provided on create.
-func (u *KeyUpsertBulk) UpdateEnable() *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateEnable()
+		s.UpdateKeys()
 	})
 }
 

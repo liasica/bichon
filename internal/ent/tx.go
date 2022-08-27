@@ -16,6 +16,8 @@ type Tx struct {
 	config
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// GroupMember is the client for interacting with the GroupMember builders.
+	GroupMember *GroupMemberClient
 	// Key is the client for interacting with the Key builders.
 	Key *KeyClient
 	// Member is the client for interacting with the Member builders.
@@ -158,6 +160,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Group = NewGroupClient(tx.config)
+	tx.GroupMember = NewGroupMemberClient(tx.config)
 	tx.Key = NewKeyClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)

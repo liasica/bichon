@@ -24,7 +24,6 @@ func (Message) Annotations() []schema.Annotation {
 // Fields of the Message.
 func (Message) Fields() []ent.Field {
     return []ent.Field{
-        field.Uint64("key_id"),
         field.Uint64("group_id"),
         field.Uint64("member_id"),
         field.Text("content"),
@@ -43,6 +42,7 @@ func (Message) Mixin() []ent.Mixin {
     return []ent.Mixin{
         internal.SonyflakeIDMixin{},
         internal.TimeMixin{},
+        KeyMixin{},
     }
 }
 

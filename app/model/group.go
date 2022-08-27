@@ -1,11 +1,5 @@
 package model
 
-import (
-    "github.com/chatpuppy/puppychat/internal/g"
-    jsoniter "github.com/json-iterator/go"
-    "github.com/liasica/go-encryption/rsa"
-)
-
 const (
     // GroupMax Maximum number of groups to create
     GroupMax = 100
@@ -19,6 +13,7 @@ type GroupCreateReq struct {
     Intro      *string `json:"intro,omitempty"`  // group intro
     Public     *bool   `json:"public,omitempty"` // `true` create public group, `false` create private group
     MaxMembers int     `json:"maxMembers"`       // group's max members
+    *GroupMemberKeyShareReq
 }
 
 type GroupDetail struct {
@@ -40,32 +35,18 @@ type GroupKeys struct {
     PublicKey  string `json:"publicKey"`
 }
 
-// Marshal group keys to bytes
-func (keys *GroupKeys) Marshal() ([]byte, error) {
-    return jsoniter.Marshal(keys)
-}
-
-// Unmarshal bytes to group keys
-func (keys *GroupKeys) Unmarshal(b []byte) (err error) {
-    return jsoniter.Unmarshal(b, keys)
-}
-
 // Encrypt encrypt group keys
-func (keys *GroupKeys) Encrypt() (b []byte, err error) {
-    var data []byte
-    data, err = keys.Marshal()
-    if err != nil {
-        return
-    }
-    return rsa.Encrypt(data, g.RsaPublicKey())
+func (keys *GroupKeys) Encrypt() (hex string, err error) {
+    return KeysEncrypt(keys)
 }
 
 // Decrypt decrypt group keys
-func (keys *GroupKeys) Decrypt(b []byte) (err error) {
-    var data []byte
-    data, err = rsa.Decrypt(b, g.RsaPrivateKey())
+func (keys *GroupKeys) Decrypt(hex string) (err error) {
+    var decrypted *GroupKeys
+    decrypted, err = KeysDecrypt[GroupKeys](hex)
     if err != nil {
         return
     }
-    return keys.Unmarshal(data)
+    *keys = *decrypted
+    return
 }

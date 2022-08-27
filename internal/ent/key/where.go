@@ -87,31 +87,10 @@ func CreatedAt(v time.Time) predicate.Key {
 	})
 }
 
-// GroupID applies equality check predicate on the "group_id" field. It's identical to GroupIDEQ.
-func GroupID(v uint64) predicate.Key {
+// Keys applies equality check predicate on the "keys" field. It's identical to KeysEQ.
+func Keys(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldGroupID), v))
-	})
-}
-
-// MemberID applies equality check predicate on the "member_id" field. It's identical to MemberIDEQ.
-func MemberID(v uint64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldMemberID), v))
-	})
-}
-
-// Key applies equality check predicate on the "key" field. It's identical to KeyEQ.
-func Key(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldKey), v))
-	})
-}
-
-// Enable applies equality check predicate on the "enable" field. It's identical to EnableEQ.
-func Enable(v bool) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldEnable), v))
+		s.Where(sql.EQ(s.C(FieldKeys), v))
 	})
 }
 
@@ -179,244 +158,102 @@ func CreatedAtLTE(v time.Time) predicate.Key {
 	})
 }
 
-// GroupIDEQ applies the EQ predicate on the "group_id" field.
-func GroupIDEQ(v uint64) predicate.Key {
+// KeysEQ applies the EQ predicate on the "keys" field.
+func KeysEQ(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldGroupID), v))
+		s.Where(sql.EQ(s.C(FieldKeys), v))
 	})
 }
 
-// GroupIDNEQ applies the NEQ predicate on the "group_id" field.
-func GroupIDNEQ(v uint64) predicate.Key {
+// KeysNEQ applies the NEQ predicate on the "keys" field.
+func KeysNEQ(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldGroupID), v))
+		s.Where(sql.NEQ(s.C(FieldKeys), v))
 	})
 }
 
-// GroupIDIn applies the In predicate on the "group_id" field.
-func GroupIDIn(vs ...uint64) predicate.Key {
+// KeysIn applies the In predicate on the "keys" field.
+func KeysIn(vs ...string) predicate.Key {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldGroupID), v...))
+		s.Where(sql.In(s.C(FieldKeys), v...))
 	})
 }
 
-// GroupIDNotIn applies the NotIn predicate on the "group_id" field.
-func GroupIDNotIn(vs ...uint64) predicate.Key {
+// KeysNotIn applies the NotIn predicate on the "keys" field.
+func KeysNotIn(vs ...string) predicate.Key {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldGroupID), v...))
+		s.Where(sql.NotIn(s.C(FieldKeys), v...))
 	})
 }
 
-// GroupIDGT applies the GT predicate on the "group_id" field.
-func GroupIDGT(v uint64) predicate.Key {
+// KeysGT applies the GT predicate on the "keys" field.
+func KeysGT(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldGroupID), v))
+		s.Where(sql.GT(s.C(FieldKeys), v))
 	})
 }
 
-// GroupIDGTE applies the GTE predicate on the "group_id" field.
-func GroupIDGTE(v uint64) predicate.Key {
+// KeysGTE applies the GTE predicate on the "keys" field.
+func KeysGTE(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldGroupID), v))
+		s.Where(sql.GTE(s.C(FieldKeys), v))
 	})
 }
 
-// GroupIDLT applies the LT predicate on the "group_id" field.
-func GroupIDLT(v uint64) predicate.Key {
+// KeysLT applies the LT predicate on the "keys" field.
+func KeysLT(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldGroupID), v))
+		s.Where(sql.LT(s.C(FieldKeys), v))
 	})
 }
 
-// GroupIDLTE applies the LTE predicate on the "group_id" field.
-func GroupIDLTE(v uint64) predicate.Key {
+// KeysLTE applies the LTE predicate on the "keys" field.
+func KeysLTE(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldGroupID), v))
+		s.Where(sql.LTE(s.C(FieldKeys), v))
 	})
 }
 
-// MemberIDEQ applies the EQ predicate on the "member_id" field.
-func MemberIDEQ(v uint64) predicate.Key {
+// KeysContains applies the Contains predicate on the "keys" field.
+func KeysContains(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldMemberID), v))
+		s.Where(sql.Contains(s.C(FieldKeys), v))
 	})
 }
 
-// MemberIDNEQ applies the NEQ predicate on the "member_id" field.
-func MemberIDNEQ(v uint64) predicate.Key {
+// KeysHasPrefix applies the HasPrefix predicate on the "keys" field.
+func KeysHasPrefix(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldMemberID), v))
+		s.Where(sql.HasPrefix(s.C(FieldKeys), v))
 	})
 }
 
-// MemberIDIn applies the In predicate on the "member_id" field.
-func MemberIDIn(vs ...uint64) predicate.Key {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
+// KeysHasSuffix applies the HasSuffix predicate on the "keys" field.
+func KeysHasSuffix(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldMemberID), v...))
+		s.Where(sql.HasSuffix(s.C(FieldKeys), v))
 	})
 }
 
-// MemberIDNotIn applies the NotIn predicate on the "member_id" field.
-func MemberIDNotIn(vs ...uint64) predicate.Key {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
+// KeysEqualFold applies the EqualFold predicate on the "keys" field.
+func KeysEqualFold(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldMemberID), v...))
+		s.Where(sql.EqualFold(s.C(FieldKeys), v))
 	})
 }
 
-// MemberIDGT applies the GT predicate on the "member_id" field.
-func MemberIDGT(v uint64) predicate.Key {
+// KeysContainsFold applies the ContainsFold predicate on the "keys" field.
+func KeysContainsFold(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldMemberID), v))
-	})
-}
-
-// MemberIDGTE applies the GTE predicate on the "member_id" field.
-func MemberIDGTE(v uint64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldMemberID), v))
-	})
-}
-
-// MemberIDLT applies the LT predicate on the "member_id" field.
-func MemberIDLT(v uint64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldMemberID), v))
-	})
-}
-
-// MemberIDLTE applies the LTE predicate on the "member_id" field.
-func MemberIDLTE(v uint64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldMemberID), v))
-	})
-}
-
-// KeyEQ applies the EQ predicate on the "key" field.
-func KeyEQ(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldKey), v))
-	})
-}
-
-// KeyNEQ applies the NEQ predicate on the "key" field.
-func KeyNEQ(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldKey), v))
-	})
-}
-
-// KeyIn applies the In predicate on the "key" field.
-func KeyIn(vs ...string) predicate.Key {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldKey), v...))
-	})
-}
-
-// KeyNotIn applies the NotIn predicate on the "key" field.
-func KeyNotIn(vs ...string) predicate.Key {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldKey), v...))
-	})
-}
-
-// KeyGT applies the GT predicate on the "key" field.
-func KeyGT(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldKey), v))
-	})
-}
-
-// KeyGTE applies the GTE predicate on the "key" field.
-func KeyGTE(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldKey), v))
-	})
-}
-
-// KeyLT applies the LT predicate on the "key" field.
-func KeyLT(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldKey), v))
-	})
-}
-
-// KeyLTE applies the LTE predicate on the "key" field.
-func KeyLTE(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldKey), v))
-	})
-}
-
-// KeyContains applies the Contains predicate on the "key" field.
-func KeyContains(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldKey), v))
-	})
-}
-
-// KeyHasPrefix applies the HasPrefix predicate on the "key" field.
-func KeyHasPrefix(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldKey), v))
-	})
-}
-
-// KeyHasSuffix applies the HasSuffix predicate on the "key" field.
-func KeyHasSuffix(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldKey), v))
-	})
-}
-
-// KeyEqualFold applies the EqualFold predicate on the "key" field.
-func KeyEqualFold(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldKey), v))
-	})
-}
-
-// KeyContainsFold applies the ContainsFold predicate on the "key" field.
-func KeyContainsFold(v string) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldKey), v))
-	})
-}
-
-// EnableEQ applies the EQ predicate on the "enable" field.
-func EnableEQ(v bool) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldEnable), v))
-	})
-}
-
-// EnableNEQ applies the NEQ predicate on the "enable" field.
-func EnableNEQ(v bool) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldEnable), v))
+		s.Where(sql.ContainsFold(s.C(FieldKeys), v))
 	})
 }
 

@@ -16,6 +16,16 @@ func (gr *Group) GetName() string {
 	return gr.Name
 }
 
+// GetTableName returns table name for GroupMember.
+func (gm *GroupMember) GetTableName() string {
+	return "group_member"
+}
+
+// GetID returns id for GroupMember.
+func (gm *GroupMember) GetID() uint64 {
+	return gm.ID
+}
+
 // GetTableName returns table name for Key.
 func (k *Key) GetTableName() string {
 	return "key"

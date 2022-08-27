@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
@@ -181,6 +182,21 @@ func (mu *MemberUpdate) AddGroups(g ...*Group) *MemberUpdate {
 	return mu.AddGroupIDs(ids...)
 }
 
+// AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by IDs.
+func (mu *MemberUpdate) AddGroupMemberIDs(ids ...uint64) *MemberUpdate {
+	mu.mutation.AddGroupMemberIDs(ids...)
+	return mu
+}
+
+// AddGroupMembers adds the "group_members" edges to the GroupMember entity.
+func (mu *MemberUpdate) AddGroupMembers(g ...*GroupMember) *MemberUpdate {
+	ids := make([]uint64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return mu.AddGroupMemberIDs(ids...)
+}
+
 // Mutation returns the MemberMutation object of the builder.
 func (mu *MemberUpdate) Mutation() *MemberMutation {
 	return mu.mutation
@@ -247,6 +263,27 @@ func (mu *MemberUpdate) RemoveGroups(g ...*Group) *MemberUpdate {
 		ids[i] = g[i].ID
 	}
 	return mu.RemoveGroupIDs(ids...)
+}
+
+// ClearGroupMembers clears all "group_members" edges to the GroupMember entity.
+func (mu *MemberUpdate) ClearGroupMembers() *MemberUpdate {
+	mu.mutation.ClearGroupMembers()
+	return mu
+}
+
+// RemoveGroupMemberIDs removes the "group_members" edge to GroupMember entities by IDs.
+func (mu *MemberUpdate) RemoveGroupMemberIDs(ids ...uint64) *MemberUpdate {
+	mu.mutation.RemoveGroupMemberIDs(ids...)
+	return mu
+}
+
+// RemoveGroupMembers removes "group_members" edges to GroupMember entities.
+func (mu *MemberUpdate) RemoveGroupMembers(g ...*GroupMember) *MemberUpdate {
+	ids := make([]uint64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return mu.RemoveGroupMemberIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -522,6 +559,10 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
+		createE := &GroupMemberCreate{config: mu.config, mutation: newGroupMemberMutation(mu.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := mu.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !mu.mutation.GroupsCleared() {
@@ -541,6 +582,10 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &GroupMemberCreate{config: mu.config, mutation: newGroupMemberMutation(mu.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := mu.mutation.GroupsIDs(); len(nodes) > 0 {
@@ -554,6 +599,64 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUint64,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &GroupMemberCreate{config: mu.config, mutation: newGroupMemberMutation(mu.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.GroupMembersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.GroupMembersTable,
+			Columns: []string{member.GroupMembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: groupmember.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedGroupMembersIDs(); len(nodes) > 0 && !mu.mutation.GroupMembersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.GroupMembersTable,
+			Columns: []string{member.GroupMembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: groupmember.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.GroupMembersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.GroupMembersTable,
+			Columns: []string{member.GroupMembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: groupmember.FieldID,
 				},
 			},
 		}
@@ -734,6 +837,21 @@ func (muo *MemberUpdateOne) AddGroups(g ...*Group) *MemberUpdateOne {
 	return muo.AddGroupIDs(ids...)
 }
 
+// AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by IDs.
+func (muo *MemberUpdateOne) AddGroupMemberIDs(ids ...uint64) *MemberUpdateOne {
+	muo.mutation.AddGroupMemberIDs(ids...)
+	return muo
+}
+
+// AddGroupMembers adds the "group_members" edges to the GroupMember entity.
+func (muo *MemberUpdateOne) AddGroupMembers(g ...*GroupMember) *MemberUpdateOne {
+	ids := make([]uint64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return muo.AddGroupMemberIDs(ids...)
+}
+
 // Mutation returns the MemberMutation object of the builder.
 func (muo *MemberUpdateOne) Mutation() *MemberMutation {
 	return muo.mutation
@@ -800,6 +918,27 @@ func (muo *MemberUpdateOne) RemoveGroups(g ...*Group) *MemberUpdateOne {
 		ids[i] = g[i].ID
 	}
 	return muo.RemoveGroupIDs(ids...)
+}
+
+// ClearGroupMembers clears all "group_members" edges to the GroupMember entity.
+func (muo *MemberUpdateOne) ClearGroupMembers() *MemberUpdateOne {
+	muo.mutation.ClearGroupMembers()
+	return muo
+}
+
+// RemoveGroupMemberIDs removes the "group_members" edge to GroupMember entities by IDs.
+func (muo *MemberUpdateOne) RemoveGroupMemberIDs(ids ...uint64) *MemberUpdateOne {
+	muo.mutation.RemoveGroupMemberIDs(ids...)
+	return muo
+}
+
+// RemoveGroupMembers removes "group_members" edges to GroupMember entities.
+func (muo *MemberUpdateOne) RemoveGroupMembers(g ...*GroupMember) *MemberUpdateOne {
+	ids := make([]uint64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return muo.RemoveGroupMemberIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1105,6 +1244,10 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 				},
 			},
 		}
+		createE := &GroupMemberCreate{config: muo.config, mutation: newGroupMemberMutation(muo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := muo.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !muo.mutation.GroupsCleared() {
@@ -1124,6 +1267,10 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &GroupMemberCreate{config: muo.config, mutation: newGroupMemberMutation(muo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := muo.mutation.GroupsIDs(); len(nodes) > 0 {
@@ -1137,6 +1284,64 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUint64,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &GroupMemberCreate{config: muo.config, mutation: newGroupMemberMutation(muo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.GroupMembersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.GroupMembersTable,
+			Columns: []string{member.GroupMembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: groupmember.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedGroupMembersIDs(); len(nodes) > 0 && !muo.mutation.GroupMembersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.GroupMembersTable,
+			Columns: []string{member.GroupMembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: groupmember.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.GroupMembersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.GroupMembersTable,
+			Columns: []string{member.GroupMembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: groupmember.FieldID,
 				},
 			},
 		}

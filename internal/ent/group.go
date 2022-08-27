@@ -24,7 +24,7 @@ type Group struct {
 	// Category holds the value of the "category" field.
 	Category string `json:"category,omitempty"`
 	// created by
-	MemberID uint64 `json:"member_id,omitempty"`
+	OwnerID uint64 `json:"owner_id,omitempty"`
 	// MembersMax holds the value of the "members_max" field.
 	MembersMax int `json:"members_max,omitempty"`
 	// members count of group
@@ -50,9 +50,11 @@ type GroupEdges struct {
 	Messages []*Message `json:"messages,omitempty"`
 	// Members holds the value of the members edge.
 	Members []*Member `json:"members,omitempty"`
+	// GroupMembers holds the value of the group_members edge.
+	GroupMembers []*GroupMember `json:"group_members,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -86,6 +88,15 @@ func (e GroupEdges) MembersOrErr() ([]*Member, error) {
 	return nil, &NotLoadedError{edge: "members"}
 }
 
+// GroupMembersOrErr returns the GroupMembers value or an error if the edge
+// was not loaded in eager-loading.
+func (e GroupEdges) GroupMembersOrErr() ([]*GroupMember, error) {
+	if e.loadedTypes[3] {
+		return e.GroupMembers, nil
+	}
+	return nil, &NotLoadedError{edge: "group_members"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Group) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -93,7 +104,7 @@ func (*Group) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case group.FieldPublic:
 			values[i] = new(sql.NullBool)
-		case group.FieldID, group.FieldMemberID, group.FieldMembersMax, group.FieldMembersCount:
+		case group.FieldID, group.FieldOwnerID, group.FieldMembersMax, group.FieldMembersCount:
 			values[i] = new(sql.NullInt64)
 		case group.FieldName, group.FieldCategory, group.FieldAddress, group.FieldIntro, group.FieldKeys:
 			values[i] = new(sql.NullString)
@@ -138,11 +149,11 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				gr.Category = value.String
 			}
-		case group.FieldMemberID:
+		case group.FieldOwnerID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field member_id", values[i])
+				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
 			} else if value.Valid {
-				gr.MemberID = uint64(value.Int64)
+				gr.OwnerID = uint64(value.Int64)
 			}
 		case group.FieldMembersMax:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -200,6 +211,11 @@ func (gr *Group) QueryMembers() *MemberQuery {
 	return (&GroupClient{config: gr.config}).QueryMembers(gr)
 }
 
+// QueryGroupMembers queries the "group_members" edge of the Group entity.
+func (gr *Group) QueryGroupMembers() *GroupMemberQuery {
+	return (&GroupClient{config: gr.config}).QueryGroupMembers(gr)
+}
+
 // Update returns a builder for updating this Group.
 // Note that you need to call Group.Unwrap() before calling this method if this Group
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -232,8 +248,8 @@ func (gr *Group) String() string {
 	builder.WriteString("category=")
 	builder.WriteString(gr.Category)
 	builder.WriteString(", ")
-	builder.WriteString("member_id=")
-	builder.WriteString(fmt.Sprintf("%v", gr.MemberID))
+	builder.WriteString("owner_id=")
+	builder.WriteString(fmt.Sprintf("%v", gr.OwnerID))
 	builder.WriteString(", ")
 	builder.WriteString("members_max=")
 	builder.WriteString(fmt.Sprintf("%v", gr.MembersMax))

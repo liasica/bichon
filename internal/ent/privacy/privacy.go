@@ -174,6 +174,30 @@ func (f GroupMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation)
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.GroupMutation", m)
 }
 
+// The GroupMemberQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type GroupMemberQueryRuleFunc func(context.Context, *ent.GroupMemberQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f GroupMemberQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.GroupMemberQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.GroupMemberQuery", q)
+}
+
+// The GroupMemberMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type GroupMemberMutationRuleFunc func(context.Context, *ent.GroupMemberMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f GroupMemberMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.GroupMemberMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.GroupMemberMutation", m)
+}
+
 // The KeyQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type KeyQueryRuleFunc func(context.Context, *ent.KeyQuery) error
@@ -283,6 +307,8 @@ func queryFilter(q ent.Query) (Filter, error) {
 	switch q := q.(type) {
 	case *ent.GroupQuery:
 		return q.Filter(), nil
+	case *ent.GroupMemberQuery:
+		return q.Filter(), nil
 	case *ent.KeyQuery:
 		return q.Filter(), nil
 	case *ent.MemberQuery:
@@ -297,6 +323,8 @@ func queryFilter(q ent.Query) (Filter, error) {
 func mutationFilter(m ent.Mutation) (Filter, error) {
 	switch m := m.(type) {
 	case *ent.GroupMutation:
+		return m.Filter(), nil
+	case *ent.GroupMemberMutation:
 		return m.Filter(), nil
 	case *ent.KeyMutation:
 		return m.Filter(), nil

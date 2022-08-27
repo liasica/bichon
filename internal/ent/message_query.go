@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
@@ -25,6 +26,7 @@ type MessageQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Message
+	withKey    *KeyQuery
 	withOwner  *MemberQuery
 	withGroup  *GroupQuery
 	modifiers  []func(*sql.Selector)
@@ -62,6 +64,28 @@ func (mq *MessageQuery) Unique(unique bool) *MessageQuery {
 func (mq *MessageQuery) Order(o ...OrderFunc) *MessageQuery {
 	mq.order = append(mq.order, o...)
 	return mq
+}
+
+// QueryKey chains the current query on the "key" edge.
+func (mq *MessageQuery) QueryKey() *KeyQuery {
+	query := &KeyQuery{config: mq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(key.Table, key.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, message.KeyTable, message.KeyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryOwner chains the current query on the "owner" edge.
@@ -289,6 +313,7 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 		offset:     mq.offset,
 		order:      append([]OrderFunc{}, mq.order...),
 		predicates: append([]predicate.Message{}, mq.predicates...),
+		withKey:    mq.withKey.Clone(),
 		withOwner:  mq.withOwner.Clone(),
 		withGroup:  mq.withGroup.Clone(),
 		// clone intermediate query.
@@ -296,6 +321,17 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 		path:   mq.path,
 		unique: mq.unique,
 	}
+}
+
+// WithKey tells the query-builder to eager-load the nodes that are connected to
+// the "key" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithKey(opts ...func(*KeyQuery)) *MessageQuery {
+	query := &KeyQuery{config: mq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withKey = query
+	return mq
 }
 
 // WithOwner tells the query-builder to eager-load the nodes that are connected to
@@ -388,7 +424,8 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	var (
 		nodes       = []*Message{}
 		_spec       = mq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			mq.withKey != nil,
 			mq.withOwner != nil,
 			mq.withGroup != nil,
 		}
@@ -414,6 +451,12 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := mq.withKey; query != nil {
+		if err := mq.loadKey(ctx, query, nodes, nil,
+			func(n *Message, e *Key) { n.Edges.Key = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := mq.withOwner; query != nil {
 		if err := mq.loadOwner(ctx, query, nodes, nil,
 			func(n *Message, e *Member) { n.Edges.Owner = e }); err != nil {
@@ -429,6 +472,32 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	return nodes, nil
 }
 
+func (mq *MessageQuery) loadKey(ctx context.Context, query *KeyQuery, nodes []*Message, init func(*Message), assign func(*Message, *Key)) error {
+	ids := make([]uint64, 0, len(nodes))
+	nodeids := make(map[uint64][]*Message)
+	for i := range nodes {
+		fk := nodes[i].KeyID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(key.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "key_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (mq *MessageQuery) loadOwner(ctx context.Context, query *MemberQuery, nodes []*Message, init func(*Message), assign func(*Message, *Member)) error {
 	ids := make([]uint64, 0, len(nodes))
 	nodeids := make(map[uint64][]*Message)

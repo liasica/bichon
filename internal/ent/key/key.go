@@ -15,14 +15,8 @@ const (
 	FieldID = "id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
-	// FieldGroupID holds the string denoting the group_id field in the database.
-	FieldGroupID = "group_id"
-	// FieldMemberID holds the string denoting the member_id field in the database.
-	FieldMemberID = "member_id"
-	// FieldKey holds the string denoting the key field in the database.
-	FieldKey = "key"
-	// FieldEnable holds the string denoting the enable field in the database.
-	FieldEnable = "enable"
+	// FieldKeys holds the string denoting the keys field in the database.
+	FieldKeys = "keys"
 	// Table holds the table name of the key in the database.
 	Table = "key"
 )
@@ -31,10 +25,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
-	FieldGroupID,
-	FieldMemberID,
-	FieldKey,
-	FieldEnable,
+	FieldKeys,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -56,6 +47,4 @@ var (
 	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt time.Time
-	// DefaultEnable holds the default value on creation for the "enable" field.
-	DefaultEnable bool
 )

@@ -30,6 +30,28 @@ func (gq *GroupQuery) PaginationResult(req model.PaginationReq) model.Pagination
 	}
 }
 
+// Pagination returns pagination query builder for GroupMemberQuery.
+func (gmq *GroupMemberQuery) Pagination(req model.PaginationReq) *GroupMemberQuery {
+	gmq.Offset(req.GetOffset()).Limit(req.GetLimit())
+	return gmq
+}
+
+// PaginationItems returns pagination query builder for GroupMemberQuery.
+func (gmq *GroupMemberQuery) PaginationItemsX(req model.PaginationReq) any {
+	return gmq.Pagination(req).AllX(context.Background())
+}
+
+// PaginationResult returns pagination for GroupMemberQuery.
+func (gmq *GroupMemberQuery) PaginationResult(req model.PaginationReq) model.Pagination {
+	ids := gmq.Clone().Select("id").GroupBy("id").IntsX(context.Background())
+	total := len(ids)
+	return model.Pagination{
+		Current: req.GetCurrent(),
+		Pages:   req.GetPages(total),
+		Total:   total,
+	}
+}
+
 // Pagination returns pagination query builder for KeyQuery.
 func (kq *KeyQuery) Pagination(req model.PaginationReq) *KeyQuery {
 	kq.Offset(req.GetOffset()).Limit(req.GetLimit())

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
@@ -34,10 +35,11 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		group.Table:   group.ValidColumn,
-		key.Table:     key.ValidColumn,
-		member.Table:  member.ValidColumn,
-		message.Table: message.ValidColumn,
+		group.Table:       group.ValidColumn,
+		groupmember.Table: groupmember.ValidColumn,
+		key.Table:         key.ValidColumn,
+		member.Table:      member.ValidColumn,
+		message.Table:     message.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

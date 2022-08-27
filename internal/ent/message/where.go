@@ -216,34 +216,6 @@ func KeyIDNotIn(vs ...uint64) predicate.Message {
 	})
 }
 
-// KeyIDGT applies the GT predicate on the "key_id" field.
-func KeyIDGT(v uint64) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDGTE applies the GTE predicate on the "key_id" field.
-func KeyIDGTE(v uint64) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDLT applies the LT predicate on the "key_id" field.
-func KeyIDLT(v uint64) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDLTE applies the LTE predicate on the "key_id" field.
-func KeyIDLTE(v uint64) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldKeyID), v))
-	})
-}
-
 // GroupIDEQ applies the EQ predicate on the "group_id" field.
 func GroupIDEQ(v uint64) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
@@ -412,6 +384,34 @@ func ContentEqualFold(v string) predicate.Message {
 func ContentContainsFold(v string) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldContent), v))
+	})
+}
+
+// HasKey applies the HasEdge predicate on the "key" edge.
+func HasKey() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(KeyTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, KeyTable, KeyColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasKeyWith applies the HasEdge predicate on the "key" edge with a given conditions (other predicates).
+func HasKeyWith(preds ...predicate.Key) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(KeyInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, KeyTable, KeyColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

@@ -18,30 +18,33 @@ import (
 // MemberMutation represents an operation that mutates the Member nodes in the graph.
 type MemberMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *uint64
-	created_at        *time.Time
-	address           *string
-	nickname          *string
-	avatar            *string
-	intro             *string
-	public_key        *string
-	nonce             *string
-	show_nickname     *bool
-	clearedFields     map[string]struct{}
-	own_groups        map[uint64]struct{}
-	removedown_groups map[uint64]struct{}
-	clearedown_groups bool
-	messages          map[uint64]struct{}
-	removedmessages   map[uint64]struct{}
-	clearedmessages   bool
-	groups            map[uint64]struct{}
-	removedgroups     map[uint64]struct{}
-	clearedgroups     bool
-	done              bool
-	oldValue          func(context.Context) (*Member, error)
-	predicates        []predicate.Member
+	op                   Op
+	typ                  string
+	id                   *uint64
+	created_at           *time.Time
+	address              *string
+	nickname             *string
+	avatar               *string
+	intro                *string
+	public_key           *string
+	nonce                *string
+	show_nickname        *bool
+	clearedFields        map[string]struct{}
+	own_groups           map[uint64]struct{}
+	removedown_groups    map[uint64]struct{}
+	clearedown_groups    bool
+	messages             map[uint64]struct{}
+	removedmessages      map[uint64]struct{}
+	clearedmessages      bool
+	groups               map[uint64]struct{}
+	removedgroups        map[uint64]struct{}
+	clearedgroups        bool
+	group_members        map[uint64]struct{}
+	removedgroup_members map[uint64]struct{}
+	clearedgroup_members bool
+	done                 bool
+	oldValue             func(context.Context) (*Member, error)
+	predicates           []predicate.Member
 }
 
 var _ ent.Mutation = (*MemberMutation)(nil)
@@ -650,6 +653,60 @@ func (m *MemberMutation) ResetGroups() {
 	m.removedgroups = nil
 }
 
+// AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by ids.
+func (m *MemberMutation) AddGroupMemberIDs(ids ...uint64) {
+	if m.group_members == nil {
+		m.group_members = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		m.group_members[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGroupMembers clears the "group_members" edge to the GroupMember entity.
+func (m *MemberMutation) ClearGroupMembers() {
+	m.clearedgroup_members = true
+}
+
+// GroupMembersCleared reports if the "group_members" edge to the GroupMember entity was cleared.
+func (m *MemberMutation) GroupMembersCleared() bool {
+	return m.clearedgroup_members
+}
+
+// RemoveGroupMemberIDs removes the "group_members" edge to the GroupMember entity by IDs.
+func (m *MemberMutation) RemoveGroupMemberIDs(ids ...uint64) {
+	if m.removedgroup_members == nil {
+		m.removedgroup_members = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		delete(m.group_members, ids[i])
+		m.removedgroup_members[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGroupMembers returns the removed IDs of the "group_members" edge to the GroupMember entity.
+func (m *MemberMutation) RemovedGroupMembersIDs() (ids []uint64) {
+	for id := range m.removedgroup_members {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GroupMembersIDs returns the "group_members" edge IDs in the mutation.
+func (m *MemberMutation) GroupMembersIDs() (ids []uint64) {
+	for id := range m.group_members {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGroupMembers resets all changes to the "group_members" edge.
+func (m *MemberMutation) ResetGroupMembers() {
+	m.group_members = nil
+	m.clearedgroup_members = false
+	m.removedgroup_members = nil
+}
+
 // Where appends a list predicates to the MemberMutation builder.
 func (m *MemberMutation) Where(ps ...predicate.Member) {
 	m.predicates = append(m.predicates, ps...)
@@ -914,7 +971,7 @@ func (m *MemberMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MemberMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.own_groups != nil {
 		edges = append(edges, member.EdgeOwnGroups)
 	}
@@ -923,6 +980,9 @@ func (m *MemberMutation) AddedEdges() []string {
 	}
 	if m.groups != nil {
 		edges = append(edges, member.EdgeGroups)
+	}
+	if m.group_members != nil {
+		edges = append(edges, member.EdgeGroupMembers)
 	}
 	return edges
 }
@@ -949,13 +1009,19 @@ func (m *MemberMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case member.EdgeGroupMembers:
+		ids := make([]ent.Value, 0, len(m.group_members))
+		for id := range m.group_members {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MemberMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedown_groups != nil {
 		edges = append(edges, member.EdgeOwnGroups)
 	}
@@ -964,6 +1030,9 @@ func (m *MemberMutation) RemovedEdges() []string {
 	}
 	if m.removedgroups != nil {
 		edges = append(edges, member.EdgeGroups)
+	}
+	if m.removedgroup_members != nil {
+		edges = append(edges, member.EdgeGroupMembers)
 	}
 	return edges
 }
@@ -990,13 +1059,19 @@ func (m *MemberMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case member.EdgeGroupMembers:
+		ids := make([]ent.Value, 0, len(m.removedgroup_members))
+		for id := range m.removedgroup_members {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MemberMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedown_groups {
 		edges = append(edges, member.EdgeOwnGroups)
 	}
@@ -1005,6 +1080,9 @@ func (m *MemberMutation) ClearedEdges() []string {
 	}
 	if m.clearedgroups {
 		edges = append(edges, member.EdgeGroups)
+	}
+	if m.clearedgroup_members {
+		edges = append(edges, member.EdgeGroupMembers)
 	}
 	return edges
 }
@@ -1019,6 +1097,8 @@ func (m *MemberMutation) EdgeCleared(name string) bool {
 		return m.clearedmessages
 	case member.EdgeGroups:
 		return m.clearedgroups
+	case member.EdgeGroupMembers:
+		return m.clearedgroup_members
 	}
 	return false
 }
@@ -1043,6 +1123,9 @@ func (m *MemberMutation) ResetEdge(name string) error {
 		return nil
 	case member.EdgeGroups:
 		m.ResetGroups()
+		return nil
+	case member.EdgeGroupMembers:
+		m.ResetGroupMembers()
 		return nil
 	}
 	return fmt.Errorf("unknown Member edge %s", name)

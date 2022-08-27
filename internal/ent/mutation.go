@@ -13,8 +13,9 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeGroup   = "Group"
-	TypeKey     = "Key"
-	TypeMember  = "Member"
-	TypeMessage = "Message"
+	TypeGroup       = "Group"
+	TypeGroupMember = "GroupMember"
+	TypeKey         = "Key"
+	TypeMember      = "Member"
+	TypeMessage     = "Message"
 )

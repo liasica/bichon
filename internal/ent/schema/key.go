@@ -6,7 +6,6 @@ import (
     "entgo.io/ent/schema"
     "entgo.io/ent/schema/edge"
     "entgo.io/ent/schema/field"
-    "entgo.io/ent/schema/index"
     "entgo.io/ent/schema/mixin"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
 )
@@ -47,10 +46,7 @@ func (Key) Annotations() []schema.Annotation {
 // Fields of the Key.
 func (Key) Fields() []ent.Field {
     return []ent.Field{
-        field.Uint64("group_id"),
-        field.Uint64("member_id"),
-        field.String("key"),
-        field.Bool("enable").Default(true),
+        field.Text("keys"),
     }
 }
 
@@ -67,8 +63,5 @@ func (Key) Mixin() []ent.Mixin {
 }
 
 func (Key) Indexes() []ent.Index {
-    return []ent.Index{
-        index.Fields("group_id", "member_id"),
-        index.Fields("enable"),
-    }
+    return []ent.Index{}
 }

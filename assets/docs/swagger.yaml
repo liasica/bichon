@@ -26,9 +26,13 @@ definitions:
       public:
         description: '`true` create public group, `false` create private group'
         type: boolean
+      sharedPublic:
+        description: Member's public key for `ecdh` exchange
+        type: string
     required:
     - category
     - name
+    - sharedPublic
     type: object
   model.GroupDetail:
     properties:

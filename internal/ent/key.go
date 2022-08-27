@@ -18,14 +18,8 @@ type Key struct {
 	ID uint64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// GroupID holds the value of the "group_id" field.
-	GroupID uint64 `json:"group_id,omitempty"`
-	// MemberID holds the value of the "member_id" field.
-	MemberID uint64 `json:"member_id,omitempty"`
-	// Key holds the value of the "key" field.
-	Key string `json:"key,omitempty"`
-	// Enable holds the value of the "enable" field.
-	Enable bool `json:"enable,omitempty"`
+	// Keys holds the value of the "keys" field.
+	Keys string `json:"keys,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -33,11 +27,9 @@ func (*Key) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case key.FieldEnable:
-			values[i] = new(sql.NullBool)
-		case key.FieldID, key.FieldGroupID, key.FieldMemberID:
+		case key.FieldID:
 			values[i] = new(sql.NullInt64)
-		case key.FieldKey:
+		case key.FieldKeys:
 			values[i] = new(sql.NullString)
 		case key.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -68,29 +60,11 @@ func (k *Key) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				k.CreatedAt = value.Time
 			}
-		case key.FieldGroupID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field group_id", values[i])
-			} else if value.Valid {
-				k.GroupID = uint64(value.Int64)
-			}
-		case key.FieldMemberID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field member_id", values[i])
-			} else if value.Valid {
-				k.MemberID = uint64(value.Int64)
-			}
-		case key.FieldKey:
+		case key.FieldKeys:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field key", values[i])
+				return fmt.Errorf("unexpected type %T for field keys", values[i])
 			} else if value.Valid {
-				k.Key = value.String
-			}
-		case key.FieldEnable:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field enable", values[i])
-			} else if value.Valid {
-				k.Enable = value.Bool
+				k.Keys = value.String
 			}
 		}
 	}
@@ -123,17 +97,8 @@ func (k *Key) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(k.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("group_id=")
-	builder.WriteString(fmt.Sprintf("%v", k.GroupID))
-	builder.WriteString(", ")
-	builder.WriteString("member_id=")
-	builder.WriteString(fmt.Sprintf("%v", k.MemberID))
-	builder.WriteString(", ")
-	builder.WriteString("key=")
-	builder.WriteString(k.Key)
-	builder.WriteString(", ")
-	builder.WriteString("enable=")
-	builder.WriteString(fmt.Sprintf("%v", k.Enable))
+	builder.WriteString("keys=")
+	builder.WriteString(k.Keys)
 	builder.WriteByte(')')
 	return builder.String()
 }

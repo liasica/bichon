@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
@@ -20,16 +21,17 @@ import (
 // GroupQuery is the builder for querying Group entities.
 type GroupQuery struct {
 	config
-	limit        *int
-	offset       *int
-	unique       *bool
-	order        []OrderFunc
-	fields       []string
-	predicates   []predicate.Group
-	withOwner    *MemberQuery
-	withMessages *MessageQuery
-	withMembers  *MemberQuery
-	modifiers    []func(*sql.Selector)
+	limit            *int
+	offset           *int
+	unique           *bool
+	order            []OrderFunc
+	fields           []string
+	predicates       []predicate.Group
+	withOwner        *MemberQuery
+	withMessages     *MessageQuery
+	withMembers      *MemberQuery
+	withGroupMembers *GroupMemberQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -125,6 +127,28 @@ func (gq *GroupQuery) QueryMembers() *MemberQuery {
 			sqlgraph.From(group.Table, group.FieldID, selector),
 			sqlgraph.To(member.Table, member.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, group.MembersTable, group.MembersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGroupMembers chains the current query on the "group_members" edge.
+func (gq *GroupQuery) QueryGroupMembers() *GroupMemberQuery {
+	query := &GroupMemberQuery{config: gq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := gq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := gq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, selector),
+			sqlgraph.To(groupmember.Table, groupmember.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, group.GroupMembersTable, group.GroupMembersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -308,14 +332,15 @@ func (gq *GroupQuery) Clone() *GroupQuery {
 		return nil
 	}
 	return &GroupQuery{
-		config:       gq.config,
-		limit:        gq.limit,
-		offset:       gq.offset,
-		order:        append([]OrderFunc{}, gq.order...),
-		predicates:   append([]predicate.Group{}, gq.predicates...),
-		withOwner:    gq.withOwner.Clone(),
-		withMessages: gq.withMessages.Clone(),
-		withMembers:  gq.withMembers.Clone(),
+		config:           gq.config,
+		limit:            gq.limit,
+		offset:           gq.offset,
+		order:            append([]OrderFunc{}, gq.order...),
+		predicates:       append([]predicate.Group{}, gq.predicates...),
+		withOwner:        gq.withOwner.Clone(),
+		withMessages:     gq.withMessages.Clone(),
+		withMembers:      gq.withMembers.Clone(),
+		withGroupMembers: gq.withGroupMembers.Clone(),
 		// clone intermediate query.
 		sql:    gq.sql.Clone(),
 		path:   gq.path,
@@ -353,6 +378,17 @@ func (gq *GroupQuery) WithMembers(opts ...func(*MemberQuery)) *GroupQuery {
 		opt(query)
 	}
 	gq.withMembers = query
+	return gq
+}
+
+// WithGroupMembers tells the query-builder to eager-load the nodes that are connected to
+// the "group_members" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GroupQuery) WithGroupMembers(opts ...func(*GroupMemberQuery)) *GroupQuery {
+	query := &GroupMemberQuery{config: gq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	gq.withGroupMembers = query
 	return gq
 }
 
@@ -424,10 +460,11 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 	var (
 		nodes       = []*Group{}
 		_spec       = gq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			gq.withOwner != nil,
 			gq.withMessages != nil,
 			gq.withMembers != nil,
+			gq.withGroupMembers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -471,6 +508,13 @@ func (gq *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 			return nil, err
 		}
 	}
+	if query := gq.withGroupMembers; query != nil {
+		if err := gq.loadGroupMembers(ctx, query, nodes,
+			func(n *Group) { n.Edges.GroupMembers = []*GroupMember{} },
+			func(n *Group, e *GroupMember) { n.Edges.GroupMembers = append(n.Edges.GroupMembers, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -478,7 +522,7 @@ func (gq *GroupQuery) loadOwner(ctx context.Context, query *MemberQuery, nodes [
 	ids := make([]uint64, 0, len(nodes))
 	nodeids := make(map[uint64][]*Group)
 	for i := range nodes {
-		fk := nodes[i].MemberID
+		fk := nodes[i].OwnerID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -492,7 +536,7 @@ func (gq *GroupQuery) loadOwner(ctx context.Context, query *MemberQuery, nodes [
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "member_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "owner_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -582,6 +626,33 @@ func (gq *GroupQuery) loadMembers(ctx context.Context, query *MemberQuery, nodes
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (gq *GroupQuery) loadGroupMembers(ctx context.Context, query *GroupMemberQuery, nodes []*Group, init func(*Group), assign func(*Group, *GroupMember)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uint64]*Group)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.InValues(group.GroupMembersColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GroupID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "group_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

@@ -19,8 +19,8 @@ const (
 	FieldName = "name"
 	// FieldCategory holds the string denoting the category field in the database.
 	FieldCategory = "category"
-	// FieldMemberID holds the string denoting the member_id field in the database.
-	FieldMemberID = "member_id"
+	// FieldOwnerID holds the string denoting the owner_id field in the database.
+	FieldOwnerID = "owner_id"
 	// FieldMembersMax holds the string denoting the members_max field in the database.
 	FieldMembersMax = "members_max"
 	// FieldMembersCount holds the string denoting the members_count field in the database.
@@ -39,6 +39,8 @@ const (
 	EdgeMessages = "messages"
 	// EdgeMembers holds the string denoting the members edge name in mutations.
 	EdgeMembers = "members"
+	// EdgeGroupMembers holds the string denoting the group_members edge name in mutations.
+	EdgeGroupMembers = "group_members"
 	// Table holds the table name of the group in the database.
 	Table = "group"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -47,7 +49,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "member" package.
 	OwnerInverseTable = "member"
 	// OwnerColumn is the table column denoting the owner relation/edge.
-	OwnerColumn = "member_id"
+	OwnerColumn = "owner_id"
 	// MessagesTable is the table that holds the messages relation/edge.
 	MessagesTable = "message"
 	// MessagesInverseTable is the table name for the Message entity.
@@ -56,10 +58,17 @@ const (
 	// MessagesColumn is the table column denoting the messages relation/edge.
 	MessagesColumn = "group_id"
 	// MembersTable is the table that holds the members relation/edge. The primary key declared below.
-	MembersTable = "group_members"
+	MembersTable = "group_member"
 	// MembersInverseTable is the table name for the Member entity.
 	// It exists in this package in order to avoid circular dependency with the "member" package.
 	MembersInverseTable = "member"
+	// GroupMembersTable is the table that holds the group_members relation/edge.
+	GroupMembersTable = "group_member"
+	// GroupMembersInverseTable is the table name for the GroupMember entity.
+	// It exists in this package in order to avoid circular dependency with the "groupmember" package.
+	GroupMembersInverseTable = "group_member"
+	// GroupMembersColumn is the table column denoting the group_members relation/edge.
+	GroupMembersColumn = "group_id"
 )
 
 // Columns holds all SQL columns for group fields.
@@ -68,7 +77,7 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldName,
 	FieldCategory,
-	FieldMemberID,
+	FieldOwnerID,
 	FieldMembersMax,
 	FieldMembersCount,
 	FieldPublic,

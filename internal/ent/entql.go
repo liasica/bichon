@@ -4,6 +4,7 @@ package ent
 
 import (
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
@@ -17,7 +18,7 @@ import (
 
 // schemaGraph holds a representation of ent/schema at runtime.
 var schemaGraph = func() *sqlgraph.Schema {
-	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 4)}
+	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 5)}
 	graph.Nodes[0] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   group.Table,
@@ -32,7 +33,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			group.FieldCreatedAt:    {Type: field.TypeTime, Column: group.FieldCreatedAt},
 			group.FieldName:         {Type: field.TypeString, Column: group.FieldName},
 			group.FieldCategory:     {Type: field.TypeString, Column: group.FieldCategory},
-			group.FieldMemberID:     {Type: field.TypeUint64, Column: group.FieldMemberID},
+			group.FieldOwnerID:      {Type: field.TypeUint64, Column: group.FieldOwnerID},
 			group.FieldMembersMax:   {Type: field.TypeInt, Column: group.FieldMembersMax},
 			group.FieldMembersCount: {Type: field.TypeInt, Column: group.FieldMembersCount},
 			group.FieldPublic:       {Type: field.TypeBool, Column: group.FieldPublic},
@@ -42,6 +43,25 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 	}
 	graph.Nodes[1] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
+			Table:   groupmember.Table,
+			Columns: groupmember.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeUint64,
+				Column: groupmember.FieldID,
+			},
+		},
+		Type: "GroupMember",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			groupmember.FieldCreatedAt:  {Type: field.TypeTime, Column: groupmember.FieldCreatedAt},
+			groupmember.FieldMemberID:   {Type: field.TypeUint64, Column: groupmember.FieldMemberID},
+			groupmember.FieldGroupID:    {Type: field.TypeUint64, Column: groupmember.FieldGroupID},
+			groupmember.FieldKeyID:      {Type: field.TypeUint64, Column: groupmember.FieldKeyID},
+			groupmember.FieldPermission: {Type: field.TypeUint8, Column: groupmember.FieldPermission},
+			groupmember.FieldSn:         {Type: field.TypeString, Column: groupmember.FieldSn},
+		},
+	}
+	graph.Nodes[2] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   key.Table,
 			Columns: key.Columns,
@@ -53,13 +73,10 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type: "Key",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			key.FieldCreatedAt: {Type: field.TypeTime, Column: key.FieldCreatedAt},
-			key.FieldGroupID:   {Type: field.TypeUint64, Column: key.FieldGroupID},
-			key.FieldMemberID:  {Type: field.TypeUint64, Column: key.FieldMemberID},
-			key.FieldKey:       {Type: field.TypeString, Column: key.FieldKey},
-			key.FieldEnable:    {Type: field.TypeBool, Column: key.FieldEnable},
+			key.FieldKeys:      {Type: field.TypeString, Column: key.FieldKeys},
 		},
 	}
-	graph.Nodes[2] = &sqlgraph.Node{
+	graph.Nodes[3] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   member.Table,
 			Columns: member.Columns,
@@ -80,7 +97,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			member.FieldShowNickname: {Type: field.TypeBool, Column: member.FieldShowNickname},
 		},
 	}
-	graph.Nodes[3] = &sqlgraph.Node{
+	graph.Nodes[4] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   message.Table,
 			Columns: message.Columns,
@@ -135,6 +152,54 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"Member",
 	)
 	graph.MustAddE(
+		"group_members",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   group.GroupMembersTable,
+			Columns: []string{group.GroupMembersColumn},
+			Bidi:    false,
+		},
+		"Group",
+		"GroupMember",
+	)
+	graph.MustAddE(
+		"member",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.MemberTable,
+			Columns: []string{groupmember.MemberColumn},
+			Bidi:    false,
+		},
+		"GroupMember",
+		"Member",
+	)
+	graph.MustAddE(
+		"group",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.GroupTable,
+			Columns: []string{groupmember.GroupColumn},
+			Bidi:    false,
+		},
+		"GroupMember",
+		"Group",
+	)
+	graph.MustAddE(
+		"key",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.KeyTable,
+			Columns: []string{groupmember.KeyColumn},
+			Bidi:    false,
+		},
+		"GroupMember",
+		"Key",
+	)
+	graph.MustAddE(
 		"own_groups",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -169,6 +234,30 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"Member",
 		"Group",
+	)
+	graph.MustAddE(
+		"group_members",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.GroupMembersTable,
+			Columns: []string{member.GroupMembersColumn},
+			Bidi:    false,
+		},
+		"Member",
+		"GroupMember",
+	)
+	graph.MustAddE(
+		"key",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   message.KeyTable,
+			Columns: []string{message.KeyColumn},
+			Bidi:    false,
+		},
+		"Message",
+		"Key",
 	)
 	graph.MustAddE(
 		"owner",
@@ -258,9 +347,9 @@ func (f *GroupFilter) WhereCategory(p entql.StringP) {
 	f.Where(p.Field(group.FieldCategory))
 }
 
-// WhereMemberID applies the entql uint64 predicate on the member_id field.
-func (f *GroupFilter) WhereMemberID(p entql.Uint64P) {
-	f.Where(p.Field(group.FieldMemberID))
+// WhereOwnerID applies the entql uint64 predicate on the owner_id field.
+func (f *GroupFilter) WhereOwnerID(p entql.Uint64P) {
+	f.Where(p.Field(group.FieldOwnerID))
 }
 
 // WhereMembersMax applies the entql int predicate on the members_max field.
@@ -335,6 +424,132 @@ func (f *GroupFilter) WhereHasMembersWith(preds ...predicate.Member) {
 	})))
 }
 
+// WhereHasGroupMembers applies a predicate to check if query has an edge group_members.
+func (f *GroupFilter) WhereHasGroupMembers() {
+	f.Where(entql.HasEdge("group_members"))
+}
+
+// WhereHasGroupMembersWith applies a predicate to check if query has an edge group_members with a given conditions (other predicates).
+func (f *GroupFilter) WhereHasGroupMembersWith(preds ...predicate.GroupMember) {
+	f.Where(entql.HasEdgeWith("group_members", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
+func (gmq *GroupMemberQuery) addPredicate(pred func(s *sql.Selector)) {
+	gmq.predicates = append(gmq.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the GroupMemberQuery builder.
+func (gmq *GroupMemberQuery) Filter() *GroupMemberFilter {
+	return &GroupMemberFilter{config: gmq.config, predicateAdder: gmq}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *GroupMemberMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the GroupMemberMutation builder.
+func (m *GroupMemberMutation) Filter() *GroupMemberFilter {
+	return &GroupMemberFilter{config: m.config, predicateAdder: m}
+}
+
+// GroupMemberFilter provides a generic filtering capability at runtime for GroupMemberQuery.
+type GroupMemberFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *GroupMemberFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereID applies the entql uint64 predicate on the id field.
+func (f *GroupMemberFilter) WhereID(p entql.Uint64P) {
+	f.Where(p.Field(groupmember.FieldID))
+}
+
+// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
+func (f *GroupMemberFilter) WhereCreatedAt(p entql.TimeP) {
+	f.Where(p.Field(groupmember.FieldCreatedAt))
+}
+
+// WhereMemberID applies the entql uint64 predicate on the member_id field.
+func (f *GroupMemberFilter) WhereMemberID(p entql.Uint64P) {
+	f.Where(p.Field(groupmember.FieldMemberID))
+}
+
+// WhereGroupID applies the entql uint64 predicate on the group_id field.
+func (f *GroupMemberFilter) WhereGroupID(p entql.Uint64P) {
+	f.Where(p.Field(groupmember.FieldGroupID))
+}
+
+// WhereKeyID applies the entql uint64 predicate on the key_id field.
+func (f *GroupMemberFilter) WhereKeyID(p entql.Uint64P) {
+	f.Where(p.Field(groupmember.FieldKeyID))
+}
+
+// WherePermission applies the entql uint8 predicate on the permission field.
+func (f *GroupMemberFilter) WherePermission(p entql.Uint8P) {
+	f.Where(p.Field(groupmember.FieldPermission))
+}
+
+// WhereSn applies the entql string predicate on the sn field.
+func (f *GroupMemberFilter) WhereSn(p entql.StringP) {
+	f.Where(p.Field(groupmember.FieldSn))
+}
+
+// WhereHasMember applies a predicate to check if query has an edge member.
+func (f *GroupMemberFilter) WhereHasMember() {
+	f.Where(entql.HasEdge("member"))
+}
+
+// WhereHasMemberWith applies a predicate to check if query has an edge member with a given conditions (other predicates).
+func (f *GroupMemberFilter) WhereHasMemberWith(preds ...predicate.Member) {
+	f.Where(entql.HasEdgeWith("member", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasGroup applies a predicate to check if query has an edge group.
+func (f *GroupMemberFilter) WhereHasGroup() {
+	f.Where(entql.HasEdge("group"))
+}
+
+// WhereHasGroupWith applies a predicate to check if query has an edge group with a given conditions (other predicates).
+func (f *GroupMemberFilter) WhereHasGroupWith(preds ...predicate.Group) {
+	f.Where(entql.HasEdgeWith("group", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasKey applies a predicate to check if query has an edge key.
+func (f *GroupMemberFilter) WhereHasKey() {
+	f.Where(entql.HasEdge("key"))
+}
+
+// WhereHasKeyWith applies a predicate to check if query has an edge key with a given conditions (other predicates).
+func (f *GroupMemberFilter) WhereHasKeyWith(preds ...predicate.Key) {
+	f.Where(entql.HasEdgeWith("key", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
 // addPredicate implements the predicateAdder interface.
 func (kq *KeyQuery) addPredicate(pred func(s *sql.Selector)) {
 	kq.predicates = append(kq.predicates, pred)
@@ -364,7 +579,7 @@ type KeyFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *KeyFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -380,24 +595,9 @@ func (f *KeyFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(key.FieldCreatedAt))
 }
 
-// WhereGroupID applies the entql uint64 predicate on the group_id field.
-func (f *KeyFilter) WhereGroupID(p entql.Uint64P) {
-	f.Where(p.Field(key.FieldGroupID))
-}
-
-// WhereMemberID applies the entql uint64 predicate on the member_id field.
-func (f *KeyFilter) WhereMemberID(p entql.Uint64P) {
-	f.Where(p.Field(key.FieldMemberID))
-}
-
-// WhereKey applies the entql string predicate on the key field.
-func (f *KeyFilter) WhereKey(p entql.StringP) {
-	f.Where(p.Field(key.FieldKey))
-}
-
-// WhereEnable applies the entql bool predicate on the enable field.
-func (f *KeyFilter) WhereEnable(p entql.BoolP) {
-	f.Where(p.Field(key.FieldEnable))
+// WhereKeys applies the entql string predicate on the keys field.
+func (f *KeyFilter) WhereKeys(p entql.StringP) {
+	f.Where(p.Field(key.FieldKeys))
 }
 
 // addPredicate implements the predicateAdder interface.
@@ -429,7 +629,7 @@ type MemberFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *MemberFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -522,6 +722,20 @@ func (f *MemberFilter) WhereHasGroupsWith(preds ...predicate.Group) {
 	})))
 }
 
+// WhereHasGroupMembers applies a predicate to check if query has an edge group_members.
+func (f *MemberFilter) WhereHasGroupMembers() {
+	f.Where(entql.HasEdge("group_members"))
+}
+
+// WhereHasGroupMembersWith applies a predicate to check if query has an edge group_members with a given conditions (other predicates).
+func (f *MemberFilter) WhereHasGroupMembersWith(preds ...predicate.GroupMember) {
+	f.Where(entql.HasEdgeWith("group_members", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
 // addPredicate implements the predicateAdder interface.
 func (mq *MessageQuery) addPredicate(pred func(s *sql.Selector)) {
 	mq.predicates = append(mq.predicates, pred)
@@ -551,7 +765,7 @@ type MessageFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *MessageFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[4].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -585,6 +799,20 @@ func (f *MessageFilter) WhereMemberID(p entql.Uint64P) {
 // WhereContent applies the entql string predicate on the content field.
 func (f *MessageFilter) WhereContent(p entql.StringP) {
 	f.Where(p.Field(message.FieldContent))
+}
+
+// WhereHasKey applies a predicate to check if query has an edge key.
+func (f *MessageFilter) WhereHasKey() {
+	f.Where(entql.HasEdge("key"))
+}
+
+// WhereHasKeyWith applies a predicate to check if query has an edge key with a given conditions (other predicates).
+func (f *MessageFilter) WhereHasKeyWith(preds ...predicate.Key) {
+	f.Where(entql.HasEdgeWith("key", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // WhereHasOwner applies a predicate to check if query has an edge owner.

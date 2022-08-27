@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 )
@@ -169,6 +170,21 @@ func (mc *MemberCreate) AddGroups(g ...*Group) *MemberCreate {
 		ids[i] = g[i].ID
 	}
 	return mc.AddGroupIDs(ids...)
+}
+
+// AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by IDs.
+func (mc *MemberCreate) AddGroupMemberIDs(ids ...uint64) *MemberCreate {
+	mc.mutation.AddGroupMemberIDs(ids...)
+	return mc
+}
+
+// AddGroupMembers adds the "group_members" edges to the GroupMember entity.
+func (mc *MemberCreate) AddGroupMembers(g ...*GroupMember) *MemberCreate {
+	ids := make([]uint64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return mc.AddGroupMemberIDs(ids...)
 }
 
 // Mutation returns the MemberMutation object of the builder.
@@ -422,6 +438,29 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUint64,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &GroupMemberCreate{config: mc.config, mutation: newGroupMemberMutation(mc.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.GroupMembersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.GroupMembersTable,
+			Columns: []string{member.GroupMembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: groupmember.FieldID,
 				},
 			},
 		}

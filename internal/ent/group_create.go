@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 )
@@ -50,9 +51,9 @@ func (gc *GroupCreate) SetCategory(s string) *GroupCreate {
 	return gc
 }
 
-// SetMemberID sets the "member_id" field.
-func (gc *GroupCreate) SetMemberID(u uint64) *GroupCreate {
-	gc.mutation.SetMemberID(u)
+// SetOwnerID sets the "owner_id" field.
+func (gc *GroupCreate) SetOwnerID(u uint64) *GroupCreate {
+	gc.mutation.SetOwnerID(u)
 	return gc
 }
 
@@ -114,12 +115,6 @@ func (gc *GroupCreate) SetID(u uint64) *GroupCreate {
 	return gc
 }
 
-// SetOwnerID sets the "owner" edge to the Member entity by ID.
-func (gc *GroupCreate) SetOwnerID(id uint64) *GroupCreate {
-	gc.mutation.SetOwnerID(id)
-	return gc
-}
-
 // SetOwner sets the "owner" edge to the Member entity.
 func (gc *GroupCreate) SetOwner(m *Member) *GroupCreate {
 	return gc.SetOwnerID(m.ID)
@@ -153,6 +148,21 @@ func (gc *GroupCreate) AddMembers(m ...*Member) *GroupCreate {
 		ids[i] = m[i].ID
 	}
 	return gc.AddMemberIDs(ids...)
+}
+
+// AddGroupMemberIDs adds the "group_members" edge to the GroupMember entity by IDs.
+func (gc *GroupCreate) AddGroupMemberIDs(ids ...uint64) *GroupCreate {
+	gc.mutation.AddGroupMemberIDs(ids...)
+	return gc
+}
+
+// AddGroupMembers adds the "group_members" edges to the GroupMember entity.
+func (gc *GroupCreate) AddGroupMembers(g ...*GroupMember) *GroupCreate {
+	ids := make([]uint64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gc.AddGroupMemberIDs(ids...)
 }
 
 // Mutation returns the GroupMutation object of the builder.
@@ -256,8 +266,8 @@ func (gc *GroupCreate) check() error {
 	if _, ok := gc.mutation.Category(); !ok {
 		return &ValidationError{Name: "category", err: errors.New(`ent: missing required field "Group.category"`)}
 	}
-	if _, ok := gc.mutation.MemberID(); !ok {
-		return &ValidationError{Name: "member_id", err: errors.New(`ent: missing required field "Group.member_id"`)}
+	if _, ok := gc.mutation.OwnerID(); !ok {
+		return &ValidationError{Name: "owner_id", err: errors.New(`ent: missing required field "Group.owner_id"`)}
 	}
 	if _, ok := gc.mutation.MembersMax(); !ok {
 		return &ValidationError{Name: "members_max", err: errors.New(`ent: missing required field "Group.members_max"`)}
@@ -400,7 +410,7 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.MemberID = nodes[0]
+		_node.OwnerID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := gc.mutation.MessagesIDs(); len(nodes) > 0 {
@@ -433,6 +443,29 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUint64,
 					Column: member.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &GroupMemberCreate{config: gc.config, mutation: newGroupMemberMutation(gc.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gc.mutation.GroupMembersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   group.GroupMembersTable,
+			Columns: []string{group.GroupMembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: groupmember.FieldID,
 				},
 			},
 		}
@@ -529,15 +562,15 @@ func (u *GroupUpsert) UpdateCategory() *GroupUpsert {
 	return u
 }
 
-// SetMemberID sets the "member_id" field.
-func (u *GroupUpsert) SetMemberID(v uint64) *GroupUpsert {
-	u.Set(group.FieldMemberID, v)
+// SetOwnerID sets the "owner_id" field.
+func (u *GroupUpsert) SetOwnerID(v uint64) *GroupUpsert {
+	u.Set(group.FieldOwnerID, v)
 	return u
 }
 
-// UpdateMemberID sets the "member_id" field to the value that was provided on create.
-func (u *GroupUpsert) UpdateMemberID() *GroupUpsert {
-	u.SetExcluded(group.FieldMemberID)
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateOwnerID() *GroupUpsert {
+	u.SetExcluded(group.FieldOwnerID)
 	return u
 }
 
@@ -727,17 +760,17 @@ func (u *GroupUpsertOne) UpdateCategory() *GroupUpsertOne {
 	})
 }
 
-// SetMemberID sets the "member_id" field.
-func (u *GroupUpsertOne) SetMemberID(v uint64) *GroupUpsertOne {
+// SetOwnerID sets the "owner_id" field.
+func (u *GroupUpsertOne) SetOwnerID(v uint64) *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
-		s.SetMemberID(v)
+		s.SetOwnerID(v)
 	})
 }
 
-// UpdateMemberID sets the "member_id" field to the value that was provided on create.
-func (u *GroupUpsertOne) UpdateMemberID() *GroupUpsertOne {
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateOwnerID() *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
-		s.UpdateMemberID()
+		s.UpdateOwnerID()
 	})
 }
 
@@ -1105,17 +1138,17 @@ func (u *GroupUpsertBulk) UpdateCategory() *GroupUpsertBulk {
 	})
 }
 
-// SetMemberID sets the "member_id" field.
-func (u *GroupUpsertBulk) SetMemberID(v uint64) *GroupUpsertBulk {
+// SetOwnerID sets the "owner_id" field.
+func (u *GroupUpsertBulk) SetOwnerID(v uint64) *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
-		s.SetMemberID(v)
+		s.SetOwnerID(v)
 	})
 }
 
-// UpdateMemberID sets the "member_id" field to the value that was provided on create.
-func (u *GroupUpsertBulk) UpdateMemberID() *GroupUpsertBulk {
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateOwnerID() *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
-		s.UpdateMemberID()
+		s.UpdateOwnerID()
 	})
 }
 

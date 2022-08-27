@@ -45,9 +45,11 @@ type MemberEdges struct {
 	Messages []*Message `json:"messages,omitempty"`
 	// Groups holds the value of the groups edge.
 	Groups []*Group `json:"groups,omitempty"`
+	// GroupMembers holds the value of the group_members edge.
+	GroupMembers []*GroupMember `json:"group_members,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OwnGroupsOrErr returns the OwnGroups value or an error if the edge
@@ -75,6 +77,15 @@ func (e MemberEdges) GroupsOrErr() ([]*Group, error) {
 		return e.Groups, nil
 	}
 	return nil, &NotLoadedError{edge: "groups"}
+}
+
+// GroupMembersOrErr returns the GroupMembers value or an error if the edge
+// was not loaded in eager-loading.
+func (e MemberEdges) GroupMembersOrErr() ([]*GroupMember, error) {
+	if e.loadedTypes[3] {
+		return e.GroupMembers, nil
+	}
+	return nil, &NotLoadedError{edge: "group_members"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -177,6 +188,11 @@ func (m *Member) QueryMessages() *MessageQuery {
 // QueryGroups queries the "groups" edge of the Member entity.
 func (m *Member) QueryGroups() *GroupQuery {
 	return (&MemberClient{config: m.config}).QueryGroups(m)
+}
+
+// QueryGroupMembers queries the "group_members" edge of the Member entity.
+func (m *Member) QueryGroupMembers() *GroupMemberQuery {
+	return (&MemberClient{config: m.config}).QueryGroupMembers(m)
 }
 
 // Update returns a builder for updating this Member.

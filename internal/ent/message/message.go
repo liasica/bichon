@@ -23,12 +23,21 @@ const (
 	FieldMemberID = "member_id"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
+	// EdgeKey holds the string denoting the key edge name in mutations.
+	EdgeKey = "key"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// Table holds the table name of the message in the database.
 	Table = "message"
+	// KeyTable is the table that holds the key relation/edge.
+	KeyTable = "message"
+	// KeyInverseTable is the table name for the Key entity.
+	// It exists in this package in order to avoid circular dependency with the "key" package.
+	KeyInverseTable = "key"
+	// KeyColumn is the table column denoting the key relation/edge.
+	KeyColumn = "key_id"
 	// OwnerTable is the table that holds the owner relation/edge.
 	OwnerTable = "message"
 	// OwnerInverseTable is the table name for the Member entity.

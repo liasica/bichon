@@ -35,6 +35,8 @@ const (
 	EdgeMessages = "messages"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
+	// EdgeGroupMembers holds the string denoting the group_members edge name in mutations.
+	EdgeGroupMembers = "group_members"
 	// Table holds the table name of the member in the database.
 	Table = "member"
 	// OwnGroupsTable is the table that holds the own_groups relation/edge.
@@ -43,7 +45,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "group" package.
 	OwnGroupsInverseTable = "group"
 	// OwnGroupsColumn is the table column denoting the own_groups relation/edge.
-	OwnGroupsColumn = "member_id"
+	OwnGroupsColumn = "owner_id"
 	// MessagesTable is the table that holds the messages relation/edge.
 	MessagesTable = "message"
 	// MessagesInverseTable is the table name for the Message entity.
@@ -52,10 +54,17 @@ const (
 	// MessagesColumn is the table column denoting the messages relation/edge.
 	MessagesColumn = "member_id"
 	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
-	GroupsTable = "group_members"
+	GroupsTable = "group_member"
 	// GroupsInverseTable is the table name for the Group entity.
 	// It exists in this package in order to avoid circular dependency with the "group" package.
 	GroupsInverseTable = "group"
+	// GroupMembersTable is the table that holds the group_members relation/edge.
+	GroupMembersTable = "group_member"
+	// GroupMembersInverseTable is the table name for the GroupMember entity.
+	// It exists in this package in order to avoid circular dependency with the "groupmember" package.
+	GroupMembersInverseTable = "group_member"
+	// GroupMembersColumn is the table column denoting the group_members relation/edge.
+	GroupMembersColumn = "member_id"
 )
 
 // Columns holds all SQL columns for member fields.

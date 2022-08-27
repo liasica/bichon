@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 )
@@ -35,19 +36,34 @@ type Message struct {
 
 // MessageEdges holds the relations/edges for other nodes in the graph.
 type MessageEdges struct {
+	// Key holds the value of the key edge.
+	Key *Key `json:"key,omitempty"`
 	// Owner holds the value of the owner edge.
 	Owner *Member `json:"owner,omitempty"`
 	// Group holds the value of the group edge.
 	Group *Group `json:"group,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// KeyOrErr returns the Key value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageEdges) KeyOrErr() (*Key, error) {
+	if e.loadedTypes[0] {
+		if e.Key == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: key.Label}
+		}
+		return e.Key, nil
+	}
+	return nil, &NotLoadedError{edge: "key"}
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e MessageEdges) OwnerOrErr() (*Member, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.Owner == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: member.Label}
@@ -60,7 +76,7 @@ func (e MessageEdges) OwnerOrErr() (*Member, error) {
 // GroupOrErr returns the Group value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e MessageEdges) GroupOrErr() (*Group, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Group == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: group.Label}
@@ -135,6 +151,11 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryKey queries the "key" edge of the Message entity.
+func (m *Message) QueryKey() *KeyQuery {
+	return (&MessageClient{config: m.config}).QueryKey(m)
 }
 
 // QueryOwner queries the "owner" edge of the Message entity.

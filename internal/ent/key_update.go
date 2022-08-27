@@ -28,49 +28,9 @@ func (ku *KeyUpdate) Where(ps ...predicate.Key) *KeyUpdate {
 	return ku
 }
 
-// SetGroupID sets the "group_id" field.
-func (ku *KeyUpdate) SetGroupID(u uint64) *KeyUpdate {
-	ku.mutation.ResetGroupID()
-	ku.mutation.SetGroupID(u)
-	return ku
-}
-
-// AddGroupID adds u to the "group_id" field.
-func (ku *KeyUpdate) AddGroupID(u int64) *KeyUpdate {
-	ku.mutation.AddGroupID(u)
-	return ku
-}
-
-// SetMemberID sets the "member_id" field.
-func (ku *KeyUpdate) SetMemberID(u uint64) *KeyUpdate {
-	ku.mutation.ResetMemberID()
-	ku.mutation.SetMemberID(u)
-	return ku
-}
-
-// AddMemberID adds u to the "member_id" field.
-func (ku *KeyUpdate) AddMemberID(u int64) *KeyUpdate {
-	ku.mutation.AddMemberID(u)
-	return ku
-}
-
-// SetKey sets the "key" field.
-func (ku *KeyUpdate) SetKey(s string) *KeyUpdate {
-	ku.mutation.SetKey(s)
-	return ku
-}
-
-// SetEnable sets the "enable" field.
-func (ku *KeyUpdate) SetEnable(b bool) *KeyUpdate {
-	ku.mutation.SetEnable(b)
-	return ku
-}
-
-// SetNillableEnable sets the "enable" field if the given value is not nil.
-func (ku *KeyUpdate) SetNillableEnable(b *bool) *KeyUpdate {
-	if b != nil {
-		ku.SetEnable(*b)
-	}
+// SetKeys sets the "keys" field.
+func (ku *KeyUpdate) SetKeys(s string) *KeyUpdate {
+	ku.mutation.SetKeys(s)
 	return ku
 }
 
@@ -157,46 +117,11 @@ func (ku *KeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ku.mutation.GroupID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldGroupID,
-		})
-	}
-	if value, ok := ku.mutation.AddedGroupID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldGroupID,
-		})
-	}
-	if value, ok := ku.mutation.MemberID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldMemberID,
-		})
-	}
-	if value, ok := ku.mutation.AddedMemberID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldMemberID,
-		})
-	}
-	if value, ok := ku.mutation.Key(); ok {
+	if value, ok := ku.mutation.Keys(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: key.FieldKey,
-		})
-	}
-	if value, ok := ku.mutation.Enable(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: key.FieldEnable,
+			Column: key.FieldKeys,
 		})
 	}
 	_spec.Modifiers = ku.modifiers
@@ -220,49 +145,9 @@ type KeyUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetGroupID sets the "group_id" field.
-func (kuo *KeyUpdateOne) SetGroupID(u uint64) *KeyUpdateOne {
-	kuo.mutation.ResetGroupID()
-	kuo.mutation.SetGroupID(u)
-	return kuo
-}
-
-// AddGroupID adds u to the "group_id" field.
-func (kuo *KeyUpdateOne) AddGroupID(u int64) *KeyUpdateOne {
-	kuo.mutation.AddGroupID(u)
-	return kuo
-}
-
-// SetMemberID sets the "member_id" field.
-func (kuo *KeyUpdateOne) SetMemberID(u uint64) *KeyUpdateOne {
-	kuo.mutation.ResetMemberID()
-	kuo.mutation.SetMemberID(u)
-	return kuo
-}
-
-// AddMemberID adds u to the "member_id" field.
-func (kuo *KeyUpdateOne) AddMemberID(u int64) *KeyUpdateOne {
-	kuo.mutation.AddMemberID(u)
-	return kuo
-}
-
-// SetKey sets the "key" field.
-func (kuo *KeyUpdateOne) SetKey(s string) *KeyUpdateOne {
-	kuo.mutation.SetKey(s)
-	return kuo
-}
-
-// SetEnable sets the "enable" field.
-func (kuo *KeyUpdateOne) SetEnable(b bool) *KeyUpdateOne {
-	kuo.mutation.SetEnable(b)
-	return kuo
-}
-
-// SetNillableEnable sets the "enable" field if the given value is not nil.
-func (kuo *KeyUpdateOne) SetNillableEnable(b *bool) *KeyUpdateOne {
-	if b != nil {
-		kuo.SetEnable(*b)
-	}
+// SetKeys sets the "keys" field.
+func (kuo *KeyUpdateOne) SetKeys(s string) *KeyUpdateOne {
+	kuo.mutation.SetKeys(s)
 	return kuo
 }
 
@@ -379,46 +264,11 @@ func (kuo *KeyUpdateOne) sqlSave(ctx context.Context) (_node *Key, err error) {
 			}
 		}
 	}
-	if value, ok := kuo.mutation.GroupID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldGroupID,
-		})
-	}
-	if value, ok := kuo.mutation.AddedGroupID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldGroupID,
-		})
-	}
-	if value, ok := kuo.mutation.MemberID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldMemberID,
-		})
-	}
-	if value, ok := kuo.mutation.AddedMemberID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: key.FieldMemberID,
-		})
-	}
-	if value, ok := kuo.mutation.Key(); ok {
+	if value, ok := kuo.mutation.Keys(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: key.FieldKey,
-		})
-	}
-	if value, ok := kuo.mutation.Enable(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: key.FieldEnable,
+			Column: key.FieldKeys,
 		})
 	}
 	_spec.Modifiers = kuo.modifiers

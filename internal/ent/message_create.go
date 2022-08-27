@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 )
@@ -66,6 +67,11 @@ func (mc *MessageCreate) SetContent(s string) *MessageCreate {
 func (mc *MessageCreate) SetID(u uint64) *MessageCreate {
 	mc.mutation.SetID(u)
 	return mc
+}
+
+// SetKey sets the "key" edge to the Key entity.
+func (mc *MessageCreate) SetKey(k *Key) *MessageCreate {
+	return mc.SetKeyID(k.ID)
 }
 
 // SetOwnerID sets the "owner" edge to the Member entity by ID.
@@ -187,6 +193,9 @@ func (mc *MessageCreate) check() error {
 	if _, ok := mc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Message.content"`)}
 	}
+	if _, ok := mc.mutation.KeyID(); !ok {
+		return &ValidationError{Name: "key", err: errors.New(`ent: missing required edge "Message.key"`)}
+	}
 	if _, ok := mc.mutation.OwnerID(); !ok {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Message.owner"`)}
 	}
@@ -235,14 +244,6 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		})
 		_node.CreatedAt = value
 	}
-	if value, ok := mc.mutation.KeyID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: message.FieldKeyID,
-		})
-		_node.KeyID = value
-	}
 	if value, ok := mc.mutation.Content(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -250,6 +251,26 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Column: message.FieldContent,
 		})
 		_node.Content = value
+	}
+	if nodes := mc.mutation.KeyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   message.KeyTable,
+			Columns: []string{message.KeyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUint64,
+					Column: key.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.KeyID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -367,12 +388,6 @@ func (u *MessageUpsert) UpdateKeyID() *MessageUpsert {
 	return u
 }
 
-// AddKeyID adds v to the "key_id" field.
-func (u *MessageUpsert) AddKeyID(v uint64) *MessageUpsert {
-	u.Add(message.FieldKeyID, v)
-	return u
-}
-
 // SetGroupID sets the "group_id" field.
 func (u *MessageUpsert) SetGroupID(v uint64) *MessageUpsert {
 	u.Set(message.FieldGroupID, v)
@@ -478,13 +493,6 @@ func (u *MessageUpsertOne) UpdateCreatedAt() *MessageUpsertOne {
 func (u *MessageUpsertOne) SetKeyID(v uint64) *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetKeyID(v)
-	})
-}
-
-// AddKeyID adds v to the "key_id" field.
-func (u *MessageUpsertOne) AddKeyID(v uint64) *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.AddKeyID(v)
 	})
 }
 
@@ -769,13 +777,6 @@ func (u *MessageUpsertBulk) UpdateCreatedAt() *MessageUpsertBulk {
 func (u *MessageUpsertBulk) SetKeyID(v uint64) *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetKeyID(v)
-	})
-}
-
-// AddKeyID adds v to the "key_id" field.
-func (u *MessageUpsertBulk) AddKeyID(v uint64) *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.AddKeyID(v)
 	})
 }
 

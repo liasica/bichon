@@ -11,6 +11,7 @@ import (
 	"github.com/chatpuppy/puppychat/internal/ent/migrate"
 
 	"github.com/chatpuppy/puppychat/internal/ent/group"
+	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
@@ -27,6 +28,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// GroupMember is the client for interacting with the GroupMember builders.
+	GroupMember *GroupMemberClient
 	// Key is the client for interacting with the Key builders.
 	Key *KeyClient
 	// Member is the client for interacting with the Member builders.
@@ -47,6 +50,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Group = NewGroupClient(c.config)
+	c.GroupMember = NewGroupMemberClient(c.config)
 	c.Key = NewKeyClient(c.config)
 	c.Member = NewMemberClient(c.config)
 	c.Message = NewMessageClient(c.config)
@@ -81,12 +85,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Group:   NewGroupClient(cfg),
-		Key:     NewKeyClient(cfg),
-		Member:  NewMemberClient(cfg),
-		Message: NewMessageClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Group:       NewGroupClient(cfg),
+		GroupMember: NewGroupMemberClient(cfg),
+		Key:         NewKeyClient(cfg),
+		Member:      NewMemberClient(cfg),
+		Message:     NewMessageClient(cfg),
 	}, nil
 }
 
@@ -104,12 +109,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Group:   NewGroupClient(cfg),
-		Key:     NewKeyClient(cfg),
-		Member:  NewMemberClient(cfg),
-		Message: NewMessageClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Group:       NewGroupClient(cfg),
+		GroupMember: NewGroupMemberClient(cfg),
+		Key:         NewKeyClient(cfg),
+		Member:      NewMemberClient(cfg),
+		Message:     NewMessageClient(cfg),
 	}, nil
 }
 
@@ -139,6 +145,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Group.Use(hooks...)
+	c.GroupMember.Use(hooks...)
 	c.Key.Use(hooks...)
 	c.Member.Use(hooks...)
 	c.Message.Use(hooks...)
@@ -277,10 +284,165 @@ func (c *GroupClient) QueryMembers(gr *Group) *MemberQuery {
 	return query
 }
 
+// QueryGroupMembers queries the group_members edge of a Group.
+func (c *GroupClient) QueryGroupMembers(gr *Group) *GroupMemberQuery {
+	query := &GroupMemberQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := gr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, id),
+			sqlgraph.To(groupmember.Table, groupmember.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, group.GroupMembersTable, group.GroupMembersColumn),
+		)
+		fromV = sqlgraph.Neighbors(gr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *GroupClient) Hooks() []Hook {
 	hooks := c.hooks.Group
 	return append(hooks[:len(hooks):len(hooks)], group.Hooks[:]...)
+}
+
+// GroupMemberClient is a client for the GroupMember schema.
+type GroupMemberClient struct {
+	config
+}
+
+// NewGroupMemberClient returns a client for the GroupMember from the given config.
+func NewGroupMemberClient(c config) *GroupMemberClient {
+	return &GroupMemberClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `groupmember.Hooks(f(g(h())))`.
+func (c *GroupMemberClient) Use(hooks ...Hook) {
+	c.hooks.GroupMember = append(c.hooks.GroupMember, hooks...)
+}
+
+// Create returns a builder for creating a GroupMember entity.
+func (c *GroupMemberClient) Create() *GroupMemberCreate {
+	mutation := newGroupMemberMutation(c.config, OpCreate)
+	return &GroupMemberCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GroupMember entities.
+func (c *GroupMemberClient) CreateBulk(builders ...*GroupMemberCreate) *GroupMemberCreateBulk {
+	return &GroupMemberCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GroupMember.
+func (c *GroupMemberClient) Update() *GroupMemberUpdate {
+	mutation := newGroupMemberMutation(c.config, OpUpdate)
+	return &GroupMemberUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GroupMemberClient) UpdateOne(gm *GroupMember) *GroupMemberUpdateOne {
+	mutation := newGroupMemberMutation(c.config, OpUpdateOne, withGroupMember(gm))
+	return &GroupMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GroupMemberClient) UpdateOneID(id uint64) *GroupMemberUpdateOne {
+	mutation := newGroupMemberMutation(c.config, OpUpdateOne, withGroupMemberID(id))
+	return &GroupMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GroupMember.
+func (c *GroupMemberClient) Delete() *GroupMemberDelete {
+	mutation := newGroupMemberMutation(c.config, OpDelete)
+	return &GroupMemberDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GroupMemberClient) DeleteOne(gm *GroupMember) *GroupMemberDeleteOne {
+	return c.DeleteOneID(gm.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *GroupMemberClient) DeleteOneID(id uint64) *GroupMemberDeleteOne {
+	builder := c.Delete().Where(groupmember.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GroupMemberDeleteOne{builder}
+}
+
+// Query returns a query builder for GroupMember.
+func (c *GroupMemberClient) Query() *GroupMemberQuery {
+	return &GroupMemberQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a GroupMember entity by its id.
+func (c *GroupMemberClient) Get(ctx context.Context, id uint64) (*GroupMember, error) {
+	return c.Query().Where(groupmember.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GroupMemberClient) GetX(ctx context.Context, id uint64) *GroupMember {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMember queries the member edge of a GroupMember.
+func (c *GroupMemberClient) QueryMember(gm *GroupMember) *MemberQuery {
+	query := &MemberQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := gm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(groupmember.Table, groupmember.FieldID, id),
+			sqlgraph.To(member.Table, member.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, groupmember.MemberTable, groupmember.MemberColumn),
+		)
+		fromV = sqlgraph.Neighbors(gm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGroup queries the group edge of a GroupMember.
+func (c *GroupMemberClient) QueryGroup(gm *GroupMember) *GroupQuery {
+	query := &GroupQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := gm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(groupmember.Table, groupmember.FieldID, id),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, groupmember.GroupTable, groupmember.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(gm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryKey queries the key edge of a GroupMember.
+func (c *GroupMemberClient) QueryKey(gm *GroupMember) *KeyQuery {
+	query := &KeyQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := gm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(groupmember.Table, groupmember.FieldID, id),
+			sqlgraph.To(key.Table, key.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, groupmember.KeyTable, groupmember.KeyColumn),
+		)
+		fromV = sqlgraph.Neighbors(gm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *GroupMemberClient) Hooks() []Hook {
+	hooks := c.hooks.GroupMember
+	return append(hooks[:len(hooks):len(hooks)], groupmember.Hooks[:]...)
 }
 
 // KeyClient is a client for the Key schema.
@@ -507,6 +669,22 @@ func (c *MemberClient) QueryGroups(m *Member) *GroupQuery {
 	return query
 }
 
+// QueryGroupMembers queries the group_members edge of a Member.
+func (c *MemberClient) QueryGroupMembers(m *Member) *GroupMemberQuery {
+	query := &GroupMemberQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(member.Table, member.FieldID, id),
+			sqlgraph.To(groupmember.Table, groupmember.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, member.GroupMembersTable, member.GroupMembersColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *MemberClient) Hooks() []Hook {
 	hooks := c.hooks.Member
@@ -596,6 +774,22 @@ func (c *MessageClient) GetX(ctx context.Context, id uint64) *Message {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryKey queries the key edge of a Message.
+func (c *MessageClient) QueryKey(m *Message) *KeyQuery {
+	query := &KeyQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(key.Table, key.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, message.KeyTable, message.KeyColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryOwner queries the owner edge of a Message.

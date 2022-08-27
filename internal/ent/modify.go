@@ -58,6 +58,13 @@ func (c *GroupClient) ModifyOne(old *Group, data any) *GroupUpdateOne {
 	return EntitySetAttributes[GroupUpdateOne, Group](up, old, data)
 }
 
+// ModifyOne returns an update with pointer struct builder for GroupMember.
+func (c *GroupMemberClient) ModifyOne(old *GroupMember, data any) *GroupMemberUpdateOne {
+	mutation := newGroupMemberMutation(c.config, OpUpdateOne, withGroupMember(old))
+	up := &GroupMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return EntitySetAttributes[GroupMemberUpdateOne, GroupMember](up, old, data)
+}
+
 // ModifyOne returns an update with pointer struct builder for Key.
 func (c *KeyClient) ModifyOne(old *Key, data any) *KeyUpdateOne {
 	mutation := newKeyMutation(c.config, OpUpdateOne, withKey(old))

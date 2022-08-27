@@ -22,12 +22,7 @@ type KeyMutation struct {
 	typ           string
 	id            *uint64
 	created_at    *time.Time
-	group_id      *uint64
-	addgroup_id   *int64
-	member_id     *uint64
-	addmember_id  *int64
-	key           *string
-	enable        *bool
+	keys          *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Key, error)
@@ -174,188 +169,40 @@ func (m *KeyMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
-// SetGroupID sets the "group_id" field.
-func (m *KeyMutation) SetGroupID(u uint64) {
-	m.group_id = &u
-	m.addgroup_id = nil
+// SetKeys sets the "keys" field.
+func (m *KeyMutation) SetKeys(s string) {
+	m.keys = &s
 }
 
-// GroupID returns the value of the "group_id" field in the mutation.
-func (m *KeyMutation) GroupID() (r uint64, exists bool) {
-	v := m.group_id
+// Keys returns the value of the "keys" field in the mutation.
+func (m *KeyMutation) Keys() (r string, exists bool) {
+	v := m.keys
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldGroupID returns the old "group_id" field's value of the Key entity.
+// OldKeys returns the old "keys" field's value of the Key entity.
 // If the Key object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *KeyMutation) OldGroupID(ctx context.Context) (v uint64, err error) {
+func (m *KeyMutation) OldKeys(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
+		return v, errors.New("OldKeys is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGroupID requires an ID field in the mutation")
+		return v, errors.New("OldKeys requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
+		return v, fmt.Errorf("querying old value for OldKeys: %w", err)
 	}
-	return oldValue.GroupID, nil
+	return oldValue.Keys, nil
 }
 
-// AddGroupID adds u to the "group_id" field.
-func (m *KeyMutation) AddGroupID(u int64) {
-	if m.addgroup_id != nil {
-		*m.addgroup_id += u
-	} else {
-		m.addgroup_id = &u
-	}
-}
-
-// AddedGroupID returns the value that was added to the "group_id" field in this mutation.
-func (m *KeyMutation) AddedGroupID() (r int64, exists bool) {
-	v := m.addgroup_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetGroupID resets all changes to the "group_id" field.
-func (m *KeyMutation) ResetGroupID() {
-	m.group_id = nil
-	m.addgroup_id = nil
-}
-
-// SetMemberID sets the "member_id" field.
-func (m *KeyMutation) SetMemberID(u uint64) {
-	m.member_id = &u
-	m.addmember_id = nil
-}
-
-// MemberID returns the value of the "member_id" field in the mutation.
-func (m *KeyMutation) MemberID() (r uint64, exists bool) {
-	v := m.member_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMemberID returns the old "member_id" field's value of the Key entity.
-// If the Key object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *KeyMutation) OldMemberID(ctx context.Context) (v uint64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMemberID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMemberID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMemberID: %w", err)
-	}
-	return oldValue.MemberID, nil
-}
-
-// AddMemberID adds u to the "member_id" field.
-func (m *KeyMutation) AddMemberID(u int64) {
-	if m.addmember_id != nil {
-		*m.addmember_id += u
-	} else {
-		m.addmember_id = &u
-	}
-}
-
-// AddedMemberID returns the value that was added to the "member_id" field in this mutation.
-func (m *KeyMutation) AddedMemberID() (r int64, exists bool) {
-	v := m.addmember_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetMemberID resets all changes to the "member_id" field.
-func (m *KeyMutation) ResetMemberID() {
-	m.member_id = nil
-	m.addmember_id = nil
-}
-
-// SetKey sets the "key" field.
-func (m *KeyMutation) SetKey(s string) {
-	m.key = &s
-}
-
-// Key returns the value of the "key" field in the mutation.
-func (m *KeyMutation) Key() (r string, exists bool) {
-	v := m.key
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldKey returns the old "key" field's value of the Key entity.
-// If the Key object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *KeyMutation) OldKey(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKey is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKey requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKey: %w", err)
-	}
-	return oldValue.Key, nil
-}
-
-// ResetKey resets all changes to the "key" field.
-func (m *KeyMutation) ResetKey() {
-	m.key = nil
-}
-
-// SetEnable sets the "enable" field.
-func (m *KeyMutation) SetEnable(b bool) {
-	m.enable = &b
-}
-
-// Enable returns the value of the "enable" field in the mutation.
-func (m *KeyMutation) Enable() (r bool, exists bool) {
-	v := m.enable
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEnable returns the old "enable" field's value of the Key entity.
-// If the Key object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *KeyMutation) OldEnable(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnable is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnable requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnable: %w", err)
-	}
-	return oldValue.Enable, nil
-}
-
-// ResetEnable resets all changes to the "enable" field.
-func (m *KeyMutation) ResetEnable() {
-	m.enable = nil
+// ResetKeys resets all changes to the "keys" field.
+func (m *KeyMutation) ResetKeys() {
+	m.keys = nil
 }
 
 // Where appends a list predicates to the KeyMutation builder.
@@ -377,21 +224,12 @@ func (m *KeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *KeyMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 2)
 	if m.created_at != nil {
 		fields = append(fields, key.FieldCreatedAt)
 	}
-	if m.group_id != nil {
-		fields = append(fields, key.FieldGroupID)
-	}
-	if m.member_id != nil {
-		fields = append(fields, key.FieldMemberID)
-	}
-	if m.key != nil {
-		fields = append(fields, key.FieldKey)
-	}
-	if m.enable != nil {
-		fields = append(fields, key.FieldEnable)
+	if m.keys != nil {
+		fields = append(fields, key.FieldKeys)
 	}
 	return fields
 }
@@ -403,14 +241,8 @@ func (m *KeyMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case key.FieldCreatedAt:
 		return m.CreatedAt()
-	case key.FieldGroupID:
-		return m.GroupID()
-	case key.FieldMemberID:
-		return m.MemberID()
-	case key.FieldKey:
-		return m.Key()
-	case key.FieldEnable:
-		return m.Enable()
+	case key.FieldKeys:
+		return m.Keys()
 	}
 	return nil, false
 }
@@ -422,14 +254,8 @@ func (m *KeyMutation) OldField(ctx context.Context, name string) (ent.Value, err
 	switch name {
 	case key.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case key.FieldGroupID:
-		return m.OldGroupID(ctx)
-	case key.FieldMemberID:
-		return m.OldMemberID(ctx)
-	case key.FieldKey:
-		return m.OldKey(ctx)
-	case key.FieldEnable:
-		return m.OldEnable(ctx)
+	case key.FieldKeys:
+		return m.OldKeys(ctx)
 	}
 	return nil, fmt.Errorf("unknown Key field %s", name)
 }
@@ -446,33 +272,12 @@ func (m *KeyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case key.FieldGroupID:
-		v, ok := value.(uint64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGroupID(v)
-		return nil
-	case key.FieldMemberID:
-		v, ok := value.(uint64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMemberID(v)
-		return nil
-	case key.FieldKey:
+	case key.FieldKeys:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetKey(v)
-		return nil
-	case key.FieldEnable:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEnable(v)
+		m.SetKeys(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Key field %s", name)
@@ -481,26 +286,13 @@ func (m *KeyMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *KeyMutation) AddedFields() []string {
-	var fields []string
-	if m.addgroup_id != nil {
-		fields = append(fields, key.FieldGroupID)
-	}
-	if m.addmember_id != nil {
-		fields = append(fields, key.FieldMemberID)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *KeyMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case key.FieldGroupID:
-		return m.AddedGroupID()
-	case key.FieldMemberID:
-		return m.AddedMemberID()
-	}
 	return nil, false
 }
 
@@ -509,20 +301,6 @@ func (m *KeyMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *KeyMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case key.FieldGroupID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGroupID(v)
-		return nil
-	case key.FieldMemberID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddMemberID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Key numeric field %s", name)
 }
@@ -553,17 +331,8 @@ func (m *KeyMutation) ResetField(name string) error {
 	case key.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case key.FieldGroupID:
-		m.ResetGroupID()
-		return nil
-	case key.FieldMemberID:
-		m.ResetMemberID()
-		return nil
-	case key.FieldKey:
-		m.ResetKey()
-		return nil
-	case key.FieldEnable:
-		m.ResetEnable()
+	case key.FieldKeys:
+		m.ResetKeys()
 		return nil
 	}
 	return fmt.Errorf("unknown Key field %s", name)

@@ -168,7 +168,8 @@
             "type": "object",
             "required": [
                 "category",
-                "name"
+                "name",
+                "sharedPublic"
             ],
             "properties": {
                 "category": {
@@ -191,6 +192,10 @@
                 "public": {
                     "description": "`true` create public group, `false` create private group",
                     "type": "boolean"
+                },
+                "sharedPublic": {
+                    "description": "Member's public key for `ecdh` exchange",
+                    "type": "string"
                 }
             }
         },

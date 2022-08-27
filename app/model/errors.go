@@ -7,4 +7,5 @@ var (
     ErrInvalidAddress   = errors.New("invalid address")
     ErrInvalidSignature = errors.New("invalid signature")
     ErrMaximunGroups    = errors.New("created group has exceeded the maximum number")
+    ErrMaximunMembers   = errors.New("group's members has exceeded the maximum number")
 )

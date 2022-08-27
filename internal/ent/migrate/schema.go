@@ -21,7 +21,7 @@ var (
 		{Name: "address", Type: field.TypeString, Unique: true},
 		{Name: "intro", Type: field.TypeString, Nullable: true},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
-		{Name: "member_id", Type: field.TypeUint64},
+		{Name: "owner_id", Type: field.TypeUint64},
 	}
 	// GroupTable holds the schema information for the "group" table.
 	GroupTable = &schema.Table{
@@ -53,9 +53,57 @@ var (
 				},
 			},
 			{
-				Name:    "group_member_id",
+				Name:    "group_owner_id",
 				Unique:  false,
 				Columns: []*schema.Column{GroupColumns[10]},
+			},
+		},
+	}
+	// GroupMemberColumns holds the columns for the "group_member" table.
+	GroupMemberColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "permission", Type: field.TypeUint8, Default: 0},
+		{Name: "sn", Type: field.TypeString, Unique: true},
+		{Name: "member_id", Type: field.TypeUint64},
+		{Name: "group_id", Type: field.TypeUint64},
+		{Name: "key_id", Type: field.TypeUint64},
+	}
+	// GroupMemberTable holds the schema information for the "group_member" table.
+	GroupMemberTable = &schema.Table{
+		Name:       "group_member",
+		Columns:    GroupMemberColumns,
+		PrimaryKey: []*schema.Column{GroupMemberColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "group_member_member_member",
+				Columns:    []*schema.Column{GroupMemberColumns[4]},
+				RefColumns: []*schema.Column{MemberColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "group_member_group_group",
+				Columns:    []*schema.Column{GroupMemberColumns[5]},
+				RefColumns: []*schema.Column{GroupColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "group_member_key_key",
+				Columns:    []*schema.Column{GroupMemberColumns[6]},
+				RefColumns: []*schema.Column{KeyColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "groupmember_group_id_member_id",
+				Unique:  true,
+				Columns: []*schema.Column{GroupMemberColumns[5], GroupMemberColumns[4]},
+			},
+			{
+				Name:    "groupmember_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{GroupMemberColumns[1]},
 			},
 		},
 	}
@@ -63,10 +111,7 @@ var (
 	KeyColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "group_id", Type: field.TypeUint64},
-		{Name: "member_id", Type: field.TypeUint64},
-		{Name: "key", Type: field.TypeString},
-		{Name: "enable", Type: field.TypeBool, Default: true},
+		{Name: "keys", Type: field.TypeString, Size: 2147483647},
 	}
 	// KeyTable holds the schema information for the "key" table.
 	KeyTable = &schema.Table{
@@ -78,16 +123,6 @@ var (
 				Name:    "key_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{KeyColumns[1]},
-			},
-			{
-				Name:    "key_group_id_member_id",
-				Unique:  false,
-				Columns: []*schema.Column{KeyColumns[2], KeyColumns[3]},
-			},
-			{
-				Name:    "key_enable",
-				Unique:  false,
-				Columns: []*schema.Column{KeyColumns[5]},
 			},
 		},
 	}
@@ -125,10 +160,10 @@ var (
 	MessageColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "key_id", Type: field.TypeUint64},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "group_id", Type: field.TypeUint64},
 		{Name: "member_id", Type: field.TypeUint64},
+		{Name: "key_id", Type: field.TypeUint64},
 	}
 	// MessageTable holds the schema information for the "message" table.
 	MessageTable = &schema.Table{
@@ -138,14 +173,20 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_group_messages",
-				Columns:    []*schema.Column{MessageColumns[4]},
+				Columns:    []*schema.Column{MessageColumns[3]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "message_member_messages",
-				Columns:    []*schema.Column{MessageColumns[5]},
+				Columns:    []*schema.Column{MessageColumns[4]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "message_key_key",
+				Columns:    []*schema.Column{MessageColumns[5]},
+				RefColumns: []*schema.Column{KeyColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -157,38 +198,13 @@ var (
 			},
 		},
 	}
-	// GroupMembersColumns holds the columns for the "group_members" table.
-	GroupMembersColumns = []*schema.Column{
-		{Name: "group_id", Type: field.TypeUint64},
-		{Name: "member_id", Type: field.TypeUint64},
-	}
-	// GroupMembersTable holds the schema information for the "group_members" table.
-	GroupMembersTable = &schema.Table{
-		Name:       "group_members",
-		Columns:    GroupMembersColumns,
-		PrimaryKey: []*schema.Column{GroupMembersColumns[0], GroupMembersColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "group_members_group_id",
-				Columns:    []*schema.Column{GroupMembersColumns[0]},
-				RefColumns: []*schema.Column{GroupColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "group_members_member_id",
-				Columns:    []*schema.Column{GroupMembersColumns[1]},
-				RefColumns: []*schema.Column{MemberColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		GroupTable,
+		GroupMemberTable,
 		KeyTable,
 		MemberTable,
 		MessageTable,
-		GroupMembersTable,
 	}
 )
 
@@ -196,6 +212,12 @@ func init() {
 	GroupTable.ForeignKeys[0].RefTable = MemberTable
 	GroupTable.Annotation = &entsql.Annotation{
 		Table: "group",
+	}
+	GroupMemberTable.ForeignKeys[0].RefTable = MemberTable
+	GroupMemberTable.ForeignKeys[1].RefTable = GroupTable
+	GroupMemberTable.ForeignKeys[2].RefTable = KeyTable
+	GroupMemberTable.Annotation = &entsql.Annotation{
+		Table: "group_member",
 	}
 	KeyTable.Annotation = &entsql.Annotation{
 		Table: "key",
@@ -205,9 +227,8 @@ func init() {
 	}
 	MessageTable.ForeignKeys[0].RefTable = GroupTable
 	MessageTable.ForeignKeys[1].RefTable = MemberTable
+	MessageTable.ForeignKeys[2].RefTable = KeyTable
 	MessageTable.Annotation = &entsql.Annotation{
 		Table: "message",
 	}
-	GroupMembersTable.ForeignKeys[0].RefTable = GroupTable
-	GroupMembersTable.ForeignKeys[1].RefTable = MemberTable
 }

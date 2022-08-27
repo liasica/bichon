@@ -176,7 +176,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "category",
-                "name"
+                "name",
+                "sharedPublic"
             ],
             "properties": {
                 "category": {
@@ -199,6 +200,10 @@ const docTemplate = `{
                 "public": {
                     "description": "` + "`" + `true` + "`" + ` create public group, ` + "`" + `false` + "`" + ` create private group",
                     "type": "boolean"
+                },
+                "sharedPublic": {
+                    "description": "Member's public key for ` + "`" + `ecdh` + "`" + ` exchange",
+                    "type": "string"
                 }
             }
         },

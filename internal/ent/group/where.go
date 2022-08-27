@@ -102,10 +102,10 @@ func Category(v string) predicate.Group {
 	})
 }
 
-// MemberID applies equality check predicate on the "member_id" field. It's identical to MemberIDEQ.
-func MemberID(v uint64) predicate.Group {
+// OwnerID applies equality check predicate on the "owner_id" field. It's identical to OwnerIDEQ.
+func OwnerID(v uint64) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldMemberID), v))
+		s.Where(sql.EQ(s.C(FieldOwnerID), v))
 	})
 }
 
@@ -413,39 +413,39 @@ func CategoryContainsFold(v string) predicate.Group {
 	})
 }
 
-// MemberIDEQ applies the EQ predicate on the "member_id" field.
-func MemberIDEQ(v uint64) predicate.Group {
+// OwnerIDEQ applies the EQ predicate on the "owner_id" field.
+func OwnerIDEQ(v uint64) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldMemberID), v))
+		s.Where(sql.EQ(s.C(FieldOwnerID), v))
 	})
 }
 
-// MemberIDNEQ applies the NEQ predicate on the "member_id" field.
-func MemberIDNEQ(v uint64) predicate.Group {
+// OwnerIDNEQ applies the NEQ predicate on the "owner_id" field.
+func OwnerIDNEQ(v uint64) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldMemberID), v))
+		s.Where(sql.NEQ(s.C(FieldOwnerID), v))
 	})
 }
 
-// MemberIDIn applies the In predicate on the "member_id" field.
-func MemberIDIn(vs ...uint64) predicate.Group {
+// OwnerIDIn applies the In predicate on the "owner_id" field.
+func OwnerIDIn(vs ...uint64) predicate.Group {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldMemberID), v...))
+		s.Where(sql.In(s.C(FieldOwnerID), v...))
 	})
 }
 
-// MemberIDNotIn applies the NotIn predicate on the "member_id" field.
-func MemberIDNotIn(vs ...uint64) predicate.Group {
+// OwnerIDNotIn applies the NotIn predicate on the "owner_id" field.
+func OwnerIDNotIn(vs ...uint64) predicate.Group {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Group(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldMemberID), v...))
+		s.Where(sql.NotIn(s.C(FieldOwnerID), v...))
 	})
 }
 
@@ -977,6 +977,34 @@ func HasMembersWith(preds ...predicate.Member) predicate.Group {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(MembersInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, MembersTable, MembersPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGroupMembers applies the HasEdge predicate on the "group_members" edge.
+func HasGroupMembers() predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GroupMembersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, GroupMembersTable, GroupMembersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGroupMembersWith applies the HasEdge predicate on the "group_members" edge with a given conditions (other predicates).
+func HasGroupMembersWith(preds ...predicate.GroupMember) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GroupMembersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, GroupMembersTable, GroupMembersColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
