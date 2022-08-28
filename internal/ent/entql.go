@@ -56,7 +56,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 			groupmember.FieldCreatedAt:  {Type: field.TypeTime, Column: groupmember.FieldCreatedAt},
 			groupmember.FieldMemberID:   {Type: field.TypeString, Column: groupmember.FieldMemberID},
 			groupmember.FieldGroupID:    {Type: field.TypeString, Column: groupmember.FieldGroupID},
-			groupmember.FieldKeyID:      {Type: field.TypeString, Column: groupmember.FieldKeyID},
 			groupmember.FieldPermission: {Type: field.TypeUint8, Column: groupmember.FieldPermission},
 			groupmember.FieldSn:         {Type: field.TypeString, Column: groupmember.FieldSn},
 		},
@@ -73,6 +72,8 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type: "Key",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			key.FieldCreatedAt: {Type: field.TypeTime, Column: key.FieldCreatedAt},
+			key.FieldMemberID:  {Type: field.TypeString, Column: key.FieldMemberID},
+			key.FieldGroupID:   {Type: field.TypeString, Column: key.FieldGroupID},
 			key.FieldKeys:      {Type: field.TypeString, Column: key.FieldKeys},
 		},
 	}
@@ -188,16 +189,28 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"Group",
 	)
 	graph.MustAddE(
-		"key",
+		"member",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   groupmember.KeyTable,
-			Columns: []string{groupmember.KeyColumn},
+			Table:   key.MemberTable,
+			Columns: []string{key.MemberColumn},
 			Bidi:    false,
 		},
-		"GroupMember",
 		"Key",
+		"Member",
+	)
+	graph.MustAddE(
+		"group",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.GroupTable,
+			Columns: []string{key.GroupColumn},
+			Bidi:    false,
+		},
+		"Key",
+		"Group",
 	)
 	graph.MustAddE(
 		"own_groups",
@@ -493,11 +506,6 @@ func (f *GroupMemberFilter) WhereGroupID(p entql.StringP) {
 	f.Where(p.Field(groupmember.FieldGroupID))
 }
 
-// WhereKeyID applies the entql string predicate on the key_id field.
-func (f *GroupMemberFilter) WhereKeyID(p entql.StringP) {
-	f.Where(p.Field(groupmember.FieldKeyID))
-}
-
 // WherePermission applies the entql uint8 predicate on the permission field.
 func (f *GroupMemberFilter) WherePermission(p entql.Uint8P) {
 	f.Where(p.Field(groupmember.FieldPermission))
@@ -530,20 +538,6 @@ func (f *GroupMemberFilter) WhereHasGroup() {
 // WhereHasGroupWith applies a predicate to check if query has an edge group with a given conditions (other predicates).
 func (f *GroupMemberFilter) WhereHasGroupWith(preds ...predicate.Group) {
 	f.Where(entql.HasEdgeWith("group", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// WhereHasKey applies a predicate to check if query has an edge key.
-func (f *GroupMemberFilter) WhereHasKey() {
-	f.Where(entql.HasEdge("key"))
-}
-
-// WhereHasKeyWith applies a predicate to check if query has an edge key with a given conditions (other predicates).
-func (f *GroupMemberFilter) WhereHasKeyWith(preds ...predicate.Key) {
-	f.Where(entql.HasEdgeWith("key", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}
@@ -595,9 +589,47 @@ func (f *KeyFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(key.FieldCreatedAt))
 }
 
+// WhereMemberID applies the entql string predicate on the member_id field.
+func (f *KeyFilter) WhereMemberID(p entql.StringP) {
+	f.Where(p.Field(key.FieldMemberID))
+}
+
+// WhereGroupID applies the entql string predicate on the group_id field.
+func (f *KeyFilter) WhereGroupID(p entql.StringP) {
+	f.Where(p.Field(key.FieldGroupID))
+}
+
 // WhereKeys applies the entql string predicate on the keys field.
 func (f *KeyFilter) WhereKeys(p entql.StringP) {
 	f.Where(p.Field(key.FieldKeys))
+}
+
+// WhereHasMember applies a predicate to check if query has an edge member.
+func (f *KeyFilter) WhereHasMember() {
+	f.Where(entql.HasEdge("member"))
+}
+
+// WhereHasMemberWith applies a predicate to check if query has an edge member with a given conditions (other predicates).
+func (f *KeyFilter) WhereHasMemberWith(preds ...predicate.Member) {
+	f.Where(entql.HasEdgeWith("member", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasGroup applies a predicate to check if query has an edge group.
+func (f *KeyFilter) WhereHasGroup() {
+	f.Where(entql.HasEdge("group"))
+}
+
+// WhereHasGroupWith applies a predicate to check if query has an edge group with a given conditions (other predicates).
+func (f *KeyFilter) WhereHasGroupWith(preds ...predicate.Group) {
+	f.Where(entql.HasEdgeWith("group", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // addPredicate implements the predicateAdder interface.

@@ -24,6 +24,10 @@ type KeyMutation struct {
 	created_at    *time.Time
 	keys          *string
 	clearedFields map[string]struct{}
+	member        *string
+	clearedmember bool
+	group         *string
+	clearedgroup  bool
 	done          bool
 	oldValue      func(context.Context) (*Key, error)
 	predicates    []predicate.Key
@@ -169,6 +173,78 @@ func (m *KeyMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
+// SetMemberID sets the "member_id" field.
+func (m *KeyMutation) SetMemberID(s string) {
+	m.member = &s
+}
+
+// MemberID returns the value of the "member_id" field in the mutation.
+func (m *KeyMutation) MemberID() (r string, exists bool) {
+	v := m.member
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMemberID returns the old "member_id" field's value of the Key entity.
+// If the Key object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *KeyMutation) OldMemberID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMemberID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMemberID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMemberID: %w", err)
+	}
+	return oldValue.MemberID, nil
+}
+
+// ResetMemberID resets all changes to the "member_id" field.
+func (m *KeyMutation) ResetMemberID() {
+	m.member = nil
+}
+
+// SetGroupID sets the "group_id" field.
+func (m *KeyMutation) SetGroupID(s string) {
+	m.group = &s
+}
+
+// GroupID returns the value of the "group_id" field in the mutation.
+func (m *KeyMutation) GroupID() (r string, exists bool) {
+	v := m.group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupID returns the old "group_id" field's value of the Key entity.
+// If the Key object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *KeyMutation) OldGroupID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
+	}
+	return oldValue.GroupID, nil
+}
+
+// ResetGroupID resets all changes to the "group_id" field.
+func (m *KeyMutation) ResetGroupID() {
+	m.group = nil
+}
+
 // SetKeys sets the "keys" field.
 func (m *KeyMutation) SetKeys(s string) {
 	m.keys = &s
@@ -205,6 +281,58 @@ func (m *KeyMutation) ResetKeys() {
 	m.keys = nil
 }
 
+// ClearMember clears the "member" edge to the Member entity.
+func (m *KeyMutation) ClearMember() {
+	m.clearedmember = true
+}
+
+// MemberCleared reports if the "member" edge to the Member entity was cleared.
+func (m *KeyMutation) MemberCleared() bool {
+	return m.clearedmember
+}
+
+// MemberIDs returns the "member" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MemberID instead. It exists only for internal usage by the builders.
+func (m *KeyMutation) MemberIDs() (ids []string) {
+	if id := m.member; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMember resets all changes to the "member" edge.
+func (m *KeyMutation) ResetMember() {
+	m.member = nil
+	m.clearedmember = false
+}
+
+// ClearGroup clears the "group" edge to the Group entity.
+func (m *KeyMutation) ClearGroup() {
+	m.clearedgroup = true
+}
+
+// GroupCleared reports if the "group" edge to the Group entity was cleared.
+func (m *KeyMutation) GroupCleared() bool {
+	return m.clearedgroup
+}
+
+// GroupIDs returns the "group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GroupID instead. It exists only for internal usage by the builders.
+func (m *KeyMutation) GroupIDs() (ids []string) {
+	if id := m.group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGroup resets all changes to the "group" edge.
+func (m *KeyMutation) ResetGroup() {
+	m.group = nil
+	m.clearedgroup = false
+}
+
 // Where appends a list predicates to the KeyMutation builder.
 func (m *KeyMutation) Where(ps ...predicate.Key) {
 	m.predicates = append(m.predicates, ps...)
@@ -224,9 +352,15 @@ func (m *KeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *KeyMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 4)
 	if m.created_at != nil {
 		fields = append(fields, key.FieldCreatedAt)
+	}
+	if m.member != nil {
+		fields = append(fields, key.FieldMemberID)
+	}
+	if m.group != nil {
+		fields = append(fields, key.FieldGroupID)
 	}
 	if m.keys != nil {
 		fields = append(fields, key.FieldKeys)
@@ -241,6 +375,10 @@ func (m *KeyMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case key.FieldCreatedAt:
 		return m.CreatedAt()
+	case key.FieldMemberID:
+		return m.MemberID()
+	case key.FieldGroupID:
+		return m.GroupID()
 	case key.FieldKeys:
 		return m.Keys()
 	}
@@ -254,6 +392,10 @@ func (m *KeyMutation) OldField(ctx context.Context, name string) (ent.Value, err
 	switch name {
 	case key.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
+	case key.FieldMemberID:
+		return m.OldMemberID(ctx)
+	case key.FieldGroupID:
+		return m.OldGroupID(ctx)
 	case key.FieldKeys:
 		return m.OldKeys(ctx)
 	}
@@ -271,6 +413,20 @@ func (m *KeyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
+		return nil
+	case key.FieldMemberID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMemberID(v)
+		return nil
+	case key.FieldGroupID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupID(v)
 		return nil
 	case key.FieldKeys:
 		v, ok := value.(string)
@@ -331,6 +487,12 @@ func (m *KeyMutation) ResetField(name string) error {
 	case key.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
+	case key.FieldMemberID:
+		m.ResetMemberID()
+		return nil
+	case key.FieldGroupID:
+		m.ResetGroupID()
+		return nil
 	case key.FieldKeys:
 		m.ResetKeys()
 		return nil
@@ -340,49 +502,95 @@ func (m *KeyMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *KeyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.member != nil {
+		edges = append(edges, key.EdgeMember)
+	}
+	if m.group != nil {
+		edges = append(edges, key.EdgeGroup)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *KeyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case key.EdgeMember:
+		if id := m.member; id != nil {
+			return []ent.Value{*id}
+		}
+	case key.EdgeGroup:
+		if id := m.group; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *KeyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *KeyMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *KeyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedmember {
+		edges = append(edges, key.EdgeMember)
+	}
+	if m.clearedgroup {
+		edges = append(edges, key.EdgeGroup)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *KeyMutation) EdgeCleared(name string) bool {
+	switch name {
+	case key.EdgeMember:
+		return m.clearedmember
+	case key.EdgeGroup:
+		return m.clearedgroup
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *KeyMutation) ClearEdge(name string) error {
+	switch name {
+	case key.EdgeMember:
+		m.ClearMember()
+		return nil
+	case key.EdgeGroup:
+		m.ClearGroup()
+		return nil
+	}
 	return fmt.Errorf("unknown Key unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *KeyMutation) ResetEdge(name string) error {
+	switch name {
+	case key.EdgeMember:
+		m.ResetMember()
+		return nil
+	case key.EdgeGroup:
+		m.ResetGroup()
+		return nil
+	}
 	return fmt.Errorf("unknown Key edge %s", name)
 }
 

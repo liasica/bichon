@@ -29,3 +29,8 @@ func (keys *GroupMemberKeys) Decrypt(hex string) (err error) {
     *keys = *decrypted
     return
 }
+
+type GroupShareKeyReq struct {
+    GroupID string `json:"groupId" validate:"required"` // group id
+    *GroupMemberKeyShareReq
+}

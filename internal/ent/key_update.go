@@ -10,7 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/key"
+	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
 )
 
@@ -28,15 +30,49 @@ func (ku *KeyUpdate) Where(ps ...predicate.Key) *KeyUpdate {
 	return ku
 }
 
+// SetMemberID sets the "member_id" field.
+func (ku *KeyUpdate) SetMemberID(s string) *KeyUpdate {
+	ku.mutation.SetMemberID(s)
+	return ku
+}
+
+// SetGroupID sets the "group_id" field.
+func (ku *KeyUpdate) SetGroupID(s string) *KeyUpdate {
+	ku.mutation.SetGroupID(s)
+	return ku
+}
+
 // SetKeys sets the "keys" field.
 func (ku *KeyUpdate) SetKeys(s string) *KeyUpdate {
 	ku.mutation.SetKeys(s)
 	return ku
 }
 
+// SetMember sets the "member" edge to the Member entity.
+func (ku *KeyUpdate) SetMember(m *Member) *KeyUpdate {
+	return ku.SetMemberID(m.ID)
+}
+
+// SetGroup sets the "group" edge to the Group entity.
+func (ku *KeyUpdate) SetGroup(g *Group) *KeyUpdate {
+	return ku.SetGroupID(g.ID)
+}
+
 // Mutation returns the KeyMutation object of the builder.
 func (ku *KeyUpdate) Mutation() *KeyMutation {
 	return ku.mutation
+}
+
+// ClearMember clears the "member" edge to the Member entity.
+func (ku *KeyUpdate) ClearMember() *KeyUpdate {
+	ku.mutation.ClearMember()
+	return ku
+}
+
+// ClearGroup clears the "group" edge to the Group entity.
+func (ku *KeyUpdate) ClearGroup() *KeyUpdate {
+	ku.mutation.ClearGroup()
+	return ku
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -46,12 +82,18 @@ func (ku *KeyUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(ku.hooks) == 0 {
+		if err = ku.check(); err != nil {
+			return 0, err
+		}
 		affected, err = ku.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*KeyMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = ku.check(); err != nil {
+				return 0, err
 			}
 			ku.mutation = mutation
 			affected, err = ku.sqlSave(ctx)
@@ -93,6 +135,17 @@ func (ku *KeyUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (ku *KeyUpdate) check() error {
+	if _, ok := ku.mutation.MemberID(); ku.mutation.MemberCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Key.member"`)
+	}
+	if _, ok := ku.mutation.GroupID(); ku.mutation.GroupCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Key.group"`)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (ku *KeyUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *KeyUpdate {
 	ku.modifiers = append(ku.modifiers, modifiers...)
@@ -124,6 +177,76 @@ func (ku *KeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: key.FieldKeys,
 		})
 	}
+	if ku.mutation.MemberCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.MemberTable,
+			Columns: []string{key.MemberColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ku.mutation.MemberIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.MemberTable,
+			Columns: []string{key.MemberColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ku.mutation.GroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.GroupTable,
+			Columns: []string{key.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: group.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ku.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.GroupTable,
+			Columns: []string{key.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Modifiers = ku.modifiers
 	if n, err = sqlgraph.UpdateNodes(ctx, ku.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -145,15 +268,49 @@ type KeyUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetMemberID sets the "member_id" field.
+func (kuo *KeyUpdateOne) SetMemberID(s string) *KeyUpdateOne {
+	kuo.mutation.SetMemberID(s)
+	return kuo
+}
+
+// SetGroupID sets the "group_id" field.
+func (kuo *KeyUpdateOne) SetGroupID(s string) *KeyUpdateOne {
+	kuo.mutation.SetGroupID(s)
+	return kuo
+}
+
 // SetKeys sets the "keys" field.
 func (kuo *KeyUpdateOne) SetKeys(s string) *KeyUpdateOne {
 	kuo.mutation.SetKeys(s)
 	return kuo
 }
 
+// SetMember sets the "member" edge to the Member entity.
+func (kuo *KeyUpdateOne) SetMember(m *Member) *KeyUpdateOne {
+	return kuo.SetMemberID(m.ID)
+}
+
+// SetGroup sets the "group" edge to the Group entity.
+func (kuo *KeyUpdateOne) SetGroup(g *Group) *KeyUpdateOne {
+	return kuo.SetGroupID(g.ID)
+}
+
 // Mutation returns the KeyMutation object of the builder.
 func (kuo *KeyUpdateOne) Mutation() *KeyMutation {
 	return kuo.mutation
+}
+
+// ClearMember clears the "member" edge to the Member entity.
+func (kuo *KeyUpdateOne) ClearMember() *KeyUpdateOne {
+	kuo.mutation.ClearMember()
+	return kuo
+}
+
+// ClearGroup clears the "group" edge to the Group entity.
+func (kuo *KeyUpdateOne) ClearGroup() *KeyUpdateOne {
+	kuo.mutation.ClearGroup()
+	return kuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -170,12 +327,18 @@ func (kuo *KeyUpdateOne) Save(ctx context.Context) (*Key, error) {
 		node *Key
 	)
 	if len(kuo.hooks) == 0 {
+		if err = kuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = kuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*KeyMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = kuo.check(); err != nil {
+				return nil, err
 			}
 			kuo.mutation = mutation
 			node, err = kuo.sqlSave(ctx)
@@ -221,6 +384,17 @@ func (kuo *KeyUpdateOne) ExecX(ctx context.Context) {
 	if err := kuo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (kuo *KeyUpdateOne) check() error {
+	if _, ok := kuo.mutation.MemberID(); kuo.mutation.MemberCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Key.member"`)
+	}
+	if _, ok := kuo.mutation.GroupID(); kuo.mutation.GroupCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Key.group"`)
+	}
+	return nil
 }
 
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
@@ -270,6 +444,76 @@ func (kuo *KeyUpdateOne) sqlSave(ctx context.Context) (_node *Key, err error) {
 			Value:  value,
 			Column: key.FieldKeys,
 		})
+	}
+	if kuo.mutation.MemberCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.MemberTable,
+			Columns: []string{key.MemberColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := kuo.mutation.MemberIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.MemberTable,
+			Columns: []string{key.MemberColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if kuo.mutation.GroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.GroupTable,
+			Columns: []string{key.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: group.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := kuo.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.GroupTable,
+			Columns: []string{key.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Modifiers = kuo.modifiers
 	_node = &Key{config: kuo.config}

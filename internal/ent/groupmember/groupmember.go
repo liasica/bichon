@@ -19,8 +19,6 @@ const (
 	FieldMemberID = "member_id"
 	// FieldGroupID holds the string denoting the group_id field in the database.
 	FieldGroupID = "group_id"
-	// FieldKeyID holds the string denoting the key_id field in the database.
-	FieldKeyID = "key_id"
 	// FieldPermission holds the string denoting the permission field in the database.
 	FieldPermission = "permission"
 	// FieldSn holds the string denoting the sn field in the database.
@@ -29,8 +27,6 @@ const (
 	EdgeMember = "member"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
-	// EdgeKey holds the string denoting the key edge name in mutations.
-	EdgeKey = "key"
 	// Table holds the table name of the groupmember in the database.
 	Table = "group_member"
 	// MemberTable is the table that holds the member relation/edge.
@@ -47,13 +43,6 @@ const (
 	GroupInverseTable = "group"
 	// GroupColumn is the table column denoting the group relation/edge.
 	GroupColumn = "group_id"
-	// KeyTable is the table that holds the key relation/edge.
-	KeyTable = "group_member"
-	// KeyInverseTable is the table name for the Key entity.
-	// It exists in this package in order to avoid circular dependency with the "key" package.
-	KeyInverseTable = "key"
-	// KeyColumn is the table column denoting the key relation/edge.
-	KeyColumn = "key_id"
 )
 
 // Columns holds all SQL columns for groupmember fields.
@@ -62,7 +51,6 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldMemberID,
 	FieldGroupID,
-	FieldKeyID,
 	FieldPermission,
 	FieldSn,
 }

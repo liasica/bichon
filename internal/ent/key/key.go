@@ -15,16 +15,40 @@ const (
 	FieldID = "id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
+	// FieldMemberID holds the string denoting the member_id field in the database.
+	FieldMemberID = "member_id"
+	// FieldGroupID holds the string denoting the group_id field in the database.
+	FieldGroupID = "group_id"
 	// FieldKeys holds the string denoting the keys field in the database.
 	FieldKeys = "keys"
+	// EdgeMember holds the string denoting the member edge name in mutations.
+	EdgeMember = "member"
+	// EdgeGroup holds the string denoting the group edge name in mutations.
+	EdgeGroup = "group"
 	// Table holds the table name of the key in the database.
 	Table = "key"
+	// MemberTable is the table that holds the member relation/edge.
+	MemberTable = "key"
+	// MemberInverseTable is the table name for the Member entity.
+	// It exists in this package in order to avoid circular dependency with the "member" package.
+	MemberInverseTable = "member"
+	// MemberColumn is the table column denoting the member relation/edge.
+	MemberColumn = "member_id"
+	// GroupTable is the table that holds the group relation/edge.
+	GroupTable = "key"
+	// GroupInverseTable is the table name for the Group entity.
+	// It exists in this package in order to avoid circular dependency with the "group" package.
+	GroupInverseTable = "group"
+	// GroupColumn is the table column denoting the group relation/edge.
+	GroupColumn = "group_id"
 )
 
 // Columns holds all SQL columns for key fields.
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
+	FieldMemberID,
+	FieldGroupID,
 	FieldKeys,
 }
 

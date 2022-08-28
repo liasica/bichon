@@ -67,7 +67,6 @@ var (
 		{Name: "sn", Type: field.TypeString, Unique: true},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
-		{Name: "key_id", Type: field.TypeString, Size: 25},
 	}
 	// GroupMemberTable holds the schema information for the "group_member" table.
 	GroupMemberTable = &schema.Table{
@@ -85,12 +84,6 @@ var (
 				Symbol:     "group_member_group_group",
 				Columns:    []*schema.Column{GroupMemberColumns[5]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "group_member_key_key",
-				Columns:    []*schema.Column{GroupMemberColumns[6]},
-				RefColumns: []*schema.Column{KeyColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -112,12 +105,28 @@ var (
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
+		{Name: "member_id", Type: field.TypeString, Size: 25},
+		{Name: "group_id", Type: field.TypeString, Size: 25},
 	}
 	// KeyTable holds the schema information for the "key" table.
 	KeyTable = &schema.Table{
 		Name:       "key",
 		Columns:    KeyColumns,
 		PrimaryKey: []*schema.Column{KeyColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "key_member_member",
+				Columns:    []*schema.Column{KeyColumns[3]},
+				RefColumns: []*schema.Column{MemberColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "key_group_group",
+				Columns:    []*schema.Column{KeyColumns[4]},
+				RefColumns: []*schema.Column{GroupColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "key_created_at",
@@ -215,10 +224,11 @@ func init() {
 	}
 	GroupMemberTable.ForeignKeys[0].RefTable = MemberTable
 	GroupMemberTable.ForeignKeys[1].RefTable = GroupTable
-	GroupMemberTable.ForeignKeys[2].RefTable = KeyTable
 	GroupMemberTable.Annotation = &entsql.Annotation{
 		Table: "group_member",
 	}
+	KeyTable.ForeignKeys[0].RefTable = MemberTable
+	KeyTable.ForeignKeys[1].RefTable = GroupTable
 	KeyTable.Annotation = &entsql.Annotation{
 		Table: "key",
 	}

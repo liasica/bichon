@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
-	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 )
 
@@ -25,8 +24,6 @@ type GroupMember struct {
 	MemberID string `json:"member_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
 	GroupID string `json:"group_id,omitempty"`
-	// KeyID holds the value of the "key_id" field.
-	KeyID string `json:"key_id,omitempty"`
 	// member's permission in group
 	Permission uint8 `json:"permission,omitempty"`
 	// user's share sn
@@ -42,11 +39,9 @@ type GroupMemberEdges struct {
 	Member *Member `json:"member,omitempty"`
 	// Group holds the value of the group edge.
 	Group *Group `json:"group,omitempty"`
-	// Key holds the value of the key edge.
-	Key *Key `json:"key,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
 // MemberOrErr returns the Member value or an error if the edge
@@ -75,19 +70,6 @@ func (e GroupMemberEdges) GroupOrErr() (*Group, error) {
 	return nil, &NotLoadedError{edge: "group"}
 }
 
-// KeyOrErr returns the Key value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e GroupMemberEdges) KeyOrErr() (*Key, error) {
-	if e.loadedTypes[2] {
-		if e.Key == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: key.Label}
-		}
-		return e.Key, nil
-	}
-	return nil, &NotLoadedError{edge: "key"}
-}
-
 // scanValues returns the types for scanning values from sql.Rows.
 func (*GroupMember) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -95,7 +77,7 @@ func (*GroupMember) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case groupmember.FieldPermission:
 			values[i] = new(sql.NullInt64)
-		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldKeyID, groupmember.FieldSn:
+		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldSn:
 			values[i] = new(sql.NullString)
 		case groupmember.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -138,12 +120,6 @@ func (gm *GroupMember) assignValues(columns []string, values []interface{}) erro
 			} else if value.Valid {
 				gm.GroupID = value.String
 			}
-		case groupmember.FieldKeyID:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field key_id", values[i])
-			} else if value.Valid {
-				gm.KeyID = value.String
-			}
 		case groupmember.FieldPermission:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field permission", values[i])
@@ -169,11 +145,6 @@ func (gm *GroupMember) QueryMember() *MemberQuery {
 // QueryGroup queries the "group" edge of the GroupMember entity.
 func (gm *GroupMember) QueryGroup() *GroupQuery {
 	return (&GroupMemberClient{config: gm.config}).QueryGroup(gm)
-}
-
-// QueryKey queries the "key" edge of the GroupMember entity.
-func (gm *GroupMember) QueryKey() *KeyQuery {
-	return (&GroupMemberClient{config: gm.config}).QueryKey(gm)
 }
 
 // Update returns a builder for updating this GroupMember.
@@ -207,9 +178,6 @@ func (gm *GroupMember) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("group_id=")
 	builder.WriteString(gm.GroupID)
-	builder.WriteString(", ")
-	builder.WriteString("key_id=")
-	builder.WriteString(gm.KeyID)
 	builder.WriteString(", ")
 	builder.WriteString("permission=")
 	builder.WriteString(fmt.Sprintf("%v", gm.Permission))

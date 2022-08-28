@@ -423,22 +423,6 @@ func (c *GroupMemberClient) QueryGroup(gm *GroupMember) *GroupQuery {
 	return query
 }
 
-// QueryKey queries the key edge of a GroupMember.
-func (c *GroupMemberClient) QueryKey(gm *GroupMember) *KeyQuery {
-	query := &KeyQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := gm.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(groupmember.Table, groupmember.FieldID, id),
-			sqlgraph.To(key.Table, key.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, groupmember.KeyTable, groupmember.KeyColumn),
-		)
-		fromV = sqlgraph.Neighbors(gm.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *GroupMemberClient) Hooks() []Hook {
 	hooks := c.hooks.GroupMember
@@ -528,6 +512,38 @@ func (c *KeyClient) GetX(ctx context.Context, id string) *Key {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryMember queries the member edge of a Key.
+func (c *KeyClient) QueryMember(k *Key) *MemberQuery {
+	query := &MemberQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := k.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(key.Table, key.FieldID, id),
+			sqlgraph.To(member.Table, member.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, key.MemberTable, key.MemberColumn),
+		)
+		fromV = sqlgraph.Neighbors(k.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGroup queries the group edge of a Key.
+func (c *KeyClient) QueryGroup(k *Key) *GroupQuery {
+	query := &GroupQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := k.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(key.Table, key.FieldID, id),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, key.GroupTable, key.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(k.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

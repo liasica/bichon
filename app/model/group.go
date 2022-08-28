@@ -7,6 +7,8 @@ const (
     GroupMaxMembers = 1000
     // GroupCreateFrequency create group interval seconds
     GroupCreateFrequency = 60
+    // GroupKeyShareFrequency group key share interval seconds
+    GroupKeyShareFrequency = 60
 )
 
 type GroupCreateReq struct {
@@ -18,9 +20,13 @@ type GroupCreateReq struct {
     *GroupMemberKeyShareReq
 }
 
-type GroupDetailWithPublicKey struct {
+type GroupPublicKey struct {
     GroupPublicKey string `json:"groupPublicKey"`
     KeyID          string `json:"keyId"`
+}
+
+type GroupDetailWithPublicKey struct {
+    *GroupPublicKey
     *GroupDetail
 }
 

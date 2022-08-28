@@ -109,6 +109,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/key": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Share key with Group",
+                "operationId": "GroupShareKey",
+                "parameters": [
+                    {
+                        "description": "Group and key info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GroupShareKeyReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/app.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.GroupPublicKey"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/member/nonce/{address}": {
             "get": {
                 "description": "Getting nonce string to be signed",
@@ -295,6 +341,34 @@ const docTemplate = `{
             ],
             "properties": {
                 "groupId": {
+                    "type": "string"
+                },
+                "sharedPublic": {
+                    "description": "Member's public key for ` + "`" + `ecdh` + "`" + ` exchange",
+                    "type": "string"
+                }
+            }
+        },
+        "model.GroupPublicKey": {
+            "type": "object",
+            "properties": {
+                "groupPublicKey": {
+                    "type": "string"
+                },
+                "keyId": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GroupShareKeyReq": {
+            "type": "object",
+            "required": [
+                "groupId",
+                "sharedPublic"
+            ],
+            "properties": {
+                "groupId": {
+                    "description": "group id",
                     "type": "string"
                 },
                 "sharedPublic": {

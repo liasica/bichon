@@ -8,6 +8,7 @@ import (
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/group"
     "github.com/chatpuppy/puppychat/internal/ent/groupmember"
+    "github.com/chatpuppy/puppychat/internal/ent/key"
     "github.com/chatpuppy/puppychat/utils"
     "github.com/ethereum/go-ethereum/common/hexutil"
     "github.com/ethereum/go-ethereum/crypto"
@@ -104,9 +105,11 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *
         }
 
         res = &model.GroupDetailWithPublicKey{
-            GroupPublicKey: gkeys.Public,
-            KeyID:          keyID,
-            GroupDetail:    s.detail(gro, mem),
+            GroupPublicKey: &model.GroupPublicKey{
+                GroupPublicKey: gkeys.Public,
+                KeyID:          keyID,
+            },
+            GroupDetail: s.detail(gro, mem),
         }
         return
     })
@@ -116,14 +119,15 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *
 
 // Join join group
 func (s *groupService) Join(mem *ent.Member, req *model.GroupJoinReq) (res *model.GroupDetailWithPublicKey, err error) {
+    // find group
     var gro *ent.Group
     gro, _ = s.QueryID(req.GroupID)
     if gro == nil {
         err = model.ErrNotFoundGroup
         return
     }
-    s.orm.Query().Where(group.ID(req.GroupID))
-    if exists, _ := ent.Database.GroupMember.Query().Where(groupmember.GroupID(req.GroupID), groupmember.MemberID(mem.ID)).Exist(s.ctx); exists {
+    // if member already in group
+    if s.MemberIn(mem.ID, gro.ID) {
         err = model.ErrAlreadyInGroup
         return
     }
@@ -139,15 +143,23 @@ func (s *groupService) Join(mem *ent.Member, req *model.GroupJoinReq) (res *mode
     }
 
     res = &model.GroupDetailWithPublicKey{
-        GroupPublicKey: keys.Public,
-        KeyID:          keyID,
-        GroupDetail:    s.detail(gro, mem),
+        GroupPublicKey: &model.GroupPublicKey{
+            GroupPublicKey: keys.Public,
+            KeyID:          keyID,
+        },
+        GroupDetail: s.detail(gro, mem),
     }
     return
 }
 
-// joinGroup join group and share ecdh key
-func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, perm uint8, spKey string, isCreate bool) (keys *model.GroupMemberKeys, keyID string, err error) {
+// MemberIn check member in group or not
+func (s *groupService) MemberIn(memberID string, groupID string) (exists bool) {
+    exists, _ = ent.Database.GroupMember.Query().Where(groupmember.GroupID(groupID), groupmember.MemberID(memberID)).Exist(s.ctx)
+    return
+}
+
+// shareKey share key with group
+func (s *groupService) shareKey(tx *ent.Tx, mem *ent.Member, gro *ent.Group, spKey string) (keys *model.GroupMemberKeys, keyID string, err error) {
     // generate keys
     keys, err = NewKey().GenerateAndShare(spKey)
     if err != nil {
@@ -162,12 +174,19 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
 
     // create group member keys
     var k *ent.Key
-    k, err = tx.Key.Create().SetKeys(hex).Save(s.ctx)
+    k, err = tx.Key.Create().SetKeys(hex).SetGroupID(gro.ID).SetMemberID(mem.ID).Save(s.ctx)
     if err != nil {
         return
     }
 
     keyID = k.ID
+
+    return
+}
+
+// joinGroup join group and share ecdh key
+func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, perm uint8, spKey string, isCreate bool) (keys *model.GroupMemberKeys, keyID string, err error) {
+    keys, keyID, err = s.shareKey(tx, mem, gro, spKey)
 
     // create group member set share sn and permission
     _, err = tx.GroupMember.Create().
@@ -175,7 +194,6 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
         SetMember(mem).
         SetSn(utils.Md5String([]byte(fmt.Sprintf("%d%d%d", mem.ID, gro.ID, time.Now().UnixNano())))).
         SetPermission(perm).
-        SetKey(k).
         Save(s.ctx)
     if err != nil {
         return
@@ -188,6 +206,7 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
     return
 }
 
+// detail group's detail
 func (s *groupService) detail(gro *ent.Group, mem *ent.Member) *model.GroupDetail {
     return &model.GroupDetail{
         Name:       gro.Name,
@@ -200,7 +219,46 @@ func (s *groupService) detail(gro *ent.Group, mem *ent.Member) *model.GroupDetai
     }
 }
 
-// KeyValidate verify key
-// TODO Generation frequency
-func (s *groupService) KeyValidate() {
+// ShareKey share key
+func (s *groupService) ShareKey(mem *ent.Member, req *model.GroupShareKeyReq) (res *model.GroupPublicKey, err error) {
+    // find group
+    var gro *ent.Group
+    gro, _ = s.QueryID(req.GroupID)
+    if gro == nil {
+        err = model.ErrNotFoundGroup
+        return
+    }
+
+    // if member not in group
+    if !s.MemberIn(mem.ID, gro.ID) {
+        err = model.ErrNotInGroup
+        return
+    }
+
+    // check group create frequency limit
+    if exist, _ := ent.Database.Key.Query().Where(
+        key.MemberID(mem.ID),
+        key.GroupID(req.GroupID),
+        key.CreatedAtGT(time.Now().Add(-time.Duration(model.GroupKeyShareFrequency)*time.Second)),
+    ).Exist(s.ctx); exist {
+        err = model.ErrKeyShareFrequency
+        return
+    }
+
+    // share key
+    var keys *model.GroupMemberKeys
+    var keyID string
+    err = ent.WithTx(s.ctx, func(tx *ent.Tx) error {
+        keys, keyID, err = s.shareKey(tx, mem, gro, req.SharedPublic)
+        return err
+    })
+    if err != nil {
+        return
+    }
+
+    res = &model.GroupPublicKey{
+        GroupPublicKey: keys.Public,
+        KeyID:          keyID,
+    }
+    return
 }

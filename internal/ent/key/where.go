@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
 )
 
@@ -87,6 +88,20 @@ func CreatedAt(v time.Time) predicate.Key {
 	})
 }
 
+// MemberID applies equality check predicate on the "member_id" field. It's identical to MemberIDEQ.
+func MemberID(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldMemberID), v))
+	})
+}
+
+// GroupID applies equality check predicate on the "group_id" field. It's identical to GroupIDEQ.
+func GroupID(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGroupID), v))
+	})
+}
+
 // Keys applies equality check predicate on the "keys" field. It's identical to KeysEQ.
 func Keys(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
@@ -155,6 +170,204 @@ func CreatedAtLT(v time.Time) predicate.Key {
 func CreatedAtLTE(v time.Time) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
+	})
+}
+
+// MemberIDEQ applies the EQ predicate on the "member_id" field.
+func MemberIDEQ(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDNEQ applies the NEQ predicate on the "member_id" field.
+func MemberIDNEQ(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDIn applies the In predicate on the "member_id" field.
+func MemberIDIn(vs ...string) predicate.Key {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldMemberID), v...))
+	})
+}
+
+// MemberIDNotIn applies the NotIn predicate on the "member_id" field.
+func MemberIDNotIn(vs ...string) predicate.Key {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldMemberID), v...))
+	})
+}
+
+// MemberIDGT applies the GT predicate on the "member_id" field.
+func MemberIDGT(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDGTE applies the GTE predicate on the "member_id" field.
+func MemberIDGTE(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDLT applies the LT predicate on the "member_id" field.
+func MemberIDLT(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDLTE applies the LTE predicate on the "member_id" field.
+func MemberIDLTE(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDContains applies the Contains predicate on the "member_id" field.
+func MemberIDContains(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDHasPrefix applies the HasPrefix predicate on the "member_id" field.
+func MemberIDHasPrefix(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDHasSuffix applies the HasSuffix predicate on the "member_id" field.
+func MemberIDHasSuffix(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDEqualFold applies the EqualFold predicate on the "member_id" field.
+func MemberIDEqualFold(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldMemberID), v))
+	})
+}
+
+// MemberIDContainsFold applies the ContainsFold predicate on the "member_id" field.
+func MemberIDContainsFold(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldMemberID), v))
+	})
+}
+
+// GroupIDEQ applies the EQ predicate on the "group_id" field.
+func GroupIDEQ(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDNEQ applies the NEQ predicate on the "group_id" field.
+func GroupIDNEQ(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDIn applies the In predicate on the "group_id" field.
+func GroupIDIn(vs ...string) predicate.Key {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldGroupID), v...))
+	})
+}
+
+// GroupIDNotIn applies the NotIn predicate on the "group_id" field.
+func GroupIDNotIn(vs ...string) predicate.Key {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldGroupID), v...))
+	})
+}
+
+// GroupIDGT applies the GT predicate on the "group_id" field.
+func GroupIDGT(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDGTE applies the GTE predicate on the "group_id" field.
+func GroupIDGTE(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDLT applies the LT predicate on the "group_id" field.
+func GroupIDLT(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDLTE applies the LTE predicate on the "group_id" field.
+func GroupIDLTE(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDContains applies the Contains predicate on the "group_id" field.
+func GroupIDContains(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDHasPrefix applies the HasPrefix predicate on the "group_id" field.
+func GroupIDHasPrefix(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDHasSuffix applies the HasSuffix predicate on the "group_id" field.
+func GroupIDHasSuffix(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDEqualFold applies the EqualFold predicate on the "group_id" field.
+func GroupIDEqualFold(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldGroupID), v))
+	})
+}
+
+// GroupIDContainsFold applies the ContainsFold predicate on the "group_id" field.
+func GroupIDContainsFold(v string) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldGroupID), v))
 	})
 }
 
@@ -254,6 +467,62 @@ func KeysEqualFold(v string) predicate.Key {
 func KeysContainsFold(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldKeys), v))
+	})
+}
+
+// HasMember applies the HasEdge predicate on the "member" edge.
+func HasMember() predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(MemberTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, MemberTable, MemberColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMemberWith applies the HasEdge predicate on the "member" edge with a given conditions (other predicates).
+func HasMemberWith(preds ...predicate.Member) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(MemberInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, MemberTable, MemberColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGroup applies the HasEdge predicate on the "group" edge.
+func HasGroup() predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GroupTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, GroupTable, GroupColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGroupWith applies the HasEdge predicate on the "group" edge with a given conditions (other predicates).
+func HasGroupWith(preds ...predicate.Group) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GroupInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, GroupTable, GroupColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

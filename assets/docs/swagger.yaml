@@ -68,6 +68,25 @@ definitions:
     - groupId
     - sharedPublic
     type: object
+  model.GroupPublicKey:
+    properties:
+      groupPublicKey:
+        type: string
+      keyId:
+        type: string
+    type: object
+  model.GroupShareKeyReq:
+    properties:
+      groupId:
+        description: group id
+        type: string
+      sharedPublic:
+        description: Member's public key for `ecdh` exchange
+        type: string
+    required:
+    - groupId
+    - sharedPublic
+    type: object
   model.MemberNonceRes:
     properties:
       nonce:
@@ -168,6 +187,33 @@ paths:
                   $ref: '#/definitions/model.GroupDetailWithPublicKey'
               type: object
       summary: Join Group
+      tags:
+      - Group
+  /group/key:
+    post:
+      consumes:
+      - application/json
+      operationId: GroupShareKey
+      parameters:
+      - description: Group and key info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.GroupShareKeyReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.GroupPublicKey'
+              type: object
+      summary: Share key with Group
       tags:
       - Group
   /member/{address}:

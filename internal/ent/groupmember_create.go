@@ -14,7 +14,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
-	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 )
 
@@ -52,12 +51,6 @@ func (gmc *GroupMemberCreate) SetGroupID(s string) *GroupMemberCreate {
 	return gmc
 }
 
-// SetKeyID sets the "key_id" field.
-func (gmc *GroupMemberCreate) SetKeyID(s string) *GroupMemberCreate {
-	gmc.mutation.SetKeyID(s)
-	return gmc
-}
-
 // SetPermission sets the "permission" field.
 func (gmc *GroupMemberCreate) SetPermission(u uint8) *GroupMemberCreate {
 	gmc.mutation.SetPermission(u)
@@ -92,11 +85,6 @@ func (gmc *GroupMemberCreate) SetMember(m *Member) *GroupMemberCreate {
 // SetGroup sets the "group" edge to the Group entity.
 func (gmc *GroupMemberCreate) SetGroup(g *Group) *GroupMemberCreate {
 	return gmc.SetGroupID(g.ID)
-}
-
-// SetKey sets the "key" edge to the Key entity.
-func (gmc *GroupMemberCreate) SetKey(k *Key) *GroupMemberCreate {
-	return gmc.SetKeyID(k.ID)
 }
 
 // Mutation returns the GroupMemberMutation object of the builder.
@@ -200,9 +188,6 @@ func (gmc *GroupMemberCreate) check() error {
 	if _, ok := gmc.mutation.GroupID(); !ok {
 		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "GroupMember.group_id"`)}
 	}
-	if _, ok := gmc.mutation.KeyID(); !ok {
-		return &ValidationError{Name: "key_id", err: errors.New(`ent: missing required field "GroupMember.key_id"`)}
-	}
 	if _, ok := gmc.mutation.Permission(); !ok {
 		return &ValidationError{Name: "permission", err: errors.New(`ent: missing required field "GroupMember.permission"`)}
 	}
@@ -219,9 +204,6 @@ func (gmc *GroupMemberCreate) check() error {
 	}
 	if _, ok := gmc.mutation.GroupID(); !ok {
 		return &ValidationError{Name: "group", err: errors.New(`ent: missing required edge "GroupMember.group"`)}
-	}
-	if _, ok := gmc.mutation.KeyID(); !ok {
-		return &ValidationError{Name: "key", err: errors.New(`ent: missing required edge "GroupMember.key"`)}
 	}
 	return nil
 }
@@ -324,26 +306,6 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 		_node.GroupID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := gmc.mutation.KeyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   groupmember.KeyTable,
-			Columns: []string{groupmember.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.KeyID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	return _node, _spec
 }
 
@@ -429,18 +391,6 @@ func (u *GroupMemberUpsert) SetGroupID(v string) *GroupMemberUpsert {
 // UpdateGroupID sets the "group_id" field to the value that was provided on create.
 func (u *GroupMemberUpsert) UpdateGroupID() *GroupMemberUpsert {
 	u.SetExcluded(groupmember.FieldGroupID)
-	return u
-}
-
-// SetKeyID sets the "key_id" field.
-func (u *GroupMemberUpsert) SetKeyID(v string) *GroupMemberUpsert {
-	u.Set(groupmember.FieldKeyID, v)
-	return u
-}
-
-// UpdateKeyID sets the "key_id" field to the value that was provided on create.
-func (u *GroupMemberUpsert) UpdateKeyID() *GroupMemberUpsert {
-	u.SetExcluded(groupmember.FieldKeyID)
 	return u
 }
 
@@ -564,20 +514,6 @@ func (u *GroupMemberUpsertOne) SetGroupID(v string) *GroupMemberUpsertOne {
 func (u *GroupMemberUpsertOne) UpdateGroupID() *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.UpdateGroupID()
-	})
-}
-
-// SetKeyID sets the "key_id" field.
-func (u *GroupMemberUpsertOne) SetKeyID(v string) *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetKeyID(v)
-	})
-}
-
-// UpdateKeyID sets the "key_id" field to the value that was provided on create.
-func (u *GroupMemberUpsertOne) UpdateKeyID() *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateKeyID()
 	})
 }
 
@@ -870,20 +806,6 @@ func (u *GroupMemberUpsertBulk) SetGroupID(v string) *GroupMemberUpsertBulk {
 func (u *GroupMemberUpsertBulk) UpdateGroupID() *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.UpdateGroupID()
-	})
-}
-
-// SetKeyID sets the "key_id" field.
-func (u *GroupMemberUpsertBulk) SetKeyID(v string) *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetKeyID(v)
-	})
-}
-
-// UpdateKeyID sets the "key_id" field to the value that was provided on create.
-func (u *GroupMemberUpsertBulk) UpdateKeyID() *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateKeyID()
 	})
 }
 

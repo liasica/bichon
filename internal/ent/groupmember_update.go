@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
-	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
 )
@@ -40,12 +39,6 @@ func (gmu *GroupMemberUpdate) SetMemberID(s string) *GroupMemberUpdate {
 // SetGroupID sets the "group_id" field.
 func (gmu *GroupMemberUpdate) SetGroupID(s string) *GroupMemberUpdate {
 	gmu.mutation.SetGroupID(s)
-	return gmu
-}
-
-// SetKeyID sets the "key_id" field.
-func (gmu *GroupMemberUpdate) SetKeyID(s string) *GroupMemberUpdate {
-	gmu.mutation.SetKeyID(s)
 	return gmu
 }
 
@@ -86,11 +79,6 @@ func (gmu *GroupMemberUpdate) SetGroup(g *Group) *GroupMemberUpdate {
 	return gmu.SetGroupID(g.ID)
 }
 
-// SetKey sets the "key" edge to the Key entity.
-func (gmu *GroupMemberUpdate) SetKey(k *Key) *GroupMemberUpdate {
-	return gmu.SetKeyID(k.ID)
-}
-
 // Mutation returns the GroupMemberMutation object of the builder.
 func (gmu *GroupMemberUpdate) Mutation() *GroupMemberMutation {
 	return gmu.mutation
@@ -105,12 +93,6 @@ func (gmu *GroupMemberUpdate) ClearMember() *GroupMemberUpdate {
 // ClearGroup clears the "group" edge to the Group entity.
 func (gmu *GroupMemberUpdate) ClearGroup() *GroupMemberUpdate {
 	gmu.mutation.ClearGroup()
-	return gmu
-}
-
-// ClearKey clears the "key" edge to the Key entity.
-func (gmu *GroupMemberUpdate) ClearKey() *GroupMemberUpdate {
-	gmu.mutation.ClearKey()
 	return gmu
 }
 
@@ -181,9 +163,6 @@ func (gmu *GroupMemberUpdate) check() error {
 	}
 	if _, ok := gmu.mutation.GroupID(); gmu.mutation.GroupCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "GroupMember.group"`)
-	}
-	if _, ok := gmu.mutation.KeyID(); gmu.mutation.KeyCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "GroupMember.key"`)
 	}
 	return nil
 }
@@ -303,41 +282,6 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if gmu.mutation.KeyCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   groupmember.KeyTable,
-			Columns: []string{groupmember.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := gmu.mutation.KeyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   groupmember.KeyTable,
-			Columns: []string{groupmember.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	_spec.Modifiers = gmu.modifiers
 	if n, err = sqlgraph.UpdateNodes(ctx, gmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -368,12 +312,6 @@ func (gmuo *GroupMemberUpdateOne) SetMemberID(s string) *GroupMemberUpdateOne {
 // SetGroupID sets the "group_id" field.
 func (gmuo *GroupMemberUpdateOne) SetGroupID(s string) *GroupMemberUpdateOne {
 	gmuo.mutation.SetGroupID(s)
-	return gmuo
-}
-
-// SetKeyID sets the "key_id" field.
-func (gmuo *GroupMemberUpdateOne) SetKeyID(s string) *GroupMemberUpdateOne {
-	gmuo.mutation.SetKeyID(s)
 	return gmuo
 }
 
@@ -414,11 +352,6 @@ func (gmuo *GroupMemberUpdateOne) SetGroup(g *Group) *GroupMemberUpdateOne {
 	return gmuo.SetGroupID(g.ID)
 }
 
-// SetKey sets the "key" edge to the Key entity.
-func (gmuo *GroupMemberUpdateOne) SetKey(k *Key) *GroupMemberUpdateOne {
-	return gmuo.SetKeyID(k.ID)
-}
-
 // Mutation returns the GroupMemberMutation object of the builder.
 func (gmuo *GroupMemberUpdateOne) Mutation() *GroupMemberMutation {
 	return gmuo.mutation
@@ -433,12 +366,6 @@ func (gmuo *GroupMemberUpdateOne) ClearMember() *GroupMemberUpdateOne {
 // ClearGroup clears the "group" edge to the Group entity.
 func (gmuo *GroupMemberUpdateOne) ClearGroup() *GroupMemberUpdateOne {
 	gmuo.mutation.ClearGroup()
-	return gmuo
-}
-
-// ClearKey clears the "key" edge to the Key entity.
-func (gmuo *GroupMemberUpdateOne) ClearKey() *GroupMemberUpdateOne {
-	gmuo.mutation.ClearKey()
 	return gmuo
 }
 
@@ -522,9 +449,6 @@ func (gmuo *GroupMemberUpdateOne) check() error {
 	}
 	if _, ok := gmuo.mutation.GroupID(); gmuo.mutation.GroupCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "GroupMember.group"`)
-	}
-	if _, ok := gmuo.mutation.KeyID(); gmuo.mutation.KeyCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "GroupMember.key"`)
 	}
 	return nil
 }
@@ -653,41 +577,6 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: group.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if gmuo.mutation.KeyCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   groupmember.KeyTable,
-			Columns: []string{groupmember.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := gmuo.mutation.KeyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   groupmember.KeyTable,
-			Columns: []string{groupmember.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
 				},
 			},
 		}

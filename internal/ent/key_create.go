@@ -12,7 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/key"
+	"github.com/chatpuppy/puppychat/internal/ent/member"
 )
 
 // KeyCreate is the builder for creating a Key entity.
@@ -37,6 +39,18 @@ func (kc *KeyCreate) SetNillableCreatedAt(t *time.Time) *KeyCreate {
 	return kc
 }
 
+// SetMemberID sets the "member_id" field.
+func (kc *KeyCreate) SetMemberID(s string) *KeyCreate {
+	kc.mutation.SetMemberID(s)
+	return kc
+}
+
+// SetGroupID sets the "group_id" field.
+func (kc *KeyCreate) SetGroupID(s string) *KeyCreate {
+	kc.mutation.SetGroupID(s)
+	return kc
+}
+
 // SetKeys sets the "keys" field.
 func (kc *KeyCreate) SetKeys(s string) *KeyCreate {
 	kc.mutation.SetKeys(s)
@@ -47,6 +61,16 @@ func (kc *KeyCreate) SetKeys(s string) *KeyCreate {
 func (kc *KeyCreate) SetID(s string) *KeyCreate {
 	kc.mutation.SetID(s)
 	return kc
+}
+
+// SetMember sets the "member" edge to the Member entity.
+func (kc *KeyCreate) SetMember(m *Member) *KeyCreate {
+	return kc.SetMemberID(m.ID)
+}
+
+// SetGroup sets the "group" edge to the Group entity.
+func (kc *KeyCreate) SetGroup(g *Group) *KeyCreate {
+	return kc.SetGroupID(g.ID)
 }
 
 // Mutation returns the KeyMutation object of the builder.
@@ -140,6 +164,12 @@ func (kc *KeyCreate) check() error {
 	if _, ok := kc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Key.created_at"`)}
 	}
+	if _, ok := kc.mutation.MemberID(); !ok {
+		return &ValidationError{Name: "member_id", err: errors.New(`ent: missing required field "Key.member_id"`)}
+	}
+	if _, ok := kc.mutation.GroupID(); !ok {
+		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "Key.group_id"`)}
+	}
 	if _, ok := kc.mutation.Keys(); !ok {
 		return &ValidationError{Name: "keys", err: errors.New(`ent: missing required field "Key.keys"`)}
 	}
@@ -147,6 +177,12 @@ func (kc *KeyCreate) check() error {
 		if err := key.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Key.id": %w`, err)}
 		}
+	}
+	if _, ok := kc.mutation.MemberID(); !ok {
+		return &ValidationError{Name: "member", err: errors.New(`ent: missing required edge "Key.member"`)}
+	}
+	if _, ok := kc.mutation.GroupID(); !ok {
+		return &ValidationError{Name: "group", err: errors.New(`ent: missing required edge "Key.group"`)}
 	}
 	return nil
 }
@@ -200,6 +236,46 @@ func (kc *KeyCreate) createSpec() (*Key, *sqlgraph.CreateSpec) {
 			Column: key.FieldKeys,
 		})
 		_node.Keys = value
+	}
+	if nodes := kc.mutation.MemberIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.MemberTable,
+			Columns: []string{key.MemberColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.MemberID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := kc.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   key.GroupTable,
+			Columns: []string{key.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.GroupID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -262,6 +338,30 @@ func (u *KeyUpsert) SetCreatedAt(v time.Time) *KeyUpsert {
 // UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
 func (u *KeyUpsert) UpdateCreatedAt() *KeyUpsert {
 	u.SetExcluded(key.FieldCreatedAt)
+	return u
+}
+
+// SetMemberID sets the "member_id" field.
+func (u *KeyUpsert) SetMemberID(v string) *KeyUpsert {
+	u.Set(key.FieldMemberID, v)
+	return u
+}
+
+// UpdateMemberID sets the "member_id" field to the value that was provided on create.
+func (u *KeyUpsert) UpdateMemberID() *KeyUpsert {
+	u.SetExcluded(key.FieldMemberID)
+	return u
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *KeyUpsert) SetGroupID(v string) *KeyUpsert {
+	u.Set(key.FieldGroupID, v)
+	return u
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *KeyUpsert) UpdateGroupID() *KeyUpsert {
+	u.SetExcluded(key.FieldGroupID)
 	return u
 }
 
@@ -339,6 +439,34 @@ func (u *KeyUpsertOne) SetCreatedAt(v time.Time) *KeyUpsertOne {
 func (u *KeyUpsertOne) UpdateCreatedAt() *KeyUpsertOne {
 	return u.Update(func(s *KeyUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetMemberID sets the "member_id" field.
+func (u *KeyUpsertOne) SetMemberID(v string) *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.SetMemberID(v)
+	})
+}
+
+// UpdateMemberID sets the "member_id" field to the value that was provided on create.
+func (u *KeyUpsertOne) UpdateMemberID() *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.UpdateMemberID()
+	})
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *KeyUpsertOne) SetGroupID(v string) *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.SetGroupID(v)
+	})
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *KeyUpsertOne) UpdateGroupID() *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.UpdateGroupID()
 	})
 }
 
@@ -582,6 +710,34 @@ func (u *KeyUpsertBulk) SetCreatedAt(v time.Time) *KeyUpsertBulk {
 func (u *KeyUpsertBulk) UpdateCreatedAt() *KeyUpsertBulk {
 	return u.Update(func(s *KeyUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetMemberID sets the "member_id" field.
+func (u *KeyUpsertBulk) SetMemberID(v string) *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.SetMemberID(v)
+	})
+}
+
+// UpdateMemberID sets the "member_id" field to the value that was provided on create.
+func (u *KeyUpsertBulk) UpdateMemberID() *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.UpdateMemberID()
+	})
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *KeyUpsertBulk) SetGroupID(v string) *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.SetGroupID(v)
+	})
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *KeyUpsertBulk) UpdateGroupID() *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.UpdateGroupID()
 	})
 }
 

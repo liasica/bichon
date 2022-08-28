@@ -30,8 +30,6 @@ type GroupMemberMutation struct {
 	clearedmember bool
 	group         *string
 	clearedgroup  bool
-	key           *string
-	clearedkey    bool
 	done          bool
 	oldValue      func(context.Context) (*GroupMember, error)
 	predicates    []predicate.GroupMember
@@ -249,42 +247,6 @@ func (m *GroupMemberMutation) ResetGroupID() {
 	m.group = nil
 }
 
-// SetKeyID sets the "key_id" field.
-func (m *GroupMemberMutation) SetKeyID(s string) {
-	m.key = &s
-}
-
-// KeyID returns the value of the "key_id" field in the mutation.
-func (m *GroupMemberMutation) KeyID() (r string, exists bool) {
-	v := m.key
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldKeyID returns the old "key_id" field's value of the GroupMember entity.
-// If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMemberMutation) OldKeyID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKeyID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKeyID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKeyID: %w", err)
-	}
-	return oldValue.KeyID, nil
-}
-
-// ResetKeyID resets all changes to the "key_id" field.
-func (m *GroupMemberMutation) ResetKeyID() {
-	m.key = nil
-}
-
 // SetPermission sets the "permission" field.
 func (m *GroupMemberMutation) SetPermission(u uint8) {
 	m.permission = &u
@@ -429,32 +391,6 @@ func (m *GroupMemberMutation) ResetGroup() {
 	m.clearedgroup = false
 }
 
-// ClearKey clears the "key" edge to the Key entity.
-func (m *GroupMemberMutation) ClearKey() {
-	m.clearedkey = true
-}
-
-// KeyCleared reports if the "key" edge to the Key entity was cleared.
-func (m *GroupMemberMutation) KeyCleared() bool {
-	return m.clearedkey
-}
-
-// KeyIDs returns the "key" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// KeyID instead. It exists only for internal usage by the builders.
-func (m *GroupMemberMutation) KeyIDs() (ids []string) {
-	if id := m.key; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetKey resets all changes to the "key" edge.
-func (m *GroupMemberMutation) ResetKey() {
-	m.key = nil
-	m.clearedkey = false
-}
-
 // Where appends a list predicates to the GroupMemberMutation builder.
 func (m *GroupMemberMutation) Where(ps ...predicate.GroupMember) {
 	m.predicates = append(m.predicates, ps...)
@@ -474,7 +410,7 @@ func (m *GroupMemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMemberMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.created_at != nil {
 		fields = append(fields, groupmember.FieldCreatedAt)
 	}
@@ -483,9 +419,6 @@ func (m *GroupMemberMutation) Fields() []string {
 	}
 	if m.group != nil {
 		fields = append(fields, groupmember.FieldGroupID)
-	}
-	if m.key != nil {
-		fields = append(fields, groupmember.FieldKeyID)
 	}
 	if m.permission != nil {
 		fields = append(fields, groupmember.FieldPermission)
@@ -507,8 +440,6 @@ func (m *GroupMemberMutation) Field(name string) (ent.Value, bool) {
 		return m.MemberID()
 	case groupmember.FieldGroupID:
 		return m.GroupID()
-	case groupmember.FieldKeyID:
-		return m.KeyID()
 	case groupmember.FieldPermission:
 		return m.Permission()
 	case groupmember.FieldSn:
@@ -528,8 +459,6 @@ func (m *GroupMemberMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldMemberID(ctx)
 	case groupmember.FieldGroupID:
 		return m.OldGroupID(ctx)
-	case groupmember.FieldKeyID:
-		return m.OldKeyID(ctx)
 	case groupmember.FieldPermission:
 		return m.OldPermission(ctx)
 	case groupmember.FieldSn:
@@ -563,13 +492,6 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGroupID(v)
-		return nil
-	case groupmember.FieldKeyID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetKeyID(v)
 		return nil
 	case groupmember.FieldPermission:
 		v, ok := value.(uint8)
@@ -658,9 +580,6 @@ func (m *GroupMemberMutation) ResetField(name string) error {
 	case groupmember.FieldGroupID:
 		m.ResetGroupID()
 		return nil
-	case groupmember.FieldKeyID:
-		m.ResetKeyID()
-		return nil
 	case groupmember.FieldPermission:
 		m.ResetPermission()
 		return nil
@@ -673,15 +592,12 @@ func (m *GroupMemberMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GroupMemberMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.member != nil {
 		edges = append(edges, groupmember.EdgeMember)
 	}
 	if m.group != nil {
 		edges = append(edges, groupmember.EdgeGroup)
-	}
-	if m.key != nil {
-		edges = append(edges, groupmember.EdgeKey)
 	}
 	return edges
 }
@@ -698,17 +614,13 @@ func (m *GroupMemberMutation) AddedIDs(name string) []ent.Value {
 		if id := m.group; id != nil {
 			return []ent.Value{*id}
 		}
-	case groupmember.EdgeKey:
-		if id := m.key; id != nil {
-			return []ent.Value{*id}
-		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GroupMemberMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -722,15 +634,12 @@ func (m *GroupMemberMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GroupMemberMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.clearedmember {
 		edges = append(edges, groupmember.EdgeMember)
 	}
 	if m.clearedgroup {
 		edges = append(edges, groupmember.EdgeGroup)
-	}
-	if m.clearedkey {
-		edges = append(edges, groupmember.EdgeKey)
 	}
 	return edges
 }
@@ -743,8 +652,6 @@ func (m *GroupMemberMutation) EdgeCleared(name string) bool {
 		return m.clearedmember
 	case groupmember.EdgeGroup:
 		return m.clearedgroup
-	case groupmember.EdgeKey:
-		return m.clearedkey
 	}
 	return false
 }
@@ -759,9 +666,6 @@ func (m *GroupMemberMutation) ClearEdge(name string) error {
 	case groupmember.EdgeGroup:
 		m.ClearGroup()
 		return nil
-	case groupmember.EdgeKey:
-		m.ClearKey()
-		return nil
 	}
 	return fmt.Errorf("unknown GroupMember unique edge %s", name)
 }
@@ -775,9 +679,6 @@ func (m *GroupMemberMutation) ResetEdge(name string) error {
 		return nil
 	case groupmember.EdgeGroup:
 		m.ResetGroup()
-		return nil
-	case groupmember.EdgeKey:
-		m.ResetKey()
 		return nil
 	}
 	return fmt.Errorf("unknown GroupMember edge %s", name)

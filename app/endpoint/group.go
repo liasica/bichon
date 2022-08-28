@@ -39,3 +39,17 @@ func (*group) Join(c echo.Context) (err error) {
     ctx, req := app.MemberContextAndBinding[model.GroupJoinReq](c)
     return ctx.SendResponse(service.NewGroup().Join(ctx.Member, req))
 }
+
+// ShareKey
+// @ID           GroupShareKey
+// @Router       /group/key [POST]
+// @Summary      Share key with Group
+// @Tags         Group
+// @Accept       json
+// @Produce      json
+// @Param        body  body     model.GroupShareKeyReq  true  "Group and key info"
+// @Success      200  {object}  app.Response{data=model.GroupPublicKey}  "Response success"
+func (*group) ShareKey(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.GroupShareKeyReq](c)
+    return ctx.SendResponse(service.NewGroup().ShareKey(ctx.Member, req))
+}

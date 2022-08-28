@@ -40,7 +40,6 @@ func (GroupMember) Mixin() []ent.Mixin {
         internal.TimeMixin{},
         MemberMixin{},
         GroupMixin{},
-        KeyMixin{},
     }
 }
 

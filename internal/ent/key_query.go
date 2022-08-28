@@ -10,7 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/key"
+	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
 )
 
@@ -23,6 +25,8 @@ type KeyQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Key
+	withMember *MemberQuery
+	withGroup  *GroupQuery
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -58,6 +62,50 @@ func (kq *KeyQuery) Unique(unique bool) *KeyQuery {
 func (kq *KeyQuery) Order(o ...OrderFunc) *KeyQuery {
 	kq.order = append(kq.order, o...)
 	return kq
+}
+
+// QueryMember chains the current query on the "member" edge.
+func (kq *KeyQuery) QueryMember() *MemberQuery {
+	query := &MemberQuery{config: kq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := kq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := kq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(key.Table, key.FieldID, selector),
+			sqlgraph.To(member.Table, member.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, key.MemberTable, key.MemberColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(kq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGroup chains the current query on the "group" edge.
+func (kq *KeyQuery) QueryGroup() *GroupQuery {
+	query := &GroupQuery{config: kq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := kq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := kq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(key.Table, key.FieldID, selector),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, key.GroupTable, key.GroupColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(kq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Key entity from the query.
@@ -241,11 +289,35 @@ func (kq *KeyQuery) Clone() *KeyQuery {
 		offset:     kq.offset,
 		order:      append([]OrderFunc{}, kq.order...),
 		predicates: append([]predicate.Key{}, kq.predicates...),
+		withMember: kq.withMember.Clone(),
+		withGroup:  kq.withGroup.Clone(),
 		// clone intermediate query.
 		sql:    kq.sql.Clone(),
 		path:   kq.path,
 		unique: kq.unique,
 	}
+}
+
+// WithMember tells the query-builder to eager-load the nodes that are connected to
+// the "member" edge. The optional arguments are used to configure the query builder of the edge.
+func (kq *KeyQuery) WithMember(opts ...func(*MemberQuery)) *KeyQuery {
+	query := &MemberQuery{config: kq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	kq.withMember = query
+	return kq
+}
+
+// WithGroup tells the query-builder to eager-load the nodes that are connected to
+// the "group" edge. The optional arguments are used to configure the query builder of the edge.
+func (kq *KeyQuery) WithGroup(opts ...func(*GroupQuery)) *KeyQuery {
+	query := &GroupQuery{config: kq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	kq.withGroup = query
+	return kq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -314,8 +386,12 @@ func (kq *KeyQuery) prepareQuery(ctx context.Context) error {
 
 func (kq *KeyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Key, error) {
 	var (
-		nodes = []*Key{}
-		_spec = kq.querySpec()
+		nodes       = []*Key{}
+		_spec       = kq.querySpec()
+		loadedTypes = [2]bool{
+			kq.withMember != nil,
+			kq.withGroup != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		return (*Key).scanValues(nil, columns)
@@ -323,6 +399,7 @@ func (kq *KeyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Key, err
 	_spec.Assign = func(columns []string, values []interface{}) error {
 		node := &Key{config: kq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(kq.modifiers) > 0 {
@@ -337,7 +414,72 @@ func (kq *KeyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Key, err
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := kq.withMember; query != nil {
+		if err := kq.loadMember(ctx, query, nodes, nil,
+			func(n *Key, e *Member) { n.Edges.Member = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := kq.withGroup; query != nil {
+		if err := kq.loadGroup(ctx, query, nodes, nil,
+			func(n *Key, e *Group) { n.Edges.Group = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (kq *KeyQuery) loadMember(ctx context.Context, query *MemberQuery, nodes []*Key, init func(*Key), assign func(*Key, *Member)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Key)
+	for i := range nodes {
+		fk := nodes[i].MemberID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(member.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "member_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (kq *KeyQuery) loadGroup(ctx context.Context, query *GroupQuery, nodes []*Key, init func(*Key), assign func(*Key, *Group)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Key)
+	for i := range nodes {
+		fk := nodes[i].GroupID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(group.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "group_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (kq *KeyQuery) sqlCount(ctx context.Context) (int, error) {
