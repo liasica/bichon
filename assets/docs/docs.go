@@ -311,6 +311,9 @@ const docTemplate = `{
                 "groupPublicKey": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "intro": {
                     "type": "string"
                 },

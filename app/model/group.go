@@ -31,6 +31,7 @@ type GroupDetailWithPublicKey struct {
 }
 
 type GroupDetail struct {
+    ID         string `json:"id"`
     Name       string `json:"name"`
     Category   string `json:"category"`
     Address    string `json:"address"`

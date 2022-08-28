@@ -42,6 +42,8 @@ definitions:
         type: string
       groupPublicKey:
         type: string
+      id:
+        type: string
       intro:
         type: string
       keyId:

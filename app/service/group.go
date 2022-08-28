@@ -209,6 +209,7 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
 // detail group's detail
 func (s *groupService) detail(gro *ent.Group, mem *ent.Member) *model.GroupDetail {
     return &model.GroupDetail{
+        ID:         gro.ID,
         Name:       gro.Name,
         Address:    gro.Address,
         Intro:      gro.Intro,
