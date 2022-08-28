@@ -1,5 +1,5 @@
 app:
-  address: ':5300'
+  address: ':5500'
   mode: prod
   tz: Asia/Shanghai
   printStack: false

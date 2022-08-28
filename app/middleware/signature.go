@@ -32,7 +32,7 @@ func Signature() echo.MiddlewareFunc {
             if _, ok := signatureRequired[rum]; ok && isPost {
                 if mem == nil {
                     // need signin
-                    return app.Context(c).SendResponse(nil, model.ErrAuthError, http.StatusUnauthorized)
+                    return app.Context(c).SendResponse(nil, model.ErrAuthRequired, http.StatusUnauthorized)
                 }
 
                 var b []byte

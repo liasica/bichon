@@ -48,7 +48,7 @@ func (s *memberService) Authenticate(address string, token string) (*ent.Member,
     if jrc.Subject == mem.Address {
         return mem, nil
     }
-    return nil, model.ErrAuthError
+    return nil, model.ErrAuthRequired
 }
 
 // Nonce generate auth nonce string for member's address
@@ -82,7 +82,7 @@ func (s *memberService) Signin(req *model.MemberSigninReq) (res *model.MemberSig
     // getting member from database with nonce string
     mem, _ := s.orm.Query().Where(member.Address(req.Address), member.Nonce(req.Nonce)).First(s.ctx)
     if mem == nil {
-        err = model.ErrAuthError
+        err = model.ErrSignin
         return
     }
     // decode the provided signature
@@ -101,7 +101,7 @@ func (s *memberService) Signin(req *model.MemberSigninReq) (res *model.MemberSig
     recoveredAddr := crypto.PubkeyToAddress(*pub)
     // validate member's address
     if req.Address != strings.ToLower(recoveredAddr.Hex()) {
-        err = model.ErrAuthError
+        err = model.ErrSignin
         return
     }
     // generate jwt token

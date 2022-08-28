@@ -44,10 +44,10 @@ func (s *jwtService) Verify(tokenString string) (*jwt.RegisteredClaims, error) {
         return s.hmacSecret, nil
     })
     if err != nil {
-        return nil, model.ErrAuthError
+        return nil, model.ErrAuthRequired
     }
     if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
         return claims, nil
     }
-    return nil, model.ErrAuthError
+    return nil, model.ErrAuthRequired
 }

@@ -40,7 +40,7 @@ func Member() echo.MiddlewareFunc {
 
             // if need auth but member is nil
             if needLogin && mem == nil {
-                return ctx.SendResponse(nil, model.ErrAuthError, http.StatusUnauthorized)
+                return ctx.SendResponse(nil, model.ErrAuthRequired, http.StatusUnauthorized)
             }
 
             ctx.Member = mem
