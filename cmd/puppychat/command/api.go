@@ -3,6 +3,7 @@ package command
 import (
     "context"
     "fmt"
+    "github.com/chatpuppy/puppychat/app/cache"
     "github.com/chatpuppy/puppychat/app/router"
     "github.com/chatpuppy/puppychat/grpc/pb/message"
     pb "github.com/chatpuppy/puppychat/grpc/pb/node"
@@ -41,6 +42,10 @@ func apiCommand() *cobra.Command {
             g.SetConfigFile(configFile)
             internal.SetRootPath(rootPath)
             internal.Bootstrap()
+
+            // create cache client
+            cfg := g.Config.Redis
+            cache.CreateClient(cfg.Address, cfg.Password, cfg.DB)
 
             // start api server
             go router.Run()

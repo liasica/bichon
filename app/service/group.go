@@ -4,6 +4,7 @@ import (
     "context"
     "crypto/ecdsa"
     "fmt"
+    "github.com/chatpuppy/puppychat/app/cache"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/group"
@@ -262,4 +263,16 @@ func (s *groupService) ShareKey(mem *ent.Member, req *model.GroupShareKeyReq) (r
         KeyID:          keyID,
     }
     return
+}
+
+func (s *groupService) CacheMembers(gro *ent.Group) {
+    gms, _ := ent.Database.GroupMember.Query().Where(groupmember.GroupID(gro.ID)).All(s.ctx)
+    // delete first
+    cache.HDel(s.ctx, gro.ID)
+    // set members cache
+    var items []string
+    for _, gm := range gms {
+        items = append(items, gm.MemberID)
+    }
+    cache.HSet(s.ctx, gro.ID, items)
 }

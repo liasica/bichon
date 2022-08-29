@@ -30,10 +30,8 @@ func (c *BaseContext) SendResponse(data any, params ...any) error {
             if r.Code == CodeEmpty {
                 r.Code = model.ErrStatus(p)
             }
-            break
         case int:
             r.Code = p
-            break
         }
     }
 

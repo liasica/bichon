@@ -23,19 +23,15 @@ func Recover() echo.MiddlewareFunc {
                         c.Error(t)
                         message = t.Error()
                         sp = false
-                        break
                     case *ent.ValidationError:
                         c.Error(t.Unwrap())
                         message = t.Error()
-                        break
                     case error:
                         message = t.Error()
                         c.Error(t)
-                        break
                     default:
                         message = fmt.Sprintf("%v", r)
                         c.Error(fmt.Errorf("%v", r))
-                        break
                     }
 
                     if sp && g.Config.App.PrintStack {

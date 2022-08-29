@@ -66,7 +66,6 @@ func Run() {
             target := err.(*echo.HTTPError)
             code = target.Code
             err = fmt.Errorf("%v", target.Message)
-            break
         }
         _ = ctx.SendResponse(data, err, code)
     }

@@ -122,10 +122,8 @@ func (s *memberService) Profile(param any) *model.MemberProfile {
     switch p := param.(type) {
     case string:
         mem, _ = s.QueryAddress(p)
-        break
     case *ent.Member:
         mem = p
-        break
     default:
         return nil
     }

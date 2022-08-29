@@ -18,16 +18,12 @@ func NewError(params ...any) *Error {
         switch param.(type) {
         case string:
             out.Message = param.(string)
-            break
         case error:
             out.Message = param.(error).Error()
-            break
         case int:
             out.Code = param.(int)
-            break
         default:
             out.Data = param
-            break
         }
     }
 
