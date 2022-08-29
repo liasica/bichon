@@ -23,13 +23,7 @@ func Wrap(hub *Hub, c echo.Context) (err error) {
         return
     }
 
-    client := &Client{
-        mem:  ctx.Member,
-        hub:  hub,
-        conn: conn,
-        // TODO use larger buffer or chunks message
-        send: make(chan []byte, 256),
-    }
+    client := NewClient(hub, ctx.Member, conn)
 
     client.hub.register <- client
 

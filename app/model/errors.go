@@ -17,7 +17,7 @@ var (
     ErrNotInGroup        = errors.New("you are not in the group")
     ErrNotFoundGroup     = errors.New("not found group")
     ErrKeyShareFrequency = errors.New("key generate frequency limited")
-    ErrGroupKeyVerify    = errors.New("group key verify failed")
+    ErrGroupKey          = errors.New("group key verify failed")
 )
 
 func ErrStatus(err error) int {

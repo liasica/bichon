@@ -17,3 +17,13 @@ type Client struct {
 func (c *Client) Disconnect() {
     _ = c.conn.Close()
 }
+
+func NewClient(hub *Hub, mem *ent.Member, conn *websocket.Conn) *Client {
+    return &Client{
+        mem:  mem,
+        hub:  hub,
+        conn: conn,
+        // TODO use larger buffer or chunks message
+        send: make(chan []byte, 256),
+    }
+}

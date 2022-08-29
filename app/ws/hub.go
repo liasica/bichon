@@ -1,5 +1,9 @@
 package ws
 
+import (
+    "sync"
+)
+
 type Hub struct {
     // online clients current
     clients map[string]*Client
@@ -9,6 +13,9 @@ type Hub struct {
 
     // unregister requests from clients
     unregister chan *Client
+
+    // cached used group member keys, value is *model.GroupMemberRawKeys
+    keys sync.Map
 }
 
 func NewHub() *Hub {

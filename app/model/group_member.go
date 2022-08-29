@@ -1,5 +1,7 @@
 package model
 
+import "github.com/liasica/go-encryption/hexutil"
+
 const (
     GroupMemberPermDefault uint8 = 0 // ordinary member permission
     GroupMemberPermManager uint8 = 8 // manager member permission
@@ -33,4 +35,21 @@ func (keys *GroupMemberKeys) Decrypt(hex string) (err error) {
 type GroupShareKeyReq struct {
     GroupID string `json:"groupId" validate:"required"` // group id
     *GroupMemberKeyShareReq
+}
+
+type GroupMemberRawKeys struct {
+    Public  []byte
+    Private []byte
+    Shared  []byte
+}
+
+func (keys *GroupMemberKeys) Raw() *GroupMemberRawKeys {
+    pub, _ := hexutil.Decode(keys.Public)
+    priv, _ := hexutil.Decode(keys.Private)
+    shared, _ := hexutil.Decode(keys.Shared)
+    return &GroupMemberRawKeys{
+        Public:  pub,
+        Private: priv,
+        Shared:  shared,
+    }
 }
