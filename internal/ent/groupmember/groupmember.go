@@ -71,7 +71,7 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/chatpuppy/puppychat/internal/ent/runtime"
 var (
-	Hooks [1]ent.Hook
+	Hooks [2]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt time.Time
 	// DefaultPermission holds the default value on creation for the "permission" field.

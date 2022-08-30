@@ -1,10 +1,13 @@
 package schema
 
 import (
+    "context"
     "entgo.io/ent"
     "entgo.io/ent/dialect/entsql"
+    "entgo.io/ent/entc/integration/ent/hook"
     "entgo.io/ent/schema"
     "entgo.io/ent/schema/field"
+    "github.com/chatpuppy/puppychat/app/cache"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
 )
@@ -46,5 +49,38 @@ func (GroupMember) Mixin() []ent.Mixin {
 func (GroupMember) Indexes() []ent.Index {
     return []ent.Index{
         // index.Fields("group_id", "member_id"),
+    }
+}
+
+type GroupMemberMutator interface {
+    MemberID() (r string, exists bool)
+    GroupID() (r string, exists bool)
+}
+
+func (GroupMember) Hooks() []ent.Hook {
+    return []ent.Hook{
+        hook.On(
+            func(next ent.Mutator) ent.Mutator {
+                return ent.MutateFunc(func(ctx context.Context, mutation ent.Mutation) (ent.Value, error) {
+                    m, ok := mutation.(GroupMemberMutator)
+                    if ok {
+                        memberID, _ := m.MemberID()
+                        groupID, _ := m.GroupID()
+                        if memberID != "" && groupID != "" {
+                            isCreate := mutation.Op().Is(ent.OpCreate)
+                            isDelete := mutation.Op().Is(ent.OpDelete | ent.OpDeleteOne)
+                            if isCreate {
+                                cache.Group.Add(groupID, memberID)
+                            }
+                            if isDelete {
+                                cache.Group.Remove(groupID, memberID)
+                            }
+                        }
+                    }
+                    return next.Mutate(ctx, mutation)
+                })
+            },
+            ent.OpCreate|ent.OpDelete|ent.OpDeleteOne,
+        ),
     }
 }
