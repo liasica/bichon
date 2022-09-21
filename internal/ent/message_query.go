@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
-	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
@@ -20,16 +20,17 @@ import (
 // MessageQuery is the builder for querying Message entities.
 type MessageQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Message
-	withKey    *KeyQuery
-	withOwner  *MemberQuery
-	withGroup  *GroupQuery
-	modifiers  []func(*sql.Selector)
+	limit        *int
+	offset       *int
+	unique       *bool
+	order        []OrderFunc
+	fields       []string
+	predicates   []predicate.Message
+	withMember   *MemberQuery
+	withGroup    *GroupQuery
+	withParent   *MessageQuery
+	withChildren *MessageQuery
+	modifiers    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,30 +67,8 @@ func (mq *MessageQuery) Order(o ...OrderFunc) *MessageQuery {
 	return mq
 }
 
-// QueryKey chains the current query on the "key" edge.
-func (mq *MessageQuery) QueryKey() *KeyQuery {
-	query := &KeyQuery{config: mq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := mq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := mq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(message.Table, message.FieldID, selector),
-			sqlgraph.To(key.Table, key.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, message.KeyTable, message.KeyColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryOwner chains the current query on the "owner" edge.
-func (mq *MessageQuery) QueryOwner() *MemberQuery {
+// QueryMember chains the current query on the "member" edge.
+func (mq *MessageQuery) QueryMember() *MemberQuery {
 	query := &MemberQuery{config: mq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := mq.prepareQuery(ctx); err != nil {
@@ -102,7 +81,7 @@ func (mq *MessageQuery) QueryOwner() *MemberQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(message.Table, message.FieldID, selector),
 			sqlgraph.To(member.Table, member.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, message.OwnerTable, message.OwnerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.MemberTable, message.MemberColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -125,6 +104,50 @@ func (mq *MessageQuery) QueryGroup() *GroupQuery {
 			sqlgraph.From(message.Table, message.FieldID, selector),
 			sqlgraph.To(group.Table, group.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, message.GroupTable, message.GroupColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryParent chains the current query on the "parent" edge.
+func (mq *MessageQuery) QueryParent() *MessageQuery {
+	query := &MessageQuery{config: mq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.ParentTable, message.ParentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryChildren chains the current query on the "children" edge.
+func (mq *MessageQuery) QueryChildren() *MessageQuery {
+	query := &MessageQuery{config: mq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.ChildrenTable, message.ChildrenColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -308,14 +331,15 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 		return nil
 	}
 	return &MessageQuery{
-		config:     mq.config,
-		limit:      mq.limit,
-		offset:     mq.offset,
-		order:      append([]OrderFunc{}, mq.order...),
-		predicates: append([]predicate.Message{}, mq.predicates...),
-		withKey:    mq.withKey.Clone(),
-		withOwner:  mq.withOwner.Clone(),
-		withGroup:  mq.withGroup.Clone(),
+		config:       mq.config,
+		limit:        mq.limit,
+		offset:       mq.offset,
+		order:        append([]OrderFunc{}, mq.order...),
+		predicates:   append([]predicate.Message{}, mq.predicates...),
+		withMember:   mq.withMember.Clone(),
+		withGroup:    mq.withGroup.Clone(),
+		withParent:   mq.withParent.Clone(),
+		withChildren: mq.withChildren.Clone(),
 		// clone intermediate query.
 		sql:    mq.sql.Clone(),
 		path:   mq.path,
@@ -323,25 +347,14 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 	}
 }
 
-// WithKey tells the query-builder to eager-load the nodes that are connected to
-// the "key" edge. The optional arguments are used to configure the query builder of the edge.
-func (mq *MessageQuery) WithKey(opts ...func(*KeyQuery)) *MessageQuery {
-	query := &KeyQuery{config: mq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	mq.withKey = query
-	return mq
-}
-
-// WithOwner tells the query-builder to eager-load the nodes that are connected to
-// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
-func (mq *MessageQuery) WithOwner(opts ...func(*MemberQuery)) *MessageQuery {
+// WithMember tells the query-builder to eager-load the nodes that are connected to
+// the "member" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithMember(opts ...func(*MemberQuery)) *MessageQuery {
 	query := &MemberQuery{config: mq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	mq.withOwner = query
+	mq.withMember = query
 	return mq
 }
 
@@ -353,6 +366,28 @@ func (mq *MessageQuery) WithGroup(opts ...func(*GroupQuery)) *MessageQuery {
 		opt(query)
 	}
 	mq.withGroup = query
+	return mq
+}
+
+// WithParent tells the query-builder to eager-load the nodes that are connected to
+// the "parent" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithParent(opts ...func(*MessageQuery)) *MessageQuery {
+	query := &MessageQuery{config: mq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withParent = query
+	return mq
+}
+
+// WithChildren tells the query-builder to eager-load the nodes that are connected to
+// the "children" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithChildren(opts ...func(*MessageQuery)) *MessageQuery {
+	query := &MessageQuery{config: mq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withChildren = query
 	return mq
 }
 
@@ -424,10 +459,11 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	var (
 		nodes       = []*Message{}
 		_spec       = mq.querySpec()
-		loadedTypes = [3]bool{
-			mq.withKey != nil,
-			mq.withOwner != nil,
+		loadedTypes = [4]bool{
+			mq.withMember != nil,
 			mq.withGroup != nil,
+			mq.withParent != nil,
+			mq.withChildren != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -451,15 +487,9 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := mq.withKey; query != nil {
-		if err := mq.loadKey(ctx, query, nodes, nil,
-			func(n *Message, e *Key) { n.Edges.Key = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := mq.withOwner; query != nil {
-		if err := mq.loadOwner(ctx, query, nodes, nil,
-			func(n *Message, e *Member) { n.Edges.Owner = e }); err != nil {
+	if query := mq.withMember; query != nil {
+		if err := mq.loadMember(ctx, query, nodes, nil,
+			func(n *Message, e *Member) { n.Edges.Member = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -469,36 +499,23 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 			return nil, err
 		}
 	}
+	if query := mq.withParent; query != nil {
+		if err := mq.loadParent(ctx, query, nodes, nil,
+			func(n *Message, e *Message) { n.Edges.Parent = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mq.withChildren; query != nil {
+		if err := mq.loadChildren(ctx, query, nodes,
+			func(n *Message) { n.Edges.Children = []*Message{} },
+			func(n *Message, e *Message) { n.Edges.Children = append(n.Edges.Children, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (mq *MessageQuery) loadKey(ctx context.Context, query *KeyQuery, nodes []*Message, init func(*Message), assign func(*Message, *Key)) error {
-	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*Message)
-	for i := range nodes {
-		fk := nodes[i].KeyID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	query.Where(key.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "key_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (mq *MessageQuery) loadOwner(ctx context.Context, query *MemberQuery, nodes []*Message, init func(*Message), assign func(*Message, *Member)) error {
+func (mq *MessageQuery) loadMember(ctx context.Context, query *MemberQuery, nodes []*Message, init func(*Message), assign func(*Message, *Member)) error {
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*Message)
 	for i := range nodes {
@@ -547,6 +564,65 @@ func (mq *MessageQuery) loadGroup(ctx context.Context, query *GroupQuery, nodes 
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (mq *MessageQuery) loadParent(ctx context.Context, query *MessageQuery, nodes []*Message, init func(*Message), assign func(*Message, *Message)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Message)
+	for i := range nodes {
+		if nodes[i].ParentID == nil {
+			continue
+		}
+		fk := *nodes[i].ParentID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(message.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (mq *MessageQuery) loadChildren(ctx context.Context, query *MessageQuery, nodes []*Message, init func(*Message), assign func(*Message, *Message)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Message)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.InValues(message.ChildrenColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ParentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "parent_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "parent_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

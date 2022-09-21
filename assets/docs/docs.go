@@ -17,6 +17,79 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/group": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Filter group",
+                "operationId": "GroupList",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "group's category",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "current page, start from 1 (default: 1)",
+                        "name": "current",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "count peer page, default is 50",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/app.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/model.PaginationRes"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/model.GroupListRes"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "create an group (need signature verify)",
                 "consumes": [
@@ -28,7 +101,7 @@ const docTemplate = `{
                 "tags": [
                     "Group"
                 ],
-                "summary": "Group Create",
+                "summary": "Create group",
                 "operationId": "GroupCreate",
                 "parameters": [
                     {
@@ -63,6 +136,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/categories": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "List all group categories",
+                "operationId": "GroupCategories",
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/group/join": {
             "post": {
                 "consumes": [
@@ -74,7 +170,7 @@ const docTemplate = `{
                 "tags": [
                     "Group"
                 ],
-                "summary": "Join Group",
+                "summary": "Join group",
                 "operationId": "GroupJoin",
                 "parameters": [
                     {
@@ -109,6 +205,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/joined": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Joined group list",
+                "operationId": "GroupJoinedList",
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.GroupJoinedListRes"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/group/key": {
             "post": {
                 "consumes": [
@@ -120,7 +242,7 @@ const docTemplate = `{
                 "tags": [
                     "Group"
                 ],
-                "summary": "Share key with Group",
+                "summary": "Share key with group",
                 "operationId": "GroupShareKey",
                 "parameters": [
                     {
@@ -155,6 +277,84 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/key/used": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Setting current key of group",
+                "operationId": "GroupKeyUsed",
+                "parameters": [
+                    {
+                        "description": "Group keys",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GroupKeyUsedReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/group/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Detail info of group",
+                "operationId": "GroupDetail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/app.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.GroupMetaRes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/member/nonce/{address}": {
             "get": {
                 "description": "Getting nonce string to be signed",
@@ -167,7 +367,7 @@ const docTemplate = `{
                 "tags": [
                     "Member"
                 ],
-                "summary": "Member Signin Nonce",
+                "summary": "Member signin nonce",
                 "operationId": "MemberNonce",
                 "responses": {
                     "200": {
@@ -203,13 +403,13 @@ const docTemplate = `{
                 "tags": [
                     "Member"
                 ],
-                "summary": "Member Profile",
+                "summary": "Member profile",
                 "operationId": "MemberProfile",
                 "responses": {
                     "200": {
                         "description": "Response success",
                         "schema": {
-                            "$ref": "#/definitions/app.Response"
+                            "$ref": "#/definitions/model.MemberProfile"
                         }
                     }
                 }
@@ -226,7 +426,7 @@ const docTemplate = `{
                 "tags": [
                     "Member"
                 ],
-                "summary": "Member Signin",
+                "summary": "Member signin",
                 "operationId": "MemberSignin",
                 "responses": {
                     "200": {
@@ -249,6 +449,102 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/message": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Message"
+                ],
+                "summary": "List message",
+                "operationId": "MessageList",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "groupId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "last time",
+                        "name": "time",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/app.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.Message"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Create message",
+                "operationId": "MessageCreate",
+                "parameters": [
+                    {
+                        "description": "message detail",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatMessage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/app.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.ChatMessageCreateRes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -260,6 +556,47 @@ const docTemplate = `{
                 },
                 "data": {},
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ChatMessage": {
+            "type": "object",
+            "required": [
+                "content",
+                "groupId",
+                "memberId"
+            ],
+            "properties": {
+                "content": {
+                    "description": "encrypted message",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "memberId": {
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "quote message id",
+                    "type": "string"
+                }
+            }
+        },
+        "model.ChatMessageCreateRes": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 }
             }
@@ -315,10 +652,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "intro": {
+                    "description": "optional",
                     "type": "string"
                 },
                 "keyId": {
                     "type": "string"
+                },
+                "membersCount": {
+                    "type": "integer"
                 },
                 "membersMax": {
                     "type": "integer"
@@ -352,6 +693,140 @@ const docTemplate = `{
                 }
             }
         },
+        "model.GroupJoinedListRes": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "intro": {
+                    "description": "optional",
+                    "type": "string"
+                },
+                "lastTime": {
+                    "type": "string"
+                },
+                "membersCount": {
+                    "type": "integer"
+                },
+                "membersMax": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "unreadCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.GroupKeyUsed": {
+            "type": "object",
+            "required": [
+                "groupId",
+                "keyId"
+            ],
+            "properties": {
+                "groupId": {
+                    "type": "string"
+                },
+                "keyId": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GroupKeyUsedReq": {
+            "type": "object",
+            "required": [
+                "keys"
+            ],
+            "properties": {
+                "keys": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/model.GroupKeyUsed"
+                    }
+                }
+            }
+        },
+        "model.GroupListRes": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "intro": {
+                    "description": "optional",
+                    "type": "string"
+                },
+                "joined": {
+                    "type": "boolean"
+                },
+                "membersCount": {
+                    "type": "integer"
+                },
+                "membersMax": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GroupMetaRes": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "intro": {
+                    "description": "optional",
+                    "type": "string"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Member"
+                    }
+                },
+                "membersCount": {
+                    "type": "integer"
+                },
+                "membersMax": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "description": "group is belongs to current member",
+                    "type": "boolean"
+                },
+                "public": {
+                    "description": "group is public or private",
+                    "type": "boolean"
+                }
+            }
+        },
         "model.GroupPublicKey": {
             "type": "object",
             "properties": {
@@ -380,6 +855,23 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Member": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
         "model.MemberNonceRes": {
             "type": "object",
             "properties": {
@@ -396,6 +888,9 @@ const docTemplate = `{
                 },
                 "avatar": {
                     "description": "optional",
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "intro": {
@@ -422,6 +917,61 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "model.Message": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "member": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Member"
+                        }
+                    ]
+                },
+                "quote": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Message"
+                        }
+                    ]
+                }
+            }
+        },
+        "model.Pagination": {
+            "type": "object",
+            "properties": {
+                "current": {
+                    "type": "integer"
+                },
+                "pages": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.PaginationRes": {
+            "type": "object",
+            "properties": {
+                "items": {},
+                "pagination": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Pagination"
+                        }
+                    ]
+                }
+            }
         }
     }
 }`
@@ -433,7 +983,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "ChatPuppy Api Doc",
-	Description:      "# ChatPuppy Api Document\n\n## Auth\n- Add headers `Authorization Bearer {token}`\n- Add headers `X-Member-Address ${address}`\n\n## Signature\n1. Just post request\n2. Encrypt raw post body string to `MD5`, getting string `bodyMD5`\n3. Concatenate `timestamp` (from 1970, 10 digits) string end of step 2, getting string `s = bodyMD5 + timestamp`\n4. Sign `s` getting `signature` string\n5. Add headers `X-Signature ${signature}`\n6. Add headers `X-Timestamp ${timestamp}`\n\n",
+	Description:      "# ChatPuppy Api Document\n\n## Auth\n- Add headers `Authorization Bearer {token}`\n- Add headers `X-Member-Address ${address}`\n\n## Signature\n1. Just post request\n2. Encrypt raw post body string to `MD5`, getting string `bodyMD5`\n3. Concatenate `timestamp` (from 1970, 10 digits) string end of step 2, getting string `s = bodyMD5 + timestamp`\n4. Sign `s` getting `signature` string\n5. Add headers `X-Signature ${signature}`\n6. Add headers `X-Timestamp ${timestamp}`\n\n## WebSocket\n> `/message`\n\n### Operates\n- 1: register\n- 2: set group key\n- 3: new group message\n",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

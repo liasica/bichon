@@ -19,6 +19,7 @@ doc:
 KEYCODE ?= $(shell bash -c 'read -p "Key File: " path; echo `cat $$path`')
 
 define build
+	@$(call gendoc); \
 	GO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags "all=-N -l" -trimpath -ldflags "-X github.com/chatpuppy/puppychat/cmd/puppychat/command.NodeSecret=$(1)" -o build/release/puppychat cmd/puppychat/main.go
 endef
 

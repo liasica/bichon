@@ -28,6 +28,10 @@ func NewMember() *memberService {
     }
 }
 
+func (s *memberService) QueryID(id string) (*ent.Member, error) {
+    return s.orm.Query().Where(member.ID(id)).First(s.ctx)
+}
+
 // QueryAddress getting member from address
 func (s *memberService) QueryAddress(address string) (*ent.Member, error) {
     return s.orm.Query().Where(member.Address(address)).First(s.ctx)
@@ -131,6 +135,7 @@ func (s *memberService) Profile(param any) *model.MemberProfile {
         return nil
     }
     return &model.MemberProfile{
+        ID:       mem.ID,
         Address:  mem.Address,
         Nickname: mem.Nickname,
         Avatar:   mem.Avatar,

@@ -72,7 +72,7 @@ func (Group) Edges() []ent.Edge {
 
 func (Group) Mixin() []ent.Mixin {
     return []ent.Mixin{
-        internal.SonyflakeIDMixin{},
+        internal.SnowflakeIDMixin{},
         internal.TimeMixin{},
     }
 }

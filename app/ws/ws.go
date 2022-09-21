@@ -1,33 +1,31 @@
 package ws
 
 import (
-    "github.com/chatpuppy/puppychat/app"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/gorilla/websocket"
     "github.com/labstack/echo/v4"
     "net/http"
 )
 
-func Wrap(hub *Hub, c echo.Context) (err error) {
-    ctx, ok := c.(*app.MemberContext)
-    if !ok || ctx.Member == nil {
-        err = model.ErrAuthRequired
-        return
+func Serve(hub *hub, c echo.Context) (err error) {
+    address := c.Param("address")
+    if address == "" {
+        return model.ErrWebsocketPath
     }
+
     var upgrader = websocket.Upgrader{}
     upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
     var conn *websocket.Conn
-    conn, err = upgrader.Upgrade(ctx.Response(), ctx.Request(), nil)
+    conn, err = upgrader.Upgrade(c.Response(), c.Request(), nil)
     if err != nil {
         return
     }
 
-    client := NewClient(hub, ctx.Member, conn)
+    client := NewClient(hub, conn, address)
 
-    client.hub.register <- client
-
-    // TODO read and write pump
+    go client.readPump()
+    go client.writePump()
 
     return nil
 }

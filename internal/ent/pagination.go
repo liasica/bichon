@@ -117,3 +117,25 @@ func (mq *MessageQuery) PaginationResult(req model.PaginationReq) model.Paginati
 		Total:   total,
 	}
 }
+
+// Pagination returns pagination query builder for MessageReadQuery.
+func (mrq *MessageReadQuery) Pagination(req model.PaginationReq) *MessageReadQuery {
+	mrq.Offset(req.GetOffset()).Limit(req.GetLimit())
+	return mrq
+}
+
+// PaginationItems returns pagination query builder for MessageReadQuery.
+func (mrq *MessageReadQuery) PaginationItemsX(req model.PaginationReq) any {
+	return mrq.Pagination(req).AllX(context.Background())
+}
+
+// PaginationResult returns pagination for MessageReadQuery.
+func (mrq *MessageReadQuery) PaginationResult(req model.PaginationReq) model.Pagination {
+	ids := mrq.Clone().Select("id").GroupBy("id").IntsX(context.Background())
+	total := len(ids)
+	return model.Pagination{
+		Current: req.GetCurrent(),
+		Pages:   req.GetPages(total),
+		Total:   total,
+	}
+}

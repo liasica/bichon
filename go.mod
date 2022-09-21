@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	entgo.io/ent v0.11.2
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/ethereum/go-ethereum v1.10.23
 	github.com/fsnotify/fsnotify v1.5.4
@@ -23,12 +24,11 @@ require (
 	github.com/mattn/go-colorable v0.1.13
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/sirupsen/logrus v1.9.0
-	github.com/sony/sonyflake v1.1.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/swaggo/echo-swagger v1.3.4
 	github.com/swaggo/swag v1.8.5
-	golang.org/x/exp v0.0.0-20220826205824-bd9bcdd0b820
+	golang.org/x/exp v0.0.0-20220916125017-b168a2c6b86b
 	golang.org/x/tools v0.1.13-0.20220804200503-81c7dc4e4efa
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
@@ -85,10 +85,10 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/zclconf/go-cty v1.11.0 // indirect
-	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d // indirect
+	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b // indirect
-	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64 // indirect
+	golang.org/x/net v0.0.0-20220909164309-bea034e7d591 // indirect
+	golang.org/x/sys v0.0.0-20220913175220-63ea55921009 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc // indirect

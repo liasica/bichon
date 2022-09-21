@@ -33,6 +33,7 @@ type hooks struct {
 	Key         []ent.Hook
 	Member      []ent.Hook
 	Message     []ent.Hook
+	MessageRead []ent.Hook
 }
 
 // Options applies the options on the config object.

@@ -68,7 +68,7 @@ func (Member) Edges() []ent.Edge {
 
 func (Member) Mixin() []ent.Mixin {
     return []ent.Mixin{
-        internal.SonyflakeIDMixin{},
+        internal.SnowflakeIDMixin{},
         internal.TimeMixin{},
     }
 }

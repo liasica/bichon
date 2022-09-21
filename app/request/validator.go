@@ -39,7 +39,8 @@ func NewValidator() *Validator {
     cv := &Validator{validator: validate, trans: trans}
 
     // register rules
-    cv.customValidation("address", isValidAddress, model.ErrInvalidAddress.Error())
+    cv.customValidation("address", validateAddress, model.ErrInvalidAddress.Error())
+    cv.customValidation("enum", validateEnum, model.ErrInvaildArgument.Error())
     return cv
 }
 

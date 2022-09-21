@@ -18,6 +18,10 @@ var (
     ErrNotFoundGroup     = errors.New("not found group")
     ErrKeyShareFrequency = errors.New("key generate frequency limited")
     ErrGroupKey          = errors.New("group key verify failed")
+    ErrWebsocketPath     = errors.New("websocket path error")
+    ErrInvaildArgument   = errors.New("invalid argument")
+    ErrMemberNotFound    = errors.New("member not found")
+    ErrShareKeyNotFound  = errors.New("share key not found")
 )
 
 func ErrStatus(err error) int {

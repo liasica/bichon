@@ -20,7 +20,7 @@ func nodeCommand() *cobra.Command {
 
 func nodeGenerate() *cobra.Command {
     var (
-        nodeid uint16
+        nodeid int64
     )
 
     cmd := &cobra.Command{
@@ -44,7 +44,7 @@ func nodeGenerate() *cobra.Command {
         },
     }
 
-    cmd.Flags().Uint16Var(&nodeid, "nodeid", 0, fmt.Sprintf("Node's appid, max number is: %d", math.MaxUint16))
+    cmd.Flags().Int64Var(&nodeid, "nodeid", 0, fmt.Sprintf("Node's appid, max number is: %d", math.MaxUint16))
     _ = cmd.MarkFlagRequired("nodeid")
 
     return cmd

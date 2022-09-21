@@ -18,21 +18,24 @@ import (
 // MessageMutation represents an operation that mutates the Message nodes in the graph.
 type MessageMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *string
-	created_at    *time.Time
-	content       *string
-	clearedFields map[string]struct{}
-	key           *string
-	clearedkey    bool
-	owner         *string
-	clearedowner  bool
-	group         *string
-	clearedgroup  bool
-	done          bool
-	oldValue      func(context.Context) (*Message, error)
-	predicates    []predicate.Message
+	op              Op
+	typ             string
+	id              *string
+	created_at      *time.Time
+	content         *[]byte
+	clearedFields   map[string]struct{}
+	member          *string
+	clearedmember   bool
+	group           *string
+	clearedgroup    bool
+	parent          *string
+	clearedparent   bool
+	children        map[string]struct{}
+	removedchildren map[string]struct{}
+	clearedchildren bool
+	done            bool
+	oldValue        func(context.Context) (*Message, error)
+	predicates      []predicate.Message
 }
 
 var _ ent.Mutation = (*MessageMutation)(nil)
@@ -175,42 +178,6 @@ func (m *MessageMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
-// SetKeyID sets the "key_id" field.
-func (m *MessageMutation) SetKeyID(s string) {
-	m.key = &s
-}
-
-// KeyID returns the value of the "key_id" field in the mutation.
-func (m *MessageMutation) KeyID() (r string, exists bool) {
-	v := m.key
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldKeyID returns the old "key_id" field's value of the Message entity.
-// If the Message object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageMutation) OldKeyID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKeyID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKeyID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKeyID: %w", err)
-	}
-	return oldValue.KeyID, nil
-}
-
-// ResetKeyID resets all changes to the "key_id" field.
-func (m *MessageMutation) ResetKeyID() {
-	m.key = nil
-}
-
 // SetGroupID sets the "group_id" field.
 func (m *MessageMutation) SetGroupID(s string) {
 	m.group = &s
@@ -249,12 +216,12 @@ func (m *MessageMutation) ResetGroupID() {
 
 // SetMemberID sets the "member_id" field.
 func (m *MessageMutation) SetMemberID(s string) {
-	m.owner = &s
+	m.member = &s
 }
 
 // MemberID returns the value of the "member_id" field in the mutation.
 func (m *MessageMutation) MemberID() (r string, exists bool) {
-	v := m.owner
+	v := m.member
 	if v == nil {
 		return
 	}
@@ -280,16 +247,16 @@ func (m *MessageMutation) OldMemberID(ctx context.Context) (v string, err error)
 
 // ResetMemberID resets all changes to the "member_id" field.
 func (m *MessageMutation) ResetMemberID() {
-	m.owner = nil
+	m.member = nil
 }
 
 // SetContent sets the "content" field.
-func (m *MessageMutation) SetContent(s string) {
-	m.content = &s
+func (m *MessageMutation) SetContent(b []byte) {
+	m.content = &b
 }
 
 // Content returns the value of the "content" field in the mutation.
-func (m *MessageMutation) Content() (r string, exists bool) {
+func (m *MessageMutation) Content() (r []byte, exists bool) {
 	v := m.content
 	if v == nil {
 		return
@@ -300,7 +267,7 @@ func (m *MessageMutation) Content() (r string, exists bool) {
 // OldContent returns the old "content" field's value of the Message entity.
 // If the Message object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageMutation) OldContent(ctx context.Context) (v string, err error) {
+func (m *MessageMutation) OldContent(ctx context.Context) (v []byte, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldContent is only allowed on UpdateOne operations")
 	}
@@ -319,69 +286,79 @@ func (m *MessageMutation) ResetContent() {
 	m.content = nil
 }
 
-// ClearKey clears the "key" edge to the Key entity.
-func (m *MessageMutation) ClearKey() {
-	m.clearedkey = true
+// SetParentID sets the "parent_id" field.
+func (m *MessageMutation) SetParentID(s string) {
+	m.parent = &s
 }
 
-// KeyCleared reports if the "key" edge to the Key entity was cleared.
-func (m *MessageMutation) KeyCleared() bool {
-	return m.clearedkey
+// ParentID returns the value of the "parent_id" field in the mutation.
+func (m *MessageMutation) ParentID() (r string, exists bool) {
+	v := m.parent
+	if v == nil {
+		return
+	}
+	return *v, true
 }
 
-// KeyIDs returns the "key" edge IDs in the mutation.
+// OldParentID returns the old "parent_id" field's value of the Message entity.
+// If the Message object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageMutation) OldParentID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentID: %w", err)
+	}
+	return oldValue.ParentID, nil
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (m *MessageMutation) ClearParentID() {
+	m.parent = nil
+	m.clearedFields[message.FieldParentID] = struct{}{}
+}
+
+// ParentIDCleared returns if the "parent_id" field was cleared in this mutation.
+func (m *MessageMutation) ParentIDCleared() bool {
+	_, ok := m.clearedFields[message.FieldParentID]
+	return ok
+}
+
+// ResetParentID resets all changes to the "parent_id" field.
+func (m *MessageMutation) ResetParentID() {
+	m.parent = nil
+	delete(m.clearedFields, message.FieldParentID)
+}
+
+// ClearMember clears the "member" edge to the Member entity.
+func (m *MessageMutation) ClearMember() {
+	m.clearedmember = true
+}
+
+// MemberCleared reports if the "member" edge to the Member entity was cleared.
+func (m *MessageMutation) MemberCleared() bool {
+	return m.clearedmember
+}
+
+// MemberIDs returns the "member" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// KeyID instead. It exists only for internal usage by the builders.
-func (m *MessageMutation) KeyIDs() (ids []string) {
-	if id := m.key; id != nil {
+// MemberID instead. It exists only for internal usage by the builders.
+func (m *MessageMutation) MemberIDs() (ids []string) {
+	if id := m.member; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetKey resets all changes to the "key" edge.
-func (m *MessageMutation) ResetKey() {
-	m.key = nil
-	m.clearedkey = false
-}
-
-// SetOwnerID sets the "owner" edge to the Member entity by id.
-func (m *MessageMutation) SetOwnerID(id string) {
-	m.owner = &id
-}
-
-// ClearOwner clears the "owner" edge to the Member entity.
-func (m *MessageMutation) ClearOwner() {
-	m.clearedowner = true
-}
-
-// OwnerCleared reports if the "owner" edge to the Member entity was cleared.
-func (m *MessageMutation) OwnerCleared() bool {
-	return m.clearedowner
-}
-
-// OwnerID returns the "owner" edge ID in the mutation.
-func (m *MessageMutation) OwnerID() (id string, exists bool) {
-	if m.owner != nil {
-		return *m.owner, true
-	}
-	return
-}
-
-// OwnerIDs returns the "owner" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// OwnerID instead. It exists only for internal usage by the builders.
-func (m *MessageMutation) OwnerIDs() (ids []string) {
-	if id := m.owner; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetOwner resets all changes to the "owner" edge.
-func (m *MessageMutation) ResetOwner() {
-	m.owner = nil
-	m.clearedowner = false
+// ResetMember resets all changes to the "member" edge.
+func (m *MessageMutation) ResetMember() {
+	m.member = nil
+	m.clearedmember = false
 }
 
 // ClearGroup clears the "group" edge to the Group entity.
@@ -410,6 +387,86 @@ func (m *MessageMutation) ResetGroup() {
 	m.clearedgroup = false
 }
 
+// ClearParent clears the "parent" edge to the Message entity.
+func (m *MessageMutation) ClearParent() {
+	m.clearedparent = true
+}
+
+// ParentCleared reports if the "parent" edge to the Message entity was cleared.
+func (m *MessageMutation) ParentCleared() bool {
+	return m.ParentIDCleared() || m.clearedparent
+}
+
+// ParentIDs returns the "parent" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ParentID instead. It exists only for internal usage by the builders.
+func (m *MessageMutation) ParentIDs() (ids []string) {
+	if id := m.parent; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParent resets all changes to the "parent" edge.
+func (m *MessageMutation) ResetParent() {
+	m.parent = nil
+	m.clearedparent = false
+}
+
+// AddChildIDs adds the "children" edge to the Message entity by ids.
+func (m *MessageMutation) AddChildIDs(ids ...string) {
+	if m.children == nil {
+		m.children = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.children[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChildren clears the "children" edge to the Message entity.
+func (m *MessageMutation) ClearChildren() {
+	m.clearedchildren = true
+}
+
+// ChildrenCleared reports if the "children" edge to the Message entity was cleared.
+func (m *MessageMutation) ChildrenCleared() bool {
+	return m.clearedchildren
+}
+
+// RemoveChildIDs removes the "children" edge to the Message entity by IDs.
+func (m *MessageMutation) RemoveChildIDs(ids ...string) {
+	if m.removedchildren == nil {
+		m.removedchildren = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.children, ids[i])
+		m.removedchildren[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChildren returns the removed IDs of the "children" edge to the Message entity.
+func (m *MessageMutation) RemovedChildrenIDs() (ids []string) {
+	for id := range m.removedchildren {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChildrenIDs returns the "children" edge IDs in the mutation.
+func (m *MessageMutation) ChildrenIDs() (ids []string) {
+	for id := range m.children {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChildren resets all changes to the "children" edge.
+func (m *MessageMutation) ResetChildren() {
+	m.children = nil
+	m.clearedchildren = false
+	m.removedchildren = nil
+}
+
 // Where appends a list predicates to the MessageMutation builder.
 func (m *MessageMutation) Where(ps ...predicate.Message) {
 	m.predicates = append(m.predicates, ps...)
@@ -433,17 +490,17 @@ func (m *MessageMutation) Fields() []string {
 	if m.created_at != nil {
 		fields = append(fields, message.FieldCreatedAt)
 	}
-	if m.key != nil {
-		fields = append(fields, message.FieldKeyID)
-	}
 	if m.group != nil {
 		fields = append(fields, message.FieldGroupID)
 	}
-	if m.owner != nil {
+	if m.member != nil {
 		fields = append(fields, message.FieldMemberID)
 	}
 	if m.content != nil {
 		fields = append(fields, message.FieldContent)
+	}
+	if m.parent != nil {
+		fields = append(fields, message.FieldParentID)
 	}
 	return fields
 }
@@ -455,14 +512,14 @@ func (m *MessageMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case message.FieldCreatedAt:
 		return m.CreatedAt()
-	case message.FieldKeyID:
-		return m.KeyID()
 	case message.FieldGroupID:
 		return m.GroupID()
 	case message.FieldMemberID:
 		return m.MemberID()
 	case message.FieldContent:
 		return m.Content()
+	case message.FieldParentID:
+		return m.ParentID()
 	}
 	return nil, false
 }
@@ -474,14 +531,14 @@ func (m *MessageMutation) OldField(ctx context.Context, name string) (ent.Value,
 	switch name {
 	case message.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case message.FieldKeyID:
-		return m.OldKeyID(ctx)
 	case message.FieldGroupID:
 		return m.OldGroupID(ctx)
 	case message.FieldMemberID:
 		return m.OldMemberID(ctx)
 	case message.FieldContent:
 		return m.OldContent(ctx)
+	case message.FieldParentID:
+		return m.OldParentID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Message field %s", name)
 }
@@ -498,13 +555,6 @@ func (m *MessageMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case message.FieldKeyID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetKeyID(v)
-		return nil
 	case message.FieldGroupID:
 		v, ok := value.(string)
 		if !ok {
@@ -520,11 +570,18 @@ func (m *MessageMutation) SetField(name string, value ent.Value) error {
 		m.SetMemberID(v)
 		return nil
 	case message.FieldContent:
-		v, ok := value.(string)
+		v, ok := value.([]byte)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContent(v)
+		return nil
+	case message.FieldParentID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Message field %s", name)
@@ -555,7 +612,11 @@ func (m *MessageMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *MessageMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(message.FieldParentID) {
+		fields = append(fields, message.FieldParentID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -568,6 +629,11 @@ func (m *MessageMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *MessageMutation) ClearField(name string) error {
+	switch name {
+	case message.FieldParentID:
+		m.ClearParentID()
+		return nil
+	}
 	return fmt.Errorf("unknown Message nullable field %s", name)
 }
 
@@ -578,9 +644,6 @@ func (m *MessageMutation) ResetField(name string) error {
 	case message.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case message.FieldKeyID:
-		m.ResetKeyID()
-		return nil
 	case message.FieldGroupID:
 		m.ResetGroupID()
 		return nil
@@ -590,21 +653,27 @@ func (m *MessageMutation) ResetField(name string) error {
 	case message.FieldContent:
 		m.ResetContent()
 		return nil
+	case message.FieldParentID:
+		m.ResetParentID()
+		return nil
 	}
 	return fmt.Errorf("unknown Message field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MessageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.key != nil {
-		edges = append(edges, message.EdgeKey)
-	}
-	if m.owner != nil {
-		edges = append(edges, message.EdgeOwner)
+	edges := make([]string, 0, 4)
+	if m.member != nil {
+		edges = append(edges, message.EdgeMember)
 	}
 	if m.group != nil {
 		edges = append(edges, message.EdgeGroup)
+	}
+	if m.parent != nil {
+		edges = append(edges, message.EdgeParent)
+	}
+	if m.children != nil {
+		edges = append(edges, message.EdgeChildren)
 	}
 	return edges
 }
@@ -613,25 +682,34 @@ func (m *MessageMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *MessageMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case message.EdgeKey:
-		if id := m.key; id != nil {
-			return []ent.Value{*id}
-		}
-	case message.EdgeOwner:
-		if id := m.owner; id != nil {
+	case message.EdgeMember:
+		if id := m.member; id != nil {
 			return []ent.Value{*id}
 		}
 	case message.EdgeGroup:
 		if id := m.group; id != nil {
 			return []ent.Value{*id}
 		}
+	case message.EdgeParent:
+		if id := m.parent; id != nil {
+			return []ent.Value{*id}
+		}
+	case message.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.children))
+		for id := range m.children {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MessageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
+	if m.removedchildren != nil {
+		edges = append(edges, message.EdgeChildren)
+	}
 	return edges
 }
 
@@ -639,21 +717,30 @@ func (m *MessageMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *MessageMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case message.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.removedchildren))
+		for id := range m.removedchildren {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MessageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.clearedkey {
-		edges = append(edges, message.EdgeKey)
-	}
-	if m.clearedowner {
-		edges = append(edges, message.EdgeOwner)
+	edges := make([]string, 0, 4)
+	if m.clearedmember {
+		edges = append(edges, message.EdgeMember)
 	}
 	if m.clearedgroup {
 		edges = append(edges, message.EdgeGroup)
+	}
+	if m.clearedparent {
+		edges = append(edges, message.EdgeParent)
+	}
+	if m.clearedchildren {
+		edges = append(edges, message.EdgeChildren)
 	}
 	return edges
 }
@@ -662,12 +749,14 @@ func (m *MessageMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *MessageMutation) EdgeCleared(name string) bool {
 	switch name {
-	case message.EdgeKey:
-		return m.clearedkey
-	case message.EdgeOwner:
-		return m.clearedowner
+	case message.EdgeMember:
+		return m.clearedmember
 	case message.EdgeGroup:
 		return m.clearedgroup
+	case message.EdgeParent:
+		return m.clearedparent
+	case message.EdgeChildren:
+		return m.clearedchildren
 	}
 	return false
 }
@@ -676,14 +765,14 @@ func (m *MessageMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *MessageMutation) ClearEdge(name string) error {
 	switch name {
-	case message.EdgeKey:
-		m.ClearKey()
-		return nil
-	case message.EdgeOwner:
-		m.ClearOwner()
+	case message.EdgeMember:
+		m.ClearMember()
 		return nil
 	case message.EdgeGroup:
 		m.ClearGroup()
+		return nil
+	case message.EdgeParent:
+		m.ClearParent()
 		return nil
 	}
 	return fmt.Errorf("unknown Message unique edge %s", name)
@@ -693,14 +782,17 @@ func (m *MessageMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *MessageMutation) ResetEdge(name string) error {
 	switch name {
-	case message.EdgeKey:
-		m.ResetKey()
-		return nil
-	case message.EdgeOwner:
-		m.ResetOwner()
+	case message.EdgeMember:
+		m.ResetMember()
 		return nil
 	case message.EdgeGroup:
 		m.ResetGroup()
+		return nil
+	case message.EdgeParent:
+		m.ResetParent()
+		return nil
+	case message.EdgeChildren:
+		m.ResetChildren()
 		return nil
 	}
 	return fmt.Errorf("unknown Message edge %s", name)

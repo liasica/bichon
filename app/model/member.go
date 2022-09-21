@@ -26,8 +26,16 @@ type MemberSigninRes struct {
 }
 
 type MemberProfile struct {
+    ID       string `json:"id"`
     Address  string `json:"address"`
     Nickname string `json:"nickname,omitempty"` // optional
     Avatar   string `json:"avatar,omitempty"`   // optional
     Intro    string `json:"intro,omitempty"`    // optional
+}
+
+type Member struct {
+    ID       string `json:"id"`
+    Address  string `json:"address"`
+    Nickname string `json:"nickname,omitempty"`
+    Avatar   string `json:"avatar,omitempty"`
 }

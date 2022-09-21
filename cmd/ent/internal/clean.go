@@ -20,10 +20,11 @@ const (
 
 var (
     removeNotable = map[string]FileInfoType{
-        "db.go":      FileInfoTypeFile,
-        "connect.go": FileInfoTypeFile,
-        "internal":   FileInfoTypeDir,
-        "schema":     FileInfoTypeDir,
+        "db.go":                 FileInfoTypeFile,
+        "connect.go":            FileInfoTypeFile,
+        "groupmember_attach.go": FileInfoTypeFile,
+        "internal":              FileInfoTypeDir,
+        "schema":                FileInfoTypeDir,
     }
 )
 

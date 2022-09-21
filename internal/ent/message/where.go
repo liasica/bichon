@@ -88,13 +88,6 @@ func CreatedAt(v time.Time) predicate.Message {
 	})
 }
 
-// KeyID applies equality check predicate on the "key_id" field. It's identical to KeyIDEQ.
-func KeyID(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldKeyID), v))
-	})
-}
-
 // GroupID applies equality check predicate on the "group_id" field. It's identical to GroupIDEQ.
 func GroupID(v string) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
@@ -110,9 +103,16 @@ func MemberID(v string) predicate.Message {
 }
 
 // Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
-func Content(v string) predicate.Message {
+func Content(v []byte) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldContent), v))
+	})
+}
+
+// ParentID applies equality check predicate on the "parent_id" field. It's identical to ParentIDEQ.
+func ParentID(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldParentID), v))
 	})
 }
 
@@ -177,105 +177,6 @@ func CreatedAtLT(v time.Time) predicate.Message {
 func CreatedAtLTE(v time.Time) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	})
-}
-
-// KeyIDEQ applies the EQ predicate on the "key_id" field.
-func KeyIDEQ(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDNEQ applies the NEQ predicate on the "key_id" field.
-func KeyIDNEQ(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDIn applies the In predicate on the "key_id" field.
-func KeyIDIn(vs ...string) predicate.Message {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldKeyID), v...))
-	})
-}
-
-// KeyIDNotIn applies the NotIn predicate on the "key_id" field.
-func KeyIDNotIn(vs ...string) predicate.Message {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldKeyID), v...))
-	})
-}
-
-// KeyIDGT applies the GT predicate on the "key_id" field.
-func KeyIDGT(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDGTE applies the GTE predicate on the "key_id" field.
-func KeyIDGTE(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDLT applies the LT predicate on the "key_id" field.
-func KeyIDLT(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDLTE applies the LTE predicate on the "key_id" field.
-func KeyIDLTE(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDContains applies the Contains predicate on the "key_id" field.
-func KeyIDContains(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDHasPrefix applies the HasPrefix predicate on the "key_id" field.
-func KeyIDHasPrefix(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDHasSuffix applies the HasSuffix predicate on the "key_id" field.
-func KeyIDHasSuffix(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDEqualFold applies the EqualFold predicate on the "key_id" field.
-func KeyIDEqualFold(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldKeyID), v))
-	})
-}
-
-// KeyIDContainsFold applies the ContainsFold predicate on the "key_id" field.
-func KeyIDContainsFold(v string) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldKeyID), v))
 	})
 }
 
@@ -478,21 +379,21 @@ func MemberIDContainsFold(v string) predicate.Message {
 }
 
 // ContentEQ applies the EQ predicate on the "content" field.
-func ContentEQ(v string) predicate.Message {
+func ContentEQ(v []byte) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldContent), v))
 	})
 }
 
 // ContentNEQ applies the NEQ predicate on the "content" field.
-func ContentNEQ(v string) predicate.Message {
+func ContentNEQ(v []byte) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldContent), v))
 	})
 }
 
 // ContentIn applies the In predicate on the "content" field.
-func ContentIn(vs ...string) predicate.Message {
+func ContentIn(vs ...[]byte) predicate.Message {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -503,7 +404,7 @@ func ContentIn(vs ...string) predicate.Message {
 }
 
 // ContentNotIn applies the NotIn predicate on the "content" field.
-func ContentNotIn(vs ...string) predicate.Message {
+func ContentNotIn(vs ...[]byte) predicate.Message {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -514,115 +415,165 @@ func ContentNotIn(vs ...string) predicate.Message {
 }
 
 // ContentGT applies the GT predicate on the "content" field.
-func ContentGT(v string) predicate.Message {
+func ContentGT(v []byte) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldContent), v))
 	})
 }
 
 // ContentGTE applies the GTE predicate on the "content" field.
-func ContentGTE(v string) predicate.Message {
+func ContentGTE(v []byte) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldContent), v))
 	})
 }
 
 // ContentLT applies the LT predicate on the "content" field.
-func ContentLT(v string) predicate.Message {
+func ContentLT(v []byte) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldContent), v))
 	})
 }
 
 // ContentLTE applies the LTE predicate on the "content" field.
-func ContentLTE(v string) predicate.Message {
+func ContentLTE(v []byte) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldContent), v))
 	})
 }
 
-// ContentContains applies the Contains predicate on the "content" field.
-func ContentContains(v string) predicate.Message {
+// ParentIDEQ applies the EQ predicate on the "parent_id" field.
+func ParentIDEQ(v string) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldContent), v))
+		s.Where(sql.EQ(s.C(FieldParentID), v))
 	})
 }
 
-// ContentHasPrefix applies the HasPrefix predicate on the "content" field.
-func ContentHasPrefix(v string) predicate.Message {
+// ParentIDNEQ applies the NEQ predicate on the "parent_id" field.
+func ParentIDNEQ(v string) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldContent), v))
+		s.Where(sql.NEQ(s.C(FieldParentID), v))
 	})
 }
 
-// ContentHasSuffix applies the HasSuffix predicate on the "content" field.
-func ContentHasSuffix(v string) predicate.Message {
+// ParentIDIn applies the In predicate on the "parent_id" field.
+func ParentIDIn(vs ...string) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
 	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldContent), v))
+		s.Where(sql.In(s.C(FieldParentID), v...))
 	})
 }
 
-// ContentEqualFold applies the EqualFold predicate on the "content" field.
-func ContentEqualFold(v string) predicate.Message {
+// ParentIDNotIn applies the NotIn predicate on the "parent_id" field.
+func ParentIDNotIn(vs ...string) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
 	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldContent), v))
+		s.Where(sql.NotIn(s.C(FieldParentID), v...))
 	})
 }
 
-// ContentContainsFold applies the ContainsFold predicate on the "content" field.
-func ContentContainsFold(v string) predicate.Message {
+// ParentIDGT applies the GT predicate on the "parent_id" field.
+func ParentIDGT(v string) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldContent), v))
+		s.Where(sql.GT(s.C(FieldParentID), v))
 	})
 }
 
-// HasKey applies the HasEdge predicate on the "key" edge.
-func HasKey() predicate.Message {
+// ParentIDGTE applies the GTE predicate on the "parent_id" field.
+func ParentIDGTE(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldParentID), v))
+	})
+}
+
+// ParentIDLT applies the LT predicate on the "parent_id" field.
+func ParentIDLT(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldParentID), v))
+	})
+}
+
+// ParentIDLTE applies the LTE predicate on the "parent_id" field.
+func ParentIDLTE(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldParentID), v))
+	})
+}
+
+// ParentIDContains applies the Contains predicate on the "parent_id" field.
+func ParentIDContains(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldParentID), v))
+	})
+}
+
+// ParentIDHasPrefix applies the HasPrefix predicate on the "parent_id" field.
+func ParentIDHasPrefix(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldParentID), v))
+	})
+}
+
+// ParentIDHasSuffix applies the HasSuffix predicate on the "parent_id" field.
+func ParentIDHasSuffix(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldParentID), v))
+	})
+}
+
+// ParentIDIsNil applies the IsNil predicate on the "parent_id" field.
+func ParentIDIsNil() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldParentID)))
+	})
+}
+
+// ParentIDNotNil applies the NotNil predicate on the "parent_id" field.
+func ParentIDNotNil() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldParentID)))
+	})
+}
+
+// ParentIDEqualFold applies the EqualFold predicate on the "parent_id" field.
+func ParentIDEqualFold(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldParentID), v))
+	})
+}
+
+// ParentIDContainsFold applies the ContainsFold predicate on the "parent_id" field.
+func ParentIDContainsFold(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldParentID), v))
+	})
+}
+
+// HasMember applies the HasEdge predicate on the "member" edge.
+func HasMember() predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(KeyTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, KeyTable, KeyColumn),
+			sqlgraph.To(MemberTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, MemberTable, MemberColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasKeyWith applies the HasEdge predicate on the "key" edge with a given conditions (other predicates).
-func HasKeyWith(preds ...predicate.Key) predicate.Message {
+// HasMemberWith applies the HasEdge predicate on the "member" edge with a given conditions (other predicates).
+func HasMemberWith(preds ...predicate.Member) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(KeyInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, KeyTable, KeyColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasOwner applies the HasEdge predicate on the "owner" edge.
-func HasOwner() predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(OwnerTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
-func HasOwnerWith(preds ...predicate.Member) predicate.Message {
-	return predicate.Message(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(OwnerInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+			sqlgraph.To(MemberInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, MemberTable, MemberColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -651,6 +602,62 @@ func HasGroupWith(preds ...predicate.Group) predicate.Message {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(GroupInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, GroupTable, GroupColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasParent applies the HasEdge predicate on the "parent" edge.
+func HasParent() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ParentTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ParentTable, ParentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasParentWith applies the HasEdge predicate on the "parent" edge with a given conditions (other predicates).
+func HasParentWith(preds ...predicate.Message) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ParentTable, ParentColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasChildren applies the HasEdge predicate on the "children" edge.
+func HasChildren() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ChildrenTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ChildrenTable, ChildrenColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasChildrenWith applies the HasEdge predicate on the "children" edge with a given conditions (other predicates).
+func HasChildrenWith(preds ...predicate.Message) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ChildrenTable, ChildrenColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

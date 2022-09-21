@@ -55,3 +55,13 @@ func (m *Message) GetTableName() string {
 func (m *Message) GetID() string {
 	return m.ID
 }
+
+// GetTableName returns table name for MessageRead.
+func (mr *MessageRead) GetTableName() string {
+	return "message_read"
+}
+
+// GetID returns id for MessageRead.
+func (mr *MessageRead) GetID() string {
+	return mr.ID
+}

@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
-	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 )
@@ -21,14 +20,14 @@ type Message struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// KeyID holds the value of the "key_id" field.
-	KeyID string `json:"key_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
 	GroupID string `json:"group_id,omitempty"`
 	// MemberID holds the value of the "member_id" field.
 	MemberID string `json:"member_id,omitempty"`
 	// Content holds the value of the "content" field.
-	Content string `json:"content,omitempty"`
+	Content []byte `json:"content,omitempty"`
+	// ParentID holds the value of the "parent_id" field.
+	ParentID *string `json:"parent_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageQuery when eager-loading is set.
 	Edges MessageEdges `json:"edges"`
@@ -36,47 +35,36 @@ type Message struct {
 
 // MessageEdges holds the relations/edges for other nodes in the graph.
 type MessageEdges struct {
-	// Key holds the value of the key edge.
-	Key *Key `json:"key,omitempty"`
-	// Owner holds the value of the owner edge.
-	Owner *Member `json:"owner,omitempty"`
+	// Member holds the value of the member edge.
+	Member *Member `json:"member,omitempty"`
 	// Group holds the value of the group edge.
 	Group *Group `json:"group,omitempty"`
+	// Parent holds the value of the parent edge.
+	Parent *Message `json:"parent,omitempty"`
+	// Children holds the value of the children edge.
+	Children []*Message `json:"children,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
-// KeyOrErr returns the Key value or an error if the edge
+// MemberOrErr returns the Member value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e MessageEdges) KeyOrErr() (*Key, error) {
+func (e MessageEdges) MemberOrErr() (*Member, error) {
 	if e.loadedTypes[0] {
-		if e.Key == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: key.Label}
-		}
-		return e.Key, nil
-	}
-	return nil, &NotLoadedError{edge: "key"}
-}
-
-// OwnerOrErr returns the Owner value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e MessageEdges) OwnerOrErr() (*Member, error) {
-	if e.loadedTypes[1] {
-		if e.Owner == nil {
+		if e.Member == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: member.Label}
 		}
-		return e.Owner, nil
+		return e.Member, nil
 	}
-	return nil, &NotLoadedError{edge: "owner"}
+	return nil, &NotLoadedError{edge: "member"}
 }
 
 // GroupOrErr returns the Group value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e MessageEdges) GroupOrErr() (*Group, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		if e.Group == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: group.Label}
@@ -86,12 +74,36 @@ func (e MessageEdges) GroupOrErr() (*Group, error) {
 	return nil, &NotLoadedError{edge: "group"}
 }
 
+// ParentOrErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageEdges) ParentOrErr() (*Message, error) {
+	if e.loadedTypes[2] {
+		if e.Parent == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: message.Label}
+		}
+		return e.Parent, nil
+	}
+	return nil, &NotLoadedError{edge: "parent"}
+}
+
+// ChildrenOrErr returns the Children value or an error if the edge
+// was not loaded in eager-loading.
+func (e MessageEdges) ChildrenOrErr() ([]*Message, error) {
+	if e.loadedTypes[3] {
+		return e.Children, nil
+	}
+	return nil, &NotLoadedError{edge: "children"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Message) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case message.FieldID, message.FieldKeyID, message.FieldGroupID, message.FieldMemberID, message.FieldContent:
+		case message.FieldContent:
+			values[i] = new([]byte)
+		case message.FieldID, message.FieldGroupID, message.FieldMemberID, message.FieldParentID:
 			values[i] = new(sql.NullString)
 		case message.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -122,12 +134,6 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				m.CreatedAt = value.Time
 			}
-		case message.FieldKeyID:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field key_id", values[i])
-			} else if value.Valid {
-				m.KeyID = value.String
-			}
 		case message.FieldGroupID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field group_id", values[i])
@@ -141,29 +147,41 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 				m.MemberID = value.String
 			}
 		case message.FieldContent:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
+			} else if value != nil {
+				m.Content = *value
+			}
+		case message.FieldParentID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field parent_id", values[i])
 			} else if value.Valid {
-				m.Content = value.String
+				m.ParentID = new(string)
+				*m.ParentID = value.String
 			}
 		}
 	}
 	return nil
 }
 
-// QueryKey queries the "key" edge of the Message entity.
-func (m *Message) QueryKey() *KeyQuery {
-	return (&MessageClient{config: m.config}).QueryKey(m)
-}
-
-// QueryOwner queries the "owner" edge of the Message entity.
-func (m *Message) QueryOwner() *MemberQuery {
-	return (&MessageClient{config: m.config}).QueryOwner(m)
+// QueryMember queries the "member" edge of the Message entity.
+func (m *Message) QueryMember() *MemberQuery {
+	return (&MessageClient{config: m.config}).QueryMember(m)
 }
 
 // QueryGroup queries the "group" edge of the Message entity.
 func (m *Message) QueryGroup() *GroupQuery {
 	return (&MessageClient{config: m.config}).QueryGroup(m)
+}
+
+// QueryParent queries the "parent" edge of the Message entity.
+func (m *Message) QueryParent() *MessageQuery {
+	return (&MessageClient{config: m.config}).QueryParent(m)
+}
+
+// QueryChildren queries the "children" edge of the Message entity.
+func (m *Message) QueryChildren() *MessageQuery {
+	return (&MessageClient{config: m.config}).QueryChildren(m)
 }
 
 // Update returns a builder for updating this Message.
@@ -192,9 +210,6 @@ func (m *Message) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("key_id=")
-	builder.WriteString(m.KeyID)
-	builder.WriteString(", ")
 	builder.WriteString("group_id=")
 	builder.WriteString(m.GroupID)
 	builder.WriteString(", ")
@@ -202,7 +217,12 @@ func (m *Message) String() string {
 	builder.WriteString(m.MemberID)
 	builder.WriteString(", ")
 	builder.WriteString("content=")
-	builder.WriteString(m.Content)
+	builder.WriteString(fmt.Sprintf("%v", m.Content))
+	builder.WriteString(", ")
+	if v := m.ParentID; v != nil {
+		builder.WriteString("parent_id=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

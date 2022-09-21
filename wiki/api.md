@@ -12,3 +12,10 @@
 5. Add headers `X-Signature ${signature}`
 6. Add headers `X-Timestamp ${timestamp}`
 
+## WebSocket
+> `/message`
+
+### Operates
+- 1: register
+- 2: set group key
+- 3: new group message

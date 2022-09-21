@@ -24,6 +24,8 @@ type Tx struct {
 	Member *MemberClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
+	// MessageRead is the client for interacting with the MessageRead builders.
+	MessageRead *MessageReadClient
 
 	// lazily loaded.
 	client     *Client
@@ -164,6 +166,7 @@ func (tx *Tx) init() {
 	tx.Key = NewKeyClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
+	tx.MessageRead = NewMessageReadClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

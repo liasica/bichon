@@ -2,13 +2,15 @@ package g
 
 import (
     "encoding/base64"
+    "github.com/bwmarrin/snowflake"
     jsoniter "github.com/json-iterator/go"
+    log "github.com/sirupsen/logrus"
 )
 
 type Node struct {
     PublicKey  []byte `json:"publicKey"`
     PrivateKey []byte `json:"privateKey"`
-    NodeID     uint16 `json:"nodeId"`
+    NodeID     int64  `json:"nodeId"`
 }
 
 var node *Node
@@ -43,6 +45,14 @@ func RsaPrivateKey() []byte {
     return node.PrivateKey
 }
 
-func NodeID() uint16 {
+func NodeID() int64 {
     return node.NodeID
+}
+
+func SnowflakeNode() *snowflake.Node {
+    n, err := snowflake.NewNode(node.NodeID)
+    if err != nil {
+        log.Fatal(err)
+    }
+    return n
 }

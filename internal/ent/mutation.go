@@ -18,4 +18,5 @@ const (
 	TypeKey         = "Key"
 	TypeMember      = "Member"
 	TypeMessage     = "Message"
+	TypeMessageRead = "MessageRead"
 )

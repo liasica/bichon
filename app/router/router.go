@@ -5,6 +5,7 @@ import (
     "github.com/chatpuppy/puppychat/app"
     "github.com/chatpuppy/puppychat/app/middleware"
     "github.com/chatpuppy/puppychat/app/request"
+    "github.com/chatpuppy/puppychat/internal/g"
     "github.com/chatpuppy/puppychat/pkg/snag"
     "github.com/labstack/echo/v4"
     mw "github.com/labstack/echo/v4/middleware"
@@ -33,13 +34,13 @@ func Run() {
         middleware.Api(),
         middleware.Recover(),
         // logger
-        mw.LoggerWithConfig(mw.LoggerConfig{
-            Format: `{"time":"${time_custom}","id":"${id}","remote_ip":"${remote_ip}",` +
-                `"method":"${method}","uri":"${uri}",` +
-                `"status":${status},"error":"${error}","latency":${latency},"latency_human":"${latency_human}"` +
-                `,"bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
-            CustomTimeFormat: "2006-01-02 15:04:05.00000",
-        }),
+        // mw.LoggerWithConfig(mw.LoggerConfig{
+        //     Format: `{"time":"${time_custom}","id":"${id}","remote_ip":"${remote_ip}",` +
+        //         `"method":"${method}","uri":"${uri}",` +
+        //         `"status":${status},"error":"${error}","latency":${latency},"latency_human":"${latency_human}"` +
+        //         `,"bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
+        //     CustomTimeFormat: "2006-01-02 15:04:05.00000",
+        // }),
         mw.CORSWithConfig(corsConfig),
         mw.GzipWithConfig(mw.GzipConfig{
             Level: 5,
@@ -76,5 +77,5 @@ func Run() {
     // load doc routes
     loadDocRoutes(r)
 
-    log.Fatal(r.Start(":5501"))
+    log.Fatal(r.Start(g.Config.App.Address))
 }

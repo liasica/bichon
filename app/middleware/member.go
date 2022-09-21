@@ -15,6 +15,10 @@ var (
     memberAuthSkipper = map[RequestUrlMethod]struct{}{
         "GET/member/nonce/:address": {},
         "POST/member":               {},
+        "GET/member/:address":       {},
+        "GET/message/:address":      {},
+        "GET/group/categories":      {},
+        "GET/group":                 {},
     }
 )
 

@@ -5,6 +5,11 @@ import (
     "github.com/go-playground/validator/v10"
 )
 
-func isValidAddress(fl validator.FieldLevel) bool {
+func validateAddress(fl validator.FieldLevel) bool {
     return model.IsValidAddress(fl.Field().String())
+}
+
+func validateEnum(fl validator.FieldLevel) bool {
+    value := fl.Field().Interface().(model.Enum)
+    return value.IsValid()
 }

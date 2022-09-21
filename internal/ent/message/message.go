@@ -15,36 +15,31 @@ const (
 	FieldID = "id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
-	// FieldKeyID holds the string denoting the key_id field in the database.
-	FieldKeyID = "key_id"
 	// FieldGroupID holds the string denoting the group_id field in the database.
 	FieldGroupID = "group_id"
 	// FieldMemberID holds the string denoting the member_id field in the database.
 	FieldMemberID = "member_id"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
-	// EdgeKey holds the string denoting the key edge name in mutations.
-	EdgeKey = "key"
-	// EdgeOwner holds the string denoting the owner edge name in mutations.
-	EdgeOwner = "owner"
+	// FieldParentID holds the string denoting the parent_id field in the database.
+	FieldParentID = "parent_id"
+	// EdgeMember holds the string denoting the member edge name in mutations.
+	EdgeMember = "member"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
+	// EdgeParent holds the string denoting the parent edge name in mutations.
+	EdgeParent = "parent"
+	// EdgeChildren holds the string denoting the children edge name in mutations.
+	EdgeChildren = "children"
 	// Table holds the table name of the message in the database.
 	Table = "message"
-	// KeyTable is the table that holds the key relation/edge.
-	KeyTable = "message"
-	// KeyInverseTable is the table name for the Key entity.
-	// It exists in this package in order to avoid circular dependency with the "key" package.
-	KeyInverseTable = "key"
-	// KeyColumn is the table column denoting the key relation/edge.
-	KeyColumn = "key_id"
-	// OwnerTable is the table that holds the owner relation/edge.
-	OwnerTable = "message"
-	// OwnerInverseTable is the table name for the Member entity.
+	// MemberTable is the table that holds the member relation/edge.
+	MemberTable = "message"
+	// MemberInverseTable is the table name for the Member entity.
 	// It exists in this package in order to avoid circular dependency with the "member" package.
-	OwnerInverseTable = "member"
-	// OwnerColumn is the table column denoting the owner relation/edge.
-	OwnerColumn = "member_id"
+	MemberInverseTable = "member"
+	// MemberColumn is the table column denoting the member relation/edge.
+	MemberColumn = "member_id"
 	// GroupTable is the table that holds the group relation/edge.
 	GroupTable = "message"
 	// GroupInverseTable is the table name for the Group entity.
@@ -52,16 +47,24 @@ const (
 	GroupInverseTable = "group"
 	// GroupColumn is the table column denoting the group relation/edge.
 	GroupColumn = "group_id"
+	// ParentTable is the table that holds the parent relation/edge.
+	ParentTable = "message"
+	// ParentColumn is the table column denoting the parent relation/edge.
+	ParentColumn = "parent_id"
+	// ChildrenTable is the table that holds the children relation/edge.
+	ChildrenTable = "message"
+	// ChildrenColumn is the table column denoting the children relation/edge.
+	ChildrenColumn = "parent_id"
 )
 
 // Columns holds all SQL columns for message fields.
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
-	FieldKeyID,
 	FieldGroupID,
 	FieldMemberID,
 	FieldContent,
+	FieldParentID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

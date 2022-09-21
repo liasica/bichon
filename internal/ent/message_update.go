@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
-	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
@@ -31,12 +30,6 @@ func (mu *MessageUpdate) Where(ps ...predicate.Message) *MessageUpdate {
 	return mu
 }
 
-// SetKeyID sets the "key_id" field.
-func (mu *MessageUpdate) SetKeyID(s string) *MessageUpdate {
-	mu.mutation.SetKeyID(s)
-	return mu
-}
-
 // SetGroupID sets the "group_id" field.
 func (mu *MessageUpdate) SetGroupID(s string) *MessageUpdate {
 	mu.mutation.SetGroupID(s)
@@ -50,25 +43,34 @@ func (mu *MessageUpdate) SetMemberID(s string) *MessageUpdate {
 }
 
 // SetContent sets the "content" field.
-func (mu *MessageUpdate) SetContent(s string) *MessageUpdate {
-	mu.mutation.SetContent(s)
+func (mu *MessageUpdate) SetContent(b []byte) *MessageUpdate {
+	mu.mutation.SetContent(b)
 	return mu
 }
 
-// SetKey sets the "key" edge to the Key entity.
-func (mu *MessageUpdate) SetKey(k *Key) *MessageUpdate {
-	return mu.SetKeyID(k.ID)
-}
-
-// SetOwnerID sets the "owner" edge to the Member entity by ID.
-func (mu *MessageUpdate) SetOwnerID(id string) *MessageUpdate {
-	mu.mutation.SetOwnerID(id)
+// SetParentID sets the "parent_id" field.
+func (mu *MessageUpdate) SetParentID(s string) *MessageUpdate {
+	mu.mutation.SetParentID(s)
 	return mu
 }
 
-// SetOwner sets the "owner" edge to the Member entity.
-func (mu *MessageUpdate) SetOwner(m *Member) *MessageUpdate {
-	return mu.SetOwnerID(m.ID)
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (mu *MessageUpdate) SetNillableParentID(s *string) *MessageUpdate {
+	if s != nil {
+		mu.SetParentID(*s)
+	}
+	return mu
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (mu *MessageUpdate) ClearParentID() *MessageUpdate {
+	mu.mutation.ClearParentID()
+	return mu
+}
+
+// SetMember sets the "member" edge to the Member entity.
+func (mu *MessageUpdate) SetMember(m *Member) *MessageUpdate {
+	return mu.SetMemberID(m.ID)
 }
 
 // SetGroup sets the "group" edge to the Group entity.
@@ -76,20 +78,34 @@ func (mu *MessageUpdate) SetGroup(g *Group) *MessageUpdate {
 	return mu.SetGroupID(g.ID)
 }
 
+// SetParent sets the "parent" edge to the Message entity.
+func (mu *MessageUpdate) SetParent(m *Message) *MessageUpdate {
+	return mu.SetParentID(m.ID)
+}
+
+// AddChildIDs adds the "children" edge to the Message entity by IDs.
+func (mu *MessageUpdate) AddChildIDs(ids ...string) *MessageUpdate {
+	mu.mutation.AddChildIDs(ids...)
+	return mu
+}
+
+// AddChildren adds the "children" edges to the Message entity.
+func (mu *MessageUpdate) AddChildren(m ...*Message) *MessageUpdate {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.AddChildIDs(ids...)
+}
+
 // Mutation returns the MessageMutation object of the builder.
 func (mu *MessageUpdate) Mutation() *MessageMutation {
 	return mu.mutation
 }
 
-// ClearKey clears the "key" edge to the Key entity.
-func (mu *MessageUpdate) ClearKey() *MessageUpdate {
-	mu.mutation.ClearKey()
-	return mu
-}
-
-// ClearOwner clears the "owner" edge to the Member entity.
-func (mu *MessageUpdate) ClearOwner() *MessageUpdate {
-	mu.mutation.ClearOwner()
+// ClearMember clears the "member" edge to the Member entity.
+func (mu *MessageUpdate) ClearMember() *MessageUpdate {
+	mu.mutation.ClearMember()
 	return mu
 }
 
@@ -97,6 +113,33 @@ func (mu *MessageUpdate) ClearOwner() *MessageUpdate {
 func (mu *MessageUpdate) ClearGroup() *MessageUpdate {
 	mu.mutation.ClearGroup()
 	return mu
+}
+
+// ClearParent clears the "parent" edge to the Message entity.
+func (mu *MessageUpdate) ClearParent() *MessageUpdate {
+	mu.mutation.ClearParent()
+	return mu
+}
+
+// ClearChildren clears all "children" edges to the Message entity.
+func (mu *MessageUpdate) ClearChildren() *MessageUpdate {
+	mu.mutation.ClearChildren()
+	return mu
+}
+
+// RemoveChildIDs removes the "children" edge to Message entities by IDs.
+func (mu *MessageUpdate) RemoveChildIDs(ids ...string) *MessageUpdate {
+	mu.mutation.RemoveChildIDs(ids...)
+	return mu
+}
+
+// RemoveChildren removes "children" edges to Message entities.
+func (mu *MessageUpdate) RemoveChildren(m ...*Message) *MessageUpdate {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.RemoveChildIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -161,11 +204,8 @@ func (mu *MessageUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (mu *MessageUpdate) check() error {
-	if _, ok := mu.mutation.KeyID(); mu.mutation.KeyCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Message.key"`)
-	}
-	if _, ok := mu.mutation.OwnerID(); mu.mutation.OwnerCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Message.owner"`)
+	if _, ok := mu.mutation.MemberID(); mu.mutation.MemberCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Message.member"`)
 	}
 	if _, ok := mu.mutation.GroupID(); mu.mutation.GroupCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Message.group"`)
@@ -199,52 +239,17 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBytes,
 			Value:  value,
 			Column: message.FieldContent,
 		})
 	}
-	if mu.mutation.KeyCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   message.KeyTable,
-			Columns: []string{message.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := mu.mutation.KeyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   message.KeyTable,
-			Columns: []string{message.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if mu.mutation.OwnerCleared() {
+	if mu.mutation.MemberCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   message.OwnerTable,
-			Columns: []string{message.OwnerColumn},
+			Table:   message.MemberTable,
+			Columns: []string{message.MemberColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -255,12 +260,12 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := mu.mutation.OwnerIDs(); len(nodes) > 0 {
+	if nodes := mu.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   message.OwnerTable,
-			Columns: []string{message.OwnerColumn},
+			Table:   message.MemberTable,
+			Columns: []string{message.MemberColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -309,6 +314,95 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if mu.mutation.ParentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.ParentTable,
+			Columns: []string{message.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.ParentTable,
+			Columns: []string{message.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.ChildrenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ChildrenTable,
+			Columns: []string{message.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedChildrenIDs(); len(nodes) > 0 && !mu.mutation.ChildrenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ChildrenTable,
+			Columns: []string{message.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.ChildrenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ChildrenTable,
+			Columns: []string{message.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Modifiers = mu.modifiers
 	if n, err = sqlgraph.UpdateNodes(ctx, mu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -330,12 +424,6 @@ type MessageUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetKeyID sets the "key_id" field.
-func (muo *MessageUpdateOne) SetKeyID(s string) *MessageUpdateOne {
-	muo.mutation.SetKeyID(s)
-	return muo
-}
-
 // SetGroupID sets the "group_id" field.
 func (muo *MessageUpdateOne) SetGroupID(s string) *MessageUpdateOne {
 	muo.mutation.SetGroupID(s)
@@ -349,25 +437,34 @@ func (muo *MessageUpdateOne) SetMemberID(s string) *MessageUpdateOne {
 }
 
 // SetContent sets the "content" field.
-func (muo *MessageUpdateOne) SetContent(s string) *MessageUpdateOne {
-	muo.mutation.SetContent(s)
+func (muo *MessageUpdateOne) SetContent(b []byte) *MessageUpdateOne {
+	muo.mutation.SetContent(b)
 	return muo
 }
 
-// SetKey sets the "key" edge to the Key entity.
-func (muo *MessageUpdateOne) SetKey(k *Key) *MessageUpdateOne {
-	return muo.SetKeyID(k.ID)
-}
-
-// SetOwnerID sets the "owner" edge to the Member entity by ID.
-func (muo *MessageUpdateOne) SetOwnerID(id string) *MessageUpdateOne {
-	muo.mutation.SetOwnerID(id)
+// SetParentID sets the "parent_id" field.
+func (muo *MessageUpdateOne) SetParentID(s string) *MessageUpdateOne {
+	muo.mutation.SetParentID(s)
 	return muo
 }
 
-// SetOwner sets the "owner" edge to the Member entity.
-func (muo *MessageUpdateOne) SetOwner(m *Member) *MessageUpdateOne {
-	return muo.SetOwnerID(m.ID)
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableParentID(s *string) *MessageUpdateOne {
+	if s != nil {
+		muo.SetParentID(*s)
+	}
+	return muo
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (muo *MessageUpdateOne) ClearParentID() *MessageUpdateOne {
+	muo.mutation.ClearParentID()
+	return muo
+}
+
+// SetMember sets the "member" edge to the Member entity.
+func (muo *MessageUpdateOne) SetMember(m *Member) *MessageUpdateOne {
+	return muo.SetMemberID(m.ID)
 }
 
 // SetGroup sets the "group" edge to the Group entity.
@@ -375,20 +472,34 @@ func (muo *MessageUpdateOne) SetGroup(g *Group) *MessageUpdateOne {
 	return muo.SetGroupID(g.ID)
 }
 
+// SetParent sets the "parent" edge to the Message entity.
+func (muo *MessageUpdateOne) SetParent(m *Message) *MessageUpdateOne {
+	return muo.SetParentID(m.ID)
+}
+
+// AddChildIDs adds the "children" edge to the Message entity by IDs.
+func (muo *MessageUpdateOne) AddChildIDs(ids ...string) *MessageUpdateOne {
+	muo.mutation.AddChildIDs(ids...)
+	return muo
+}
+
+// AddChildren adds the "children" edges to the Message entity.
+func (muo *MessageUpdateOne) AddChildren(m ...*Message) *MessageUpdateOne {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.AddChildIDs(ids...)
+}
+
 // Mutation returns the MessageMutation object of the builder.
 func (muo *MessageUpdateOne) Mutation() *MessageMutation {
 	return muo.mutation
 }
 
-// ClearKey clears the "key" edge to the Key entity.
-func (muo *MessageUpdateOne) ClearKey() *MessageUpdateOne {
-	muo.mutation.ClearKey()
-	return muo
-}
-
-// ClearOwner clears the "owner" edge to the Member entity.
-func (muo *MessageUpdateOne) ClearOwner() *MessageUpdateOne {
-	muo.mutation.ClearOwner()
+// ClearMember clears the "member" edge to the Member entity.
+func (muo *MessageUpdateOne) ClearMember() *MessageUpdateOne {
+	muo.mutation.ClearMember()
 	return muo
 }
 
@@ -396,6 +507,33 @@ func (muo *MessageUpdateOne) ClearOwner() *MessageUpdateOne {
 func (muo *MessageUpdateOne) ClearGroup() *MessageUpdateOne {
 	muo.mutation.ClearGroup()
 	return muo
+}
+
+// ClearParent clears the "parent" edge to the Message entity.
+func (muo *MessageUpdateOne) ClearParent() *MessageUpdateOne {
+	muo.mutation.ClearParent()
+	return muo
+}
+
+// ClearChildren clears all "children" edges to the Message entity.
+func (muo *MessageUpdateOne) ClearChildren() *MessageUpdateOne {
+	muo.mutation.ClearChildren()
+	return muo
+}
+
+// RemoveChildIDs removes the "children" edge to Message entities by IDs.
+func (muo *MessageUpdateOne) RemoveChildIDs(ids ...string) *MessageUpdateOne {
+	muo.mutation.RemoveChildIDs(ids...)
+	return muo
+}
+
+// RemoveChildren removes "children" edges to Message entities.
+func (muo *MessageUpdateOne) RemoveChildren(m ...*Message) *MessageUpdateOne {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.RemoveChildIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -473,11 +611,8 @@ func (muo *MessageUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (muo *MessageUpdateOne) check() error {
-	if _, ok := muo.mutation.KeyID(); muo.mutation.KeyCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Message.key"`)
-	}
-	if _, ok := muo.mutation.OwnerID(); muo.mutation.OwnerCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Message.owner"`)
+	if _, ok := muo.mutation.MemberID(); muo.mutation.MemberCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Message.member"`)
 	}
 	if _, ok := muo.mutation.GroupID(); muo.mutation.GroupCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Message.group"`)
@@ -528,52 +663,17 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 	}
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBytes,
 			Value:  value,
 			Column: message.FieldContent,
 		})
 	}
-	if muo.mutation.KeyCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   message.KeyTable,
-			Columns: []string{message.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := muo.mutation.KeyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   message.KeyTable,
-			Columns: []string{message.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if muo.mutation.OwnerCleared() {
+	if muo.mutation.MemberCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   message.OwnerTable,
-			Columns: []string{message.OwnerColumn},
+			Table:   message.MemberTable,
+			Columns: []string{message.MemberColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -584,12 +684,12 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := muo.mutation.OwnerIDs(); len(nodes) > 0 {
+	if nodes := muo.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   message.OwnerTable,
-			Columns: []string{message.OwnerColumn},
+			Table:   message.MemberTable,
+			Columns: []string{message.MemberColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -630,6 +730,95 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.ParentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.ParentTable,
+			Columns: []string{message.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.ParentTable,
+			Columns: []string{message.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.ChildrenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ChildrenTable,
+			Columns: []string{message.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedChildrenIDs(); len(nodes) > 0 && !muo.mutation.ChildrenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ChildrenTable,
+			Columns: []string{message.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.ChildrenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ChildrenTable,
+			Columns: []string{message.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
 				},
 			},
 		}

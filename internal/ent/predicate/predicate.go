@@ -20,3 +20,6 @@ type Member func(*sql.Selector)
 
 // Message is the predicate function for message builders.
 type Message func(*sql.Selector)
+
+// MessageRead is the predicate function for messageread builders.
+type MessageRead func(*sql.Selector)

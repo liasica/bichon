@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
-	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
 )
@@ -40,12 +39,6 @@ func (mc *MessageCreate) SetNillableCreatedAt(t *time.Time) *MessageCreate {
 	return mc
 }
 
-// SetKeyID sets the "key_id" field.
-func (mc *MessageCreate) SetKeyID(s string) *MessageCreate {
-	mc.mutation.SetKeyID(s)
-	return mc
-}
-
 // SetGroupID sets the "group_id" field.
 func (mc *MessageCreate) SetGroupID(s string) *MessageCreate {
 	mc.mutation.SetGroupID(s)
@@ -59,8 +52,22 @@ func (mc *MessageCreate) SetMemberID(s string) *MessageCreate {
 }
 
 // SetContent sets the "content" field.
-func (mc *MessageCreate) SetContent(s string) *MessageCreate {
-	mc.mutation.SetContent(s)
+func (mc *MessageCreate) SetContent(b []byte) *MessageCreate {
+	mc.mutation.SetContent(b)
+	return mc
+}
+
+// SetParentID sets the "parent_id" field.
+func (mc *MessageCreate) SetParentID(s string) *MessageCreate {
+	mc.mutation.SetParentID(s)
+	return mc
+}
+
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (mc *MessageCreate) SetNillableParentID(s *string) *MessageCreate {
+	if s != nil {
+		mc.SetParentID(*s)
+	}
 	return mc
 }
 
@@ -70,25 +77,34 @@ func (mc *MessageCreate) SetID(s string) *MessageCreate {
 	return mc
 }
 
-// SetKey sets the "key" edge to the Key entity.
-func (mc *MessageCreate) SetKey(k *Key) *MessageCreate {
-	return mc.SetKeyID(k.ID)
-}
-
-// SetOwnerID sets the "owner" edge to the Member entity by ID.
-func (mc *MessageCreate) SetOwnerID(id string) *MessageCreate {
-	mc.mutation.SetOwnerID(id)
-	return mc
-}
-
-// SetOwner sets the "owner" edge to the Member entity.
-func (mc *MessageCreate) SetOwner(m *Member) *MessageCreate {
-	return mc.SetOwnerID(m.ID)
+// SetMember sets the "member" edge to the Member entity.
+func (mc *MessageCreate) SetMember(m *Member) *MessageCreate {
+	return mc.SetMemberID(m.ID)
 }
 
 // SetGroup sets the "group" edge to the Group entity.
 func (mc *MessageCreate) SetGroup(g *Group) *MessageCreate {
 	return mc.SetGroupID(g.ID)
+}
+
+// SetParent sets the "parent" edge to the Message entity.
+func (mc *MessageCreate) SetParent(m *Message) *MessageCreate {
+	return mc.SetParentID(m.ID)
+}
+
+// AddChildIDs adds the "children" edge to the Message entity by IDs.
+func (mc *MessageCreate) AddChildIDs(ids ...string) *MessageCreate {
+	mc.mutation.AddChildIDs(ids...)
+	return mc
+}
+
+// AddChildren adds the "children" edges to the Message entity.
+func (mc *MessageCreate) AddChildren(m ...*Message) *MessageCreate {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mc.AddChildIDs(ids...)
 }
 
 // Mutation returns the MessageMutation object of the builder.
@@ -182,9 +198,6 @@ func (mc *MessageCreate) check() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Message.created_at"`)}
 	}
-	if _, ok := mc.mutation.KeyID(); !ok {
-		return &ValidationError{Name: "key_id", err: errors.New(`ent: missing required field "Message.key_id"`)}
-	}
 	if _, ok := mc.mutation.GroupID(); !ok {
 		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "Message.group_id"`)}
 	}
@@ -199,11 +212,8 @@ func (mc *MessageCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Message.id": %w`, err)}
 		}
 	}
-	if _, ok := mc.mutation.KeyID(); !ok {
-		return &ValidationError{Name: "key", err: errors.New(`ent: missing required edge "Message.key"`)}
-	}
-	if _, ok := mc.mutation.OwnerID(); !ok {
-		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Message.owner"`)}
+	if _, ok := mc.mutation.MemberID(); !ok {
+		return &ValidationError{Name: "member", err: errors.New(`ent: missing required edge "Message.member"`)}
 	}
 	if _, ok := mc.mutation.GroupID(); !ok {
 		return &ValidationError{Name: "group", err: errors.New(`ent: missing required edge "Message.group"`)}
@@ -255,38 +265,18 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := mc.mutation.Content(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBytes,
 			Value:  value,
 			Column: message.FieldContent,
 		})
 		_node.Content = value
 	}
-	if nodes := mc.mutation.KeyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   message.KeyTable,
-			Columns: []string{message.KeyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: key.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.KeyID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := mc.mutation.OwnerIDs(); len(nodes) > 0 {
+	if nodes := mc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   message.OwnerTable,
-			Columns: []string{message.OwnerColumn},
+			Table:   message.MemberTable,
+			Columns: []string{message.MemberColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -319,6 +309,45 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.GroupID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.ParentTable,
+			Columns: []string{message.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ParentID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.ChildrenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ChildrenTable,
+			Columns: []string{message.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -385,18 +414,6 @@ func (u *MessageUpsert) UpdateCreatedAt() *MessageUpsert {
 	return u
 }
 
-// SetKeyID sets the "key_id" field.
-func (u *MessageUpsert) SetKeyID(v string) *MessageUpsert {
-	u.Set(message.FieldKeyID, v)
-	return u
-}
-
-// UpdateKeyID sets the "key_id" field to the value that was provided on create.
-func (u *MessageUpsert) UpdateKeyID() *MessageUpsert {
-	u.SetExcluded(message.FieldKeyID)
-	return u
-}
-
 // SetGroupID sets the "group_id" field.
 func (u *MessageUpsert) SetGroupID(v string) *MessageUpsert {
 	u.Set(message.FieldGroupID, v)
@@ -422,7 +439,7 @@ func (u *MessageUpsert) UpdateMemberID() *MessageUpsert {
 }
 
 // SetContent sets the "content" field.
-func (u *MessageUpsert) SetContent(v string) *MessageUpsert {
+func (u *MessageUpsert) SetContent(v []byte) *MessageUpsert {
 	u.Set(message.FieldContent, v)
 	return u
 }
@@ -430,6 +447,24 @@ func (u *MessageUpsert) SetContent(v string) *MessageUpsert {
 // UpdateContent sets the "content" field to the value that was provided on create.
 func (u *MessageUpsert) UpdateContent() *MessageUpsert {
 	u.SetExcluded(message.FieldContent)
+	return u
+}
+
+// SetParentID sets the "parent_id" field.
+func (u *MessageUpsert) SetParentID(v string) *MessageUpsert {
+	u.Set(message.FieldParentID, v)
+	return u
+}
+
+// UpdateParentID sets the "parent_id" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateParentID() *MessageUpsert {
+	u.SetExcluded(message.FieldParentID)
+	return u
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *MessageUpsert) ClearParentID() *MessageUpsert {
+	u.SetNull(message.FieldParentID)
 	return u
 }
 
@@ -498,20 +533,6 @@ func (u *MessageUpsertOne) UpdateCreatedAt() *MessageUpsertOne {
 	})
 }
 
-// SetKeyID sets the "key_id" field.
-func (u *MessageUpsertOne) SetKeyID(v string) *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.SetKeyID(v)
-	})
-}
-
-// UpdateKeyID sets the "key_id" field to the value that was provided on create.
-func (u *MessageUpsertOne) UpdateKeyID() *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.UpdateKeyID()
-	})
-}
-
 // SetGroupID sets the "group_id" field.
 func (u *MessageUpsertOne) SetGroupID(v string) *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
@@ -541,7 +562,7 @@ func (u *MessageUpsertOne) UpdateMemberID() *MessageUpsertOne {
 }
 
 // SetContent sets the "content" field.
-func (u *MessageUpsertOne) SetContent(v string) *MessageUpsertOne {
+func (u *MessageUpsertOne) SetContent(v []byte) *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetContent(v)
 	})
@@ -551,6 +572,27 @@ func (u *MessageUpsertOne) SetContent(v string) *MessageUpsertOne {
 func (u *MessageUpsertOne) UpdateContent() *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// SetParentID sets the "parent_id" field.
+func (u *MessageUpsertOne) SetParentID(v string) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetParentID(v)
+	})
+}
+
+// UpdateParentID sets the "parent_id" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateParentID() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateParentID()
+	})
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *MessageUpsertOne) ClearParentID() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.ClearParentID()
 	})
 }
 
@@ -783,20 +825,6 @@ func (u *MessageUpsertBulk) UpdateCreatedAt() *MessageUpsertBulk {
 	})
 }
 
-// SetKeyID sets the "key_id" field.
-func (u *MessageUpsertBulk) SetKeyID(v string) *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.SetKeyID(v)
-	})
-}
-
-// UpdateKeyID sets the "key_id" field to the value that was provided on create.
-func (u *MessageUpsertBulk) UpdateKeyID() *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.UpdateKeyID()
-	})
-}
-
 // SetGroupID sets the "group_id" field.
 func (u *MessageUpsertBulk) SetGroupID(v string) *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
@@ -826,7 +854,7 @@ func (u *MessageUpsertBulk) UpdateMemberID() *MessageUpsertBulk {
 }
 
 // SetContent sets the "content" field.
-func (u *MessageUpsertBulk) SetContent(v string) *MessageUpsertBulk {
+func (u *MessageUpsertBulk) SetContent(v []byte) *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.SetContent(v)
 	})
@@ -836,6 +864,27 @@ func (u *MessageUpsertBulk) SetContent(v string) *MessageUpsertBulk {
 func (u *MessageUpsertBulk) UpdateContent() *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// SetParentID sets the "parent_id" field.
+func (u *MessageUpsertBulk) SetParentID(v string) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetParentID(v)
+	})
+}
+
+// UpdateParentID sets the "parent_id" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateParentID() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateParentID()
+	})
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *MessageUpsertBulk) ClearParentID() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.ClearParentID()
 	})
 }
 
