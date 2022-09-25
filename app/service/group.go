@@ -274,7 +274,7 @@ func (s *groupService) reGenerateInviteCode(grm *ent.GroupMember) (string, time.
 }
 
 // Detail get group's detail
-func (s *groupService) Detail(mem *ent.Member, req *model.GroupMetaReq) (res model.GroupDetailRes, err error) {
+func (s *groupService) Detail(mem *ent.Member, req *model.GroupMetaReq) (res *model.GroupDetailRes, err error) {
     grm, _ := ent.Database.GroupMember.Query().Where(groupmember.GroupID(req.ID), groupmember.MemberID(mem.ID)).WithGroup(func(query *ent.GroupQuery) {
         query.WithGroupMembers(func(gmq *ent.GroupMemberQuery) {
             gmq.WithMember()
@@ -287,6 +287,7 @@ func (s *groupService) Detail(mem *ent.Member, req *model.GroupMetaReq) (res mod
     }
 
     gro := grm.Edges.Group
+
     var ic string
 
     if grm.InviteExpire.Before(time.Now()) {
@@ -313,13 +314,16 @@ func (s *groupService) Detail(mem *ent.Member, req *model.GroupMetaReq) (res mod
             })
         }
     }
-    res.GroupDetail = s.detail(ic, gro, mem)
 
     sort.Slice(members, func(i, j int) bool {
         return members[i].Permission > members[j].Permission
     })
 
-    res.Members = members
+    res = &model.GroupDetailRes{
+        GroupDetail: s.detail(ic, gro, mem),
+        Members:     members,
+    }
+
     return
 }
 

@@ -4,6 +4,7 @@ import (
     "database/sql/driver"
     "fmt"
     "github.com/liasica/go-encryption/hexutil"
+    "strconv"
 )
 
 type GroupMemberPerm uint8
@@ -15,10 +16,19 @@ const (
 )
 
 func (p *GroupMemberPerm) Scan(v interface{}) (err error) {
-    switch v := v.(type) {
+    switch x := v.(type) {
     case nil:
     case uint8:
-        *p = GroupMemberPerm(v)
+        *p = GroupMemberPerm(x)
+    case int64:
+        *p = GroupMemberPerm(x)
+    case int, int8, int16, int32, uint, uint16, uint32, uint64, uintptr, float32, float64:
+        var n uint64
+        n, err = strconv.ParseUint(fmt.Sprintf("%x", x), 10, 64)
+        if err != nil {
+            return
+        }
+        *p = GroupMemberPerm(n)
     default:
         err = fmt.Errorf("unexpected type %T", v)
     }
