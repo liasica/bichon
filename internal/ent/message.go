@@ -3,11 +3,13 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/chatpuppy/puppychat/app/model"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
@@ -28,6 +30,8 @@ type Message struct {
 	Content []byte `json:"content,omitempty"`
 	// ParentID holds the value of the "parent_id" field.
 	ParentID *string `json:"parent_id,omitempty"`
+	// message's owner
+	Owner *model.Member `json:"owner,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageQuery when eager-loading is set.
 	Edges MessageEdges `json:"edges"`
@@ -101,7 +105,7 @@ func (*Message) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case message.FieldContent:
+		case message.FieldContent, message.FieldOwner:
 			values[i] = new([]byte)
 		case message.FieldID, message.FieldGroupID, message.FieldMemberID, message.FieldParentID:
 			values[i] = new(sql.NullString)
@@ -158,6 +162,14 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				m.ParentID = new(string)
 				*m.ParentID = value.String
+			}
+		case message.FieldOwner:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field owner", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &m.Owner); err != nil {
+					return fmt.Errorf("unmarshal field owner: %w", err)
+				}
 			}
 		}
 	}
@@ -223,6 +235,9 @@ func (m *Message) String() string {
 		builder.WriteString("parent_id=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("owner=")
+	builder.WriteString(fmt.Sprintf("%v", m.Owner))
 	builder.WriteByte(')')
 	return builder.String()
 }

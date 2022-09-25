@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chatpuppy/puppychat/app/model"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
@@ -68,6 +69,12 @@ func (mc *MessageCreate) SetNillableParentID(s *string) *MessageCreate {
 	if s != nil {
 		mc.SetParentID(*s)
 	}
+	return mc
+}
+
+// SetOwner sets the "owner" field.
+func (mc *MessageCreate) SetOwner(m *model.Member) *MessageCreate {
+	mc.mutation.SetOwner(m)
 	return mc
 }
 
@@ -207,6 +214,9 @@ func (mc *MessageCreate) check() error {
 	if _, ok := mc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Message.content"`)}
 	}
+	if _, ok := mc.mutation.Owner(); !ok {
+		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required field "Message.owner"`)}
+	}
 	if v, ok := mc.mutation.ID(); ok {
 		if err := message.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Message.id": %w`, err)}
@@ -270,6 +280,14 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Column: message.FieldContent,
 		})
 		_node.Content = value
+	}
+	if value, ok := mc.mutation.Owner(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: message.FieldOwner,
+		})
+		_node.Owner = value
 	}
 	if nodes := mc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -468,6 +486,18 @@ func (u *MessageUpsert) ClearParentID() *MessageUpsert {
 	return u
 }
 
+// SetOwner sets the "owner" field.
+func (u *MessageUpsert) SetOwner(v *model.Member) *MessageUpsert {
+	u.Set(message.FieldOwner, v)
+	return u
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateOwner() *MessageUpsert {
+	u.SetExcluded(message.FieldOwner)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -593,6 +623,20 @@ func (u *MessageUpsertOne) UpdateParentID() *MessageUpsertOne {
 func (u *MessageUpsertOne) ClearParentID() *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.ClearParentID()
+	})
+}
+
+// SetOwner sets the "owner" field.
+func (u *MessageUpsertOne) SetOwner(v *model.Member) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetOwner(v)
+	})
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateOwner() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateOwner()
 	})
 }
 
@@ -885,6 +929,20 @@ func (u *MessageUpsertBulk) UpdateParentID() *MessageUpsertBulk {
 func (u *MessageUpsertBulk) ClearParentID() *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.ClearParentID()
+	})
+}
+
+// SetOwner sets the "owner" field.
+func (u *MessageUpsertBulk) SetOwner(v *model.Member) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetOwner(v)
+	})
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateOwner() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateOwner()
 	})
 }
 

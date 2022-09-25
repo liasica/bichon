@@ -7,6 +7,7 @@ import (
     "entgo.io/ent/schema/edge"
     "entgo.io/ent/schema/field"
     "entgo.io/ent/schema/index"
+    "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
 )
 
@@ -29,6 +30,7 @@ func (Message) Fields() []ent.Field {
         field.String("member_id"),
         field.Bytes("content"),
         field.String("parent_id").Optional().Nillable(),
+        field.JSON("owner", &model.Member{}).Comment("message's owner"),
     }
 }
 

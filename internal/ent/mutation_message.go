@@ -9,6 +9,7 @@ import (
     "errors"
     "time"
     "github.com/chatpuppy/puppychat/internal/ent/message"
+    "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent/predicate"
 
     "entgo.io/ent"
@@ -23,6 +24,7 @@ type MessageMutation struct {
 	id              *string
 	created_at      *time.Time
 	content         *[]byte
+	owner           **model.Member
 	clearedFields   map[string]struct{}
 	member          *string
 	clearedmember   bool
@@ -335,6 +337,42 @@ func (m *MessageMutation) ResetParentID() {
 	delete(m.clearedFields, message.FieldParentID)
 }
 
+// SetOwner sets the "owner" field.
+func (m *MessageMutation) SetOwner(value *model.Member) {
+	m.owner = &value
+}
+
+// Owner returns the value of the "owner" field in the mutation.
+func (m *MessageMutation) Owner() (r *model.Member, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwner returns the old "owner" field's value of the Message entity.
+// If the Message object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageMutation) OldOwner(ctx context.Context) (v *model.Member, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwner: %w", err)
+	}
+	return oldValue.Owner, nil
+}
+
+// ResetOwner resets all changes to the "owner" field.
+func (m *MessageMutation) ResetOwner() {
+	m.owner = nil
+}
+
 // ClearMember clears the "member" edge to the Member entity.
 func (m *MessageMutation) ClearMember() {
 	m.clearedmember = true
@@ -486,7 +524,7 @@ func (m *MessageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.created_at != nil {
 		fields = append(fields, message.FieldCreatedAt)
 	}
@@ -501,6 +539,9 @@ func (m *MessageMutation) Fields() []string {
 	}
 	if m.parent != nil {
 		fields = append(fields, message.FieldParentID)
+	}
+	if m.owner != nil {
+		fields = append(fields, message.FieldOwner)
 	}
 	return fields
 }
@@ -520,6 +561,8 @@ func (m *MessageMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case message.FieldParentID:
 		return m.ParentID()
+	case message.FieldOwner:
+		return m.Owner()
 	}
 	return nil, false
 }
@@ -539,6 +582,8 @@ func (m *MessageMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldContent(ctx)
 	case message.FieldParentID:
 		return m.OldParentID(ctx)
+	case message.FieldOwner:
+		return m.OldOwner(ctx)
 	}
 	return nil, fmt.Errorf("unknown Message field %s", name)
 }
@@ -582,6 +627,13 @@ func (m *MessageMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetParentID(v)
+		return nil
+	case message.FieldOwner:
+		v, ok := value.(*model.Member)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwner(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Message field %s", name)
@@ -655,6 +707,9 @@ func (m *MessageMutation) ResetField(name string) error {
 		return nil
 	case message.FieldParentID:
 		m.ResetParentID()
+		return nil
+	case message.FieldOwner:
+		m.ResetOwner()
 		return nil
 	}
 	return fmt.Errorf("unknown Message field %s", name)

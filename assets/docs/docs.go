@@ -136,6 +136,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/active": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Active group",
+                "operationId": "GroupActive",
+                "parameters": [
+                    {
+                        "description": "Group id",
+                        "name": "groupId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/group/categories": {
             "get": {
                 "consumes": [
@@ -161,6 +195,7 @@ const docTemplate = `{
         },
         "/group/join": {
             "post": {
+                "description": "need signature verify",
                 "consumes": [
                     "application/json"
                 ],
@@ -311,6 +346,181 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/kickout": {
+            "post": {
+                "description": "need signature verify",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Kickout member",
+                "operationId": "GroupKickout",
+                "parameters": [
+                    {
+                        "description": "Group member info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GroupMemberReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/group/leave": {
+            "post": {
+                "description": "need signature verify",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Leave group",
+                "operationId": "GroupLeave",
+                "parameters": [
+                    {
+                        "description": "Group id",
+                        "name": "groupId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/group/manager": {
+            "post": {
+                "description": "need signature verify",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Set manager",
+                "operationId": "GroupManager",
+                "parameters": [
+                    {
+                        "description": "Group member info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GroupMemberReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/group/recode": {
+            "post": {
+                "description": "need signature verify",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Regenerate invite code",
+                "operationId": "GroupReCode",
+                "parameters": [
+                    {
+                        "description": "Group id",
+                        "name": "groupId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/group/update": {
+            "post": {
+                "description": "need signature verify",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Update group info",
+                "operationId": "GroupUpdate",
+                "parameters": [
+                    {
+                        "description": "Group info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GroupUpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/group/{id}": {
             "get": {
                 "consumes": [
@@ -345,7 +555,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/model.GroupMetaRes"
+                                            "$ref": "#/definitions/model.GroupDetailRes"
                                         }
                                     }
                                 }
@@ -386,6 +596,41 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/member/update": {
+            "post": {
+                "description": "need signature verify",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Member"
+                ],
+                "summary": "Update member's info",
+                "operationId": "MemberUpdate",
+                "parameters": [
+                    {
+                        "description": "Member's info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.MemberUpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
                         }
                     }
                 }
@@ -520,7 +765,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ChatMessage"
+                            "$ref": "#/definitions/model.MessageCreateReq"
                         }
                     }
                 ],
@@ -545,6 +790,40 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/message/read": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Mask message read",
+                "operationId": "MessageRead",
+                "parameters": [
+                    {
+                        "description": "group id",
+                        "name": "groupId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response success",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -556,36 +835,6 @@ const docTemplate = `{
                 },
                 "data": {},
                 "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.ChatMessage": {
-            "type": "object",
-            "required": [
-                "content",
-                "groupId",
-                "memberId"
-            ],
-            "properties": {
-                "content": {
-                    "description": "encrypted message",
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "groupId": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "memberId": {
-                    "type": "string"
-                },
-                "parentId": {
-                    "description": "quote message id",
                     "type": "string"
                 }
             }
@@ -636,6 +885,50 @@ const docTemplate = `{
                 }
             }
         },
+        "model.GroupDetailRes": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "intro": {
+                    "description": "optional",
+                    "type": "string"
+                },
+                "inviteCode": {
+                    "type": "string"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.MemberWithPermission"
+                    }
+                },
+                "membersCount": {
+                    "type": "integer"
+                },
+                "membersMax": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "description": "group is belongs to current member",
+                    "type": "boolean"
+                },
+                "public": {
+                    "description": "group is public or private",
+                    "type": "boolean"
+                }
+            }
+        },
         "model.GroupDetailWithPublicKey": {
             "type": "object",
             "properties": {
@@ -653,6 +946,9 @@ const docTemplate = `{
                 },
                 "intro": {
                     "description": "optional",
+                    "type": "string"
+                },
+                "inviteCode": {
                     "type": "string"
                 },
                 "keyId": {
@@ -680,11 +976,14 @@ const docTemplate = `{
         "model.GroupJoinReq": {
             "type": "object",
             "required": [
-                "groupId",
                 "sharedPublic"
             ],
             "properties": {
                 "groupId": {
+                    "type": "string"
+                },
+                "inviteCode": {
+                    "description": "invite code from group member",
                     "type": "string"
                 },
                 "sharedPublic": {
@@ -709,9 +1008,6 @@ const docTemplate = `{
                     "description": "optional",
                     "type": "string"
                 },
-                "lastTime": {
-                    "type": "string"
-                },
                 "membersCount": {
                     "type": "integer"
                 },
@@ -722,7 +1018,16 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "unreadCount": {
+                    "description": "unread message count",
                     "type": "integer"
+                },
+                "unreadId": {
+                    "description": "first unread message id",
+                    "type": "string"
+                },
+                "unreadTime": {
+                    "description": "first unread message time",
+                    "type": "string"
                 }
             }
         },
@@ -786,44 +1091,14 @@ const docTemplate = `{
                 }
             }
         },
-        "model.GroupMetaRes": {
+        "model.GroupMemberReq": {
             "type": "object",
             "properties": {
-                "address": {
+                "groupId": {
                     "type": "string"
                 },
-                "category": {
+                "memberId": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "intro": {
-                    "description": "optional",
-                    "type": "string"
-                },
-                "members": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Member"
-                    }
-                },
-                "membersCount": {
-                    "type": "integer"
-                },
-                "membersMax": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "owner": {
-                    "description": "group is belongs to current member",
-                    "type": "boolean"
-                },
-                "public": {
-                    "description": "group is public or private",
-                    "type": "boolean"
                 }
             }
         },
@@ -852,6 +1127,33 @@ const docTemplate = `{
                 "sharedPublic": {
                     "description": "Member's public key for ` + "`" + `ecdh` + "`" + ` exchange",
                     "type": "string"
+                }
+            }
+        },
+        "model.GroupUpdateReq": {
+            "type": "object",
+            "required": [
+                "groupId"
+            ],
+            "properties": {
+                "category": {
+                    "description": "group's category",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "string"
+                },
+                "intro": {
+                    "type": "string"
+                },
+                "maxMembers": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "public": {
+                    "type": "boolean"
                 }
             }
         },
@@ -918,6 +1220,37 @@ const docTemplate = `{
                 }
             }
         },
+        "model.MemberUpdateReq": {
+            "type": "object",
+            "properties": {
+                "intro": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.MemberWithPermission": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "permission": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.Message": {
             "type": "object",
             "properties": {
@@ -925,6 +1258,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createdAt": {
+                    "type": "string"
+                },
+                "groupId": {
                     "type": "string"
                 },
                 "id": {
@@ -943,6 +1279,33 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.Message"
                         }
                     ]
+                }
+            }
+        },
+        "model.MessageCreateReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "groupId",
+                "memberId"
+            ],
+            "properties": {
+                "content": {
+                    "description": "encrypted message",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "memberId": {
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "quote message id",
+                    "type": "string"
                 }
             }
         },

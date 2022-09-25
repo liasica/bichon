@@ -54,11 +54,13 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		Type: "GroupMember",
 		Fields: map[string]*sqlgraph.FieldSpec{
-			groupmember.FieldCreatedAt:  {Type: field.TypeTime, Column: groupmember.FieldCreatedAt},
-			groupmember.FieldMemberID:   {Type: field.TypeString, Column: groupmember.FieldMemberID},
-			groupmember.FieldGroupID:    {Type: field.TypeString, Column: groupmember.FieldGroupID},
-			groupmember.FieldPermission: {Type: field.TypeUint8, Column: groupmember.FieldPermission},
-			groupmember.FieldSn:         {Type: field.TypeString, Column: groupmember.FieldSn},
+			groupmember.FieldCreatedAt:    {Type: field.TypeTime, Column: groupmember.FieldCreatedAt},
+			groupmember.FieldMemberID:     {Type: field.TypeString, Column: groupmember.FieldMemberID},
+			groupmember.FieldGroupID:      {Type: field.TypeString, Column: groupmember.FieldGroupID},
+			groupmember.FieldPermission:   {Type: field.TypeOther, Column: groupmember.FieldPermission},
+			groupmember.FieldInviterID:    {Type: field.TypeString, Column: groupmember.FieldInviterID},
+			groupmember.FieldInviteCode:   {Type: field.TypeString, Column: groupmember.FieldInviteCode},
+			groupmember.FieldInviteExpire: {Type: field.TypeTime, Column: groupmember.FieldInviteExpire},
 		},
 	}
 	graph.Nodes[2] = &sqlgraph.Node{
@@ -115,6 +117,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			message.FieldMemberID:  {Type: field.TypeString, Column: message.FieldMemberID},
 			message.FieldContent:   {Type: field.TypeBytes, Column: message.FieldContent},
 			message.FieldParentID:  {Type: field.TypeString, Column: message.FieldParentID},
+			message.FieldOwner:     {Type: field.TypeJSON, Column: message.FieldOwner},
 		},
 	}
 	graph.Nodes[5] = &sqlgraph.Node{
@@ -205,6 +208,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"GroupMember",
 		"Group",
+	)
+	graph.MustAddE(
+		"inviter",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.InviterTable,
+			Columns: []string{groupmember.InviterColumn},
+			Bidi:    false,
+		},
+		"GroupMember",
+		"Member",
 	)
 	graph.MustAddE(
 		"member",
@@ -560,14 +575,24 @@ func (f *GroupMemberFilter) WhereGroupID(p entql.StringP) {
 	f.Where(p.Field(groupmember.FieldGroupID))
 }
 
-// WherePermission applies the entql uint8 predicate on the permission field.
-func (f *GroupMemberFilter) WherePermission(p entql.Uint8P) {
+// WherePermission applies the entql other predicate on the permission field.
+func (f *GroupMemberFilter) WherePermission(p entql.OtherP) {
 	f.Where(p.Field(groupmember.FieldPermission))
 }
 
-// WhereSn applies the entql string predicate on the sn field.
-func (f *GroupMemberFilter) WhereSn(p entql.StringP) {
-	f.Where(p.Field(groupmember.FieldSn))
+// WhereInviterID applies the entql string predicate on the inviter_id field.
+func (f *GroupMemberFilter) WhereInviterID(p entql.StringP) {
+	f.Where(p.Field(groupmember.FieldInviterID))
+}
+
+// WhereInviteCode applies the entql string predicate on the invite_code field.
+func (f *GroupMemberFilter) WhereInviteCode(p entql.StringP) {
+	f.Where(p.Field(groupmember.FieldInviteCode))
+}
+
+// WhereInviteExpire applies the entql time.Time predicate on the invite_expire field.
+func (f *GroupMemberFilter) WhereInviteExpire(p entql.TimeP) {
+	f.Where(p.Field(groupmember.FieldInviteExpire))
 }
 
 // WhereHasMember applies a predicate to check if query has an edge member.
@@ -592,6 +617,20 @@ func (f *GroupMemberFilter) WhereHasGroup() {
 // WhereHasGroupWith applies a predicate to check if query has an edge group with a given conditions (other predicates).
 func (f *GroupMemberFilter) WhereHasGroupWith(preds ...predicate.Group) {
 	f.Where(entql.HasEdgeWith("group", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasInviter applies a predicate to check if query has an edge inviter.
+func (f *GroupMemberFilter) WhereHasInviter() {
+	f.Where(entql.HasEdge("inviter"))
+}
+
+// WhereHasInviterWith applies a predicate to check if query has an edge inviter with a given conditions (other predicates).
+func (f *GroupMemberFilter) WhereHasInviterWith(preds ...predicate.Member) {
+	f.Where(entql.HasEdgeWith("inviter", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}
@@ -885,6 +924,11 @@ func (f *MessageFilter) WhereContent(p entql.BytesP) {
 // WhereParentID applies the entql string predicate on the parent_id field.
 func (f *MessageFilter) WhereParentID(p entql.StringP) {
 	f.Where(p.Field(message.FieldParentID))
+}
+
+// WhereOwner applies the entql json.RawMessage predicate on the owner field.
+func (f *MessageFilter) WhereOwner(p entql.BytesP) {
+	f.Where(p.Field(message.FieldOwner))
 }
 
 // WhereHasMember applies a predicate to check if query has an edge member.

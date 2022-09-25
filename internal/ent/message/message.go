@@ -23,6 +23,8 @@ const (
 	FieldContent = "content"
 	// FieldParentID holds the string denoting the parent_id field in the database.
 	FieldParentID = "parent_id"
+	// FieldOwner holds the string denoting the owner field in the database.
+	FieldOwner = "owner"
 	// EdgeMember holds the string denoting the member edge name in mutations.
 	EdgeMember = "member"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
@@ -65,6 +67,7 @@ var Columns = []string{
 	FieldMemberID,
 	FieldContent,
 	FieldParentID,
+	FieldOwner,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

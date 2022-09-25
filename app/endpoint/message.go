@@ -18,10 +18,10 @@ var Message = new(message)
 // @Tags         Message
 // @Accept       json
 // @Produce      json
-// @Param        body  body     model.ChatMessage  true  "message detail"
+// @Param        body  body     model.MessageCreateReq  true  "message detail"
 // @Success      200  {object}  app.Response{data=model.ChatMessageCreateRes}  "Response success"
 func (*message) Create(c echo.Context) (err error) {
-    ctx, req := app.MemberContextAndBinding[model.ChatMessage](c)
+    ctx, req := app.MemberContextAndBinding[model.MessageCreateReq](c)
     return ctx.SendResponse(service.NewMessage().Create(ctx.Member, req))
 }
 
@@ -37,4 +37,18 @@ func (*message) Create(c echo.Context) (err error) {
 func (*message) List(c echo.Context) (err error) {
     ctx, req := app.MemberContextAndBinding[model.MessageListReq](c)
     return ctx.SendResponse(service.NewMessage().List(ctx.Member, req))
+}
+
+// Read
+// @ID           MessageRead
+// @Router       /message/read [POST]
+// @Summary      Mask message read
+// @Tags         Message
+// @Accept       json
+// @Produce      json
+// @Param        groupId  body  string  true  "group id"
+// @Success      200  {object}  app.Response  "Response success"
+func (*message) Read(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.MessageReadReq](c)
+    return ctx.SendResponse(nil, service.NewMessage().Read(ctx.Member, req))
 }

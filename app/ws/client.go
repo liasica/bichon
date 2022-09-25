@@ -49,7 +49,10 @@ func safeCloseCh(ch chan *Message) (closed bool) {
 func (c *Client) Disconnect() {
     _ = c.conn.Close()
     if c.mem != nil {
+        // delete clients
         c.hub.clients.Delete(c.mem.ID)
+        // delete actived group
+        model.GroupActived.Delete(c.mem.ID)
     }
     safeCloseCh(c.send)
 }
@@ -78,7 +81,7 @@ func (c *Client) writePump() {
                 _ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
                 return
             }
-            go c.writeMessage(message)
+            go c.writeChatMessage(message)
         case <-ticker.C:
             _ = c.conn.SetWriteDeadline(time.Now().Add(writeWait))
             if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
@@ -88,7 +91,7 @@ func (c *Client) writePump() {
     }
 }
 
-func (c *Client) writeMessage(message *Message) {
+func (c *Client) writeChatMessage(message *Message) {
     w, err := c.conn.NextWriter(websocket.BinaryMessage)
     if err != nil {
         log.Errorf("[WS] message write failed: %s", err)
@@ -96,7 +99,7 @@ func (c *Client) writeMessage(message *Message) {
     }
 
     if message.Operate == OperateChat {
-        cm, ok := message.Data.(*model.ChatMessage)
+        cm, ok := message.Data.(*model.Message)
         if !ok {
             return
         }
@@ -106,11 +109,12 @@ func (c *Client) writeMessage(message *Message) {
         if err != nil {
             return
         }
-        err = cm.Encrypt(keys)
+        err = service.NewMessage().Share(keys, cm)
         if err != nil {
             log.Errorf("[WS] message data encrypt error: %v", err)
             return
         }
+        go service.NewMessage().AutoRead(cm)
     }
 
     b, _ := message.Marshal()

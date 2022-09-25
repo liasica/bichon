@@ -70,6 +70,7 @@ func (*group) JoinedList(c echo.Context) (err error) {
 // @ID           GroupJoin
 // @Router       /group/join [POST]
 // @Summary      Join group
+// @Description  need signature verify
 // @Tags         Group
 // @Accept       json
 // @Produce      json
@@ -78,6 +79,21 @@ func (*group) JoinedList(c echo.Context) (err error) {
 func (*group) Join(c echo.Context) (err error) {
     ctx, req := app.MemberContextAndBinding[model.GroupJoinReq](c)
     return ctx.SendResponse(service.NewGroup().Join(ctx.Member, req))
+}
+
+// Leave
+// @ID           GroupLeave
+// @Router       /group/leave [POST]
+// @Summary      Leave group
+// @Description  need signature verify
+// @Tags         Group
+// @Accept       json
+// @Produce      json
+// @Param        groupId  body  string  true  "Group id"
+// @Success      200  {object}  app.Response  "Response success"
+func (*group) Leave(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.GroupIDReq](c)
+    return ctx.SendResponse(nil, service.NewGroup().Leave(ctx.Member, req))
 }
 
 // ShareKey
@@ -102,10 +118,10 @@ func (*group) ShareKey(c echo.Context) (err error) {
 // @Accept       json
 // @Produce      json
 // @Param        id  path  string  true  "Group id"
-// @Success      200  {object}  app.Response{data=model.GroupMetaRes}  "Response success"
+// @Success      200  {object}  app.Response{data=model.GroupDetailRes}  "Response success"
 func (*group) Detail(c echo.Context) (err error) {
     ctx, req := app.MemberContextAndBinding[model.GroupMetaReq](c)
-    return ctx.SendResponse(service.NewGroup().Detail(req, ctx.Member))
+    return ctx.SendResponse(service.NewGroup().Detail(ctx.Member, req))
 }
 
 // KeyUsed
@@ -120,4 +136,79 @@ func (*group) Detail(c echo.Context) (err error) {
 func (*group) KeyUsed(c echo.Context) (err error) {
     ctx, req := app.MemberContextAndBinding[model.GroupKeyUsedReq](c)
     return ctx.SendResponse(service.NewGroup().KeyUsed(ctx.Member, req))
+}
+
+// Update
+// @ID           GroupUpdate
+// @Router       /group/update [POST]
+// @Summary      Update group info
+// @Description  need signature verify
+// @Tags         Group
+// @Accept       json
+// @Produce      json
+// @Param        body  body     model.GroupUpdateReq  true  "Group info"
+// @Success      200  {object}  app.Response  "Response success"
+func (*group) Update(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.GroupUpdateReq](c)
+    return ctx.SendResponse(nil, service.NewGroup().Update(ctx.Member, req))
+}
+
+// ReCode
+// @ID           GroupReCode
+// @Router       /group/recode [POST]
+// @Summary      Regenerate invite code
+// @Description  need signature verify
+// @Tags         Group
+// @Accept       json
+// @Produce      json
+// @Param        groupId  body  string  true  "Group id"
+// @Success      200  {object}  app.Response  "Response success"
+func (*group) ReCode(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.GroupIDReq](c)
+    return ctx.SendResponse(service.NewGroup().ReGenerateInviteCode(ctx.Member, req))
+}
+
+// Active
+// @ID           GroupActive
+// @Router       /group/active [POST]
+// @Summary      Active group
+// @Tags         Group
+// @Accept       json
+// @Produce      json
+// @Param        groupId  body  string  true  "Group id"
+// @Success      200  {object}  app.Response  "Response success"
+func (*group) Active(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.GroupIDReq](c)
+    service.NewGroup().Active(ctx.Member, req)
+    return ctx.SendResponse(nil)
+}
+
+// Kickout
+// @ID           GroupKickout
+// @Router       /group/kickout [POST]
+// @Summary      Kickout member
+// @Description  need signature verify
+// @Tags         Group
+// @Accept       json
+// @Produce      json
+// @Param        body  body     model.GroupMemberReq  true  "Group member info"
+// @Success      200  {object}  app.Response  "Response success"
+func (*group) Kickout(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.GroupMemberReq](c)
+    return ctx.SendResponse(nil, service.NewGroup().Kickout(ctx.Member, req))
+}
+
+// Manager
+// @ID           GroupManager
+// @Router       /group/manager [POST]
+// @Summary      Set manager
+// @Description  need signature verify
+// @Tags         Group
+// @Accept       json
+// @Produce      json
+// @Param        body  body     model.GroupMemberReq  true  "Group member info"
+// @Success      200  {object}  app.Response  "Response success"
+func (*group) Manager(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.GroupMemberReq](c)
+    return ctx.SendResponse(nil, service.NewGroup().SetManager(ctx.Member, req))
 }

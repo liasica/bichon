@@ -1,11 +1,14 @@
 package schema
 
 import (
+    "ariga.io/atlas/sql/postgres"
     "context"
     "entgo.io/ent"
+    "entgo.io/ent/dialect"
     "entgo.io/ent/dialect/entsql"
     "entgo.io/ent/entc/integration/ent/hook"
     "entgo.io/ent/schema"
+    "entgo.io/ent/schema/edge"
     "entgo.io/ent/schema/field"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
@@ -26,14 +29,20 @@ func (GroupMember) Annotations() []schema.Annotation {
 // Fields of the GroupMember.
 func (GroupMember) Fields() []ent.Field {
     return []ent.Field{
-        field.Uint8("permission").Default(model.GroupMemberPermDefault).Comment("member's permission in group"),
-        field.String("sn").Unique().Comment("user's share sn"),
+        field.Other("permission", model.GroupMemberPerm(0)).Default(model.GroupMemberPermDefault).SchemaType(map[string]string{
+            dialect.Postgres: postgres.TypeSmallInt,
+        }).Comment("member's permission in group"),
+        field.String("inviter_id").Optional().Nillable(),
+        field.String("invite_code").Unique().Comment("invite code"),
+        field.Time("invite_expire").Comment("invite code expire time"),
     }
 }
 
 // Edges of the GroupMember.
 func (GroupMember) Edges() []ent.Edge {
-    return []ent.Edge{}
+    return []ent.Edge{
+        edge.To("inviter", Member.Type).Unique().Field("inviter_id"),
+    }
 }
 
 func (GroupMember) Mixin() []ent.Mixin {
@@ -46,9 +55,7 @@ func (GroupMember) Mixin() []ent.Mixin {
 }
 
 func (GroupMember) Indexes() []ent.Index {
-    return []ent.Index{
-        // index.Fields("group_id", "member_id"),
-    }
+    return []ent.Index{}
 }
 
 type GroupMemberMutator interface {

@@ -6,10 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chatpuppy/puppychat/app/model"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
@@ -43,29 +45,48 @@ func (gmu *GroupMemberUpdate) SetGroupID(s string) *GroupMemberUpdate {
 }
 
 // SetPermission sets the "permission" field.
-func (gmu *GroupMemberUpdate) SetPermission(u uint8) *GroupMemberUpdate {
-	gmu.mutation.ResetPermission()
-	gmu.mutation.SetPermission(u)
+func (gmu *GroupMemberUpdate) SetPermission(mmp model.GroupMemberPerm) *GroupMemberUpdate {
+	gmu.mutation.SetPermission(mmp)
 	return gmu
 }
 
 // SetNillablePermission sets the "permission" field if the given value is not nil.
-func (gmu *GroupMemberUpdate) SetNillablePermission(u *uint8) *GroupMemberUpdate {
-	if u != nil {
-		gmu.SetPermission(*u)
+func (gmu *GroupMemberUpdate) SetNillablePermission(mmp *model.GroupMemberPerm) *GroupMemberUpdate {
+	if mmp != nil {
+		gmu.SetPermission(*mmp)
 	}
 	return gmu
 }
 
-// AddPermission adds u to the "permission" field.
-func (gmu *GroupMemberUpdate) AddPermission(u int8) *GroupMemberUpdate {
-	gmu.mutation.AddPermission(u)
+// SetInviterID sets the "inviter_id" field.
+func (gmu *GroupMemberUpdate) SetInviterID(s string) *GroupMemberUpdate {
+	gmu.mutation.SetInviterID(s)
 	return gmu
 }
 
-// SetSn sets the "sn" field.
-func (gmu *GroupMemberUpdate) SetSn(s string) *GroupMemberUpdate {
-	gmu.mutation.SetSn(s)
+// SetNillableInviterID sets the "inviter_id" field if the given value is not nil.
+func (gmu *GroupMemberUpdate) SetNillableInviterID(s *string) *GroupMemberUpdate {
+	if s != nil {
+		gmu.SetInviterID(*s)
+	}
+	return gmu
+}
+
+// ClearInviterID clears the value of the "inviter_id" field.
+func (gmu *GroupMemberUpdate) ClearInviterID() *GroupMemberUpdate {
+	gmu.mutation.ClearInviterID()
+	return gmu
+}
+
+// SetInviteCode sets the "invite_code" field.
+func (gmu *GroupMemberUpdate) SetInviteCode(s string) *GroupMemberUpdate {
+	gmu.mutation.SetInviteCode(s)
+	return gmu
+}
+
+// SetInviteExpire sets the "invite_expire" field.
+func (gmu *GroupMemberUpdate) SetInviteExpire(t time.Time) *GroupMemberUpdate {
+	gmu.mutation.SetInviteExpire(t)
 	return gmu
 }
 
@@ -77,6 +98,11 @@ func (gmu *GroupMemberUpdate) SetMember(m *Member) *GroupMemberUpdate {
 // SetGroup sets the "group" edge to the Group entity.
 func (gmu *GroupMemberUpdate) SetGroup(g *Group) *GroupMemberUpdate {
 	return gmu.SetGroupID(g.ID)
+}
+
+// SetInviter sets the "inviter" edge to the Member entity.
+func (gmu *GroupMemberUpdate) SetInviter(m *Member) *GroupMemberUpdate {
+	return gmu.SetInviterID(m.ID)
 }
 
 // Mutation returns the GroupMemberMutation object of the builder.
@@ -93,6 +119,12 @@ func (gmu *GroupMemberUpdate) ClearMember() *GroupMemberUpdate {
 // ClearGroup clears the "group" edge to the Group entity.
 func (gmu *GroupMemberUpdate) ClearGroup() *GroupMemberUpdate {
 	gmu.mutation.ClearGroup()
+	return gmu
+}
+
+// ClearInviter clears the "inviter" edge to the Member entity.
+func (gmu *GroupMemberUpdate) ClearInviter() *GroupMemberUpdate {
+	gmu.mutation.ClearInviter()
 	return gmu
 }
 
@@ -193,23 +225,23 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gmu.mutation.Permission(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
+			Type:   field.TypeOther,
 			Value:  value,
 			Column: groupmember.FieldPermission,
 		})
 	}
-	if value, ok := gmu.mutation.AddedPermission(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: groupmember.FieldPermission,
-		})
-	}
-	if value, ok := gmu.mutation.Sn(); ok {
+	if value, ok := gmu.mutation.InviteCode(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: groupmember.FieldSn,
+			Column: groupmember.FieldInviteCode,
+		})
+	}
+	if value, ok := gmu.mutation.InviteExpire(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: groupmember.FieldInviteExpire,
 		})
 	}
 	if gmu.mutation.MemberCleared() {
@@ -282,6 +314,41 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if gmu.mutation.InviterCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.InviterTable,
+			Columns: []string{groupmember.InviterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gmu.mutation.InviterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.InviterTable,
+			Columns: []string{groupmember.InviterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Modifiers = gmu.modifiers
 	if n, err = sqlgraph.UpdateNodes(ctx, gmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -316,29 +383,48 @@ func (gmuo *GroupMemberUpdateOne) SetGroupID(s string) *GroupMemberUpdateOne {
 }
 
 // SetPermission sets the "permission" field.
-func (gmuo *GroupMemberUpdateOne) SetPermission(u uint8) *GroupMemberUpdateOne {
-	gmuo.mutation.ResetPermission()
-	gmuo.mutation.SetPermission(u)
+func (gmuo *GroupMemberUpdateOne) SetPermission(mmp model.GroupMemberPerm) *GroupMemberUpdateOne {
+	gmuo.mutation.SetPermission(mmp)
 	return gmuo
 }
 
 // SetNillablePermission sets the "permission" field if the given value is not nil.
-func (gmuo *GroupMemberUpdateOne) SetNillablePermission(u *uint8) *GroupMemberUpdateOne {
-	if u != nil {
-		gmuo.SetPermission(*u)
+func (gmuo *GroupMemberUpdateOne) SetNillablePermission(mmp *model.GroupMemberPerm) *GroupMemberUpdateOne {
+	if mmp != nil {
+		gmuo.SetPermission(*mmp)
 	}
 	return gmuo
 }
 
-// AddPermission adds u to the "permission" field.
-func (gmuo *GroupMemberUpdateOne) AddPermission(u int8) *GroupMemberUpdateOne {
-	gmuo.mutation.AddPermission(u)
+// SetInviterID sets the "inviter_id" field.
+func (gmuo *GroupMemberUpdateOne) SetInviterID(s string) *GroupMemberUpdateOne {
+	gmuo.mutation.SetInviterID(s)
 	return gmuo
 }
 
-// SetSn sets the "sn" field.
-func (gmuo *GroupMemberUpdateOne) SetSn(s string) *GroupMemberUpdateOne {
-	gmuo.mutation.SetSn(s)
+// SetNillableInviterID sets the "inviter_id" field if the given value is not nil.
+func (gmuo *GroupMemberUpdateOne) SetNillableInviterID(s *string) *GroupMemberUpdateOne {
+	if s != nil {
+		gmuo.SetInviterID(*s)
+	}
+	return gmuo
+}
+
+// ClearInviterID clears the value of the "inviter_id" field.
+func (gmuo *GroupMemberUpdateOne) ClearInviterID() *GroupMemberUpdateOne {
+	gmuo.mutation.ClearInviterID()
+	return gmuo
+}
+
+// SetInviteCode sets the "invite_code" field.
+func (gmuo *GroupMemberUpdateOne) SetInviteCode(s string) *GroupMemberUpdateOne {
+	gmuo.mutation.SetInviteCode(s)
+	return gmuo
+}
+
+// SetInviteExpire sets the "invite_expire" field.
+func (gmuo *GroupMemberUpdateOne) SetInviteExpire(t time.Time) *GroupMemberUpdateOne {
+	gmuo.mutation.SetInviteExpire(t)
 	return gmuo
 }
 
@@ -350,6 +436,11 @@ func (gmuo *GroupMemberUpdateOne) SetMember(m *Member) *GroupMemberUpdateOne {
 // SetGroup sets the "group" edge to the Group entity.
 func (gmuo *GroupMemberUpdateOne) SetGroup(g *Group) *GroupMemberUpdateOne {
 	return gmuo.SetGroupID(g.ID)
+}
+
+// SetInviter sets the "inviter" edge to the Member entity.
+func (gmuo *GroupMemberUpdateOne) SetInviter(m *Member) *GroupMemberUpdateOne {
+	return gmuo.SetInviterID(m.ID)
 }
 
 // Mutation returns the GroupMemberMutation object of the builder.
@@ -366,6 +457,12 @@ func (gmuo *GroupMemberUpdateOne) ClearMember() *GroupMemberUpdateOne {
 // ClearGroup clears the "group" edge to the Group entity.
 func (gmuo *GroupMemberUpdateOne) ClearGroup() *GroupMemberUpdateOne {
 	gmuo.mutation.ClearGroup()
+	return gmuo
+}
+
+// ClearInviter clears the "inviter" edge to the Member entity.
+func (gmuo *GroupMemberUpdateOne) ClearInviter() *GroupMemberUpdateOne {
+	gmuo.mutation.ClearInviter()
 	return gmuo
 }
 
@@ -496,23 +593,23 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 	}
 	if value, ok := gmuo.mutation.Permission(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
+			Type:   field.TypeOther,
 			Value:  value,
 			Column: groupmember.FieldPermission,
 		})
 	}
-	if value, ok := gmuo.mutation.AddedPermission(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: groupmember.FieldPermission,
-		})
-	}
-	if value, ok := gmuo.mutation.Sn(); ok {
+	if value, ok := gmuo.mutation.InviteCode(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: groupmember.FieldSn,
+			Column: groupmember.FieldInviteCode,
+		})
+	}
+	if value, ok := gmuo.mutation.InviteExpire(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: groupmember.FieldInviteExpire,
 		})
 	}
 	if gmuo.mutation.MemberCleared() {
@@ -577,6 +674,41 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gmuo.mutation.InviterCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.InviterTable,
+			Columns: []string{groupmember.InviterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gmuo.mutation.InviterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.InviterTable,
+			Columns: []string{groupmember.InviterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
 				},
 			},
 		}

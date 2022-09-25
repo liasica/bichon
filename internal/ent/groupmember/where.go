@@ -7,6 +7,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/chatpuppy/puppychat/app/model"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
 )
 
@@ -103,16 +104,30 @@ func GroupID(v string) predicate.GroupMember {
 }
 
 // Permission applies equality check predicate on the "permission" field. It's identical to PermissionEQ.
-func Permission(v uint8) predicate.GroupMember {
+func Permission(v model.GroupMemberPerm) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPermission), v))
 	})
 }
 
-// Sn applies equality check predicate on the "sn" field. It's identical to SnEQ.
-func Sn(v string) predicate.GroupMember {
+// InviterID applies equality check predicate on the "inviter_id" field. It's identical to InviterIDEQ.
+func InviterID(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSn), v))
+		s.Where(sql.EQ(s.C(FieldInviterID), v))
+	})
+}
+
+// InviteCode applies equality check predicate on the "invite_code" field. It's identical to InviteCodeEQ.
+func InviteCode(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteExpire applies equality check predicate on the "invite_expire" field. It's identical to InviteExpireEQ.
+func InviteExpire(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldInviteExpire), v))
 	})
 }
 
@@ -379,21 +394,21 @@ func GroupIDContainsFold(v string) predicate.GroupMember {
 }
 
 // PermissionEQ applies the EQ predicate on the "permission" field.
-func PermissionEQ(v uint8) predicate.GroupMember {
+func PermissionEQ(v model.GroupMemberPerm) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPermission), v))
 	})
 }
 
 // PermissionNEQ applies the NEQ predicate on the "permission" field.
-func PermissionNEQ(v uint8) predicate.GroupMember {
+func PermissionNEQ(v model.GroupMemberPerm) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldPermission), v))
 	})
 }
 
 // PermissionIn applies the In predicate on the "permission" field.
-func PermissionIn(vs ...uint8) predicate.GroupMember {
+func PermissionIn(vs ...model.GroupMemberPerm) predicate.GroupMember {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -404,7 +419,7 @@ func PermissionIn(vs ...uint8) predicate.GroupMember {
 }
 
 // PermissionNotIn applies the NotIn predicate on the "permission" field.
-func PermissionNotIn(vs ...uint8) predicate.GroupMember {
+func PermissionNotIn(vs ...model.GroupMemberPerm) predicate.GroupMember {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -415,129 +430,306 @@ func PermissionNotIn(vs ...uint8) predicate.GroupMember {
 }
 
 // PermissionGT applies the GT predicate on the "permission" field.
-func PermissionGT(v uint8) predicate.GroupMember {
+func PermissionGT(v model.GroupMemberPerm) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldPermission), v))
 	})
 }
 
 // PermissionGTE applies the GTE predicate on the "permission" field.
-func PermissionGTE(v uint8) predicate.GroupMember {
+func PermissionGTE(v model.GroupMemberPerm) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldPermission), v))
 	})
 }
 
 // PermissionLT applies the LT predicate on the "permission" field.
-func PermissionLT(v uint8) predicate.GroupMember {
+func PermissionLT(v model.GroupMemberPerm) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldPermission), v))
 	})
 }
 
 // PermissionLTE applies the LTE predicate on the "permission" field.
-func PermissionLTE(v uint8) predicate.GroupMember {
+func PermissionLTE(v model.GroupMemberPerm) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldPermission), v))
 	})
 }
 
-// SnEQ applies the EQ predicate on the "sn" field.
-func SnEQ(v string) predicate.GroupMember {
+// InviterIDEQ applies the EQ predicate on the "inviter_id" field.
+func InviterIDEQ(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSn), v))
+		s.Where(sql.EQ(s.C(FieldInviterID), v))
 	})
 }
 
-// SnNEQ applies the NEQ predicate on the "sn" field.
-func SnNEQ(v string) predicate.GroupMember {
+// InviterIDNEQ applies the NEQ predicate on the "inviter_id" field.
+func InviterIDNEQ(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldSn), v))
+		s.Where(sql.NEQ(s.C(FieldInviterID), v))
 	})
 }
 
-// SnIn applies the In predicate on the "sn" field.
-func SnIn(vs ...string) predicate.GroupMember {
+// InviterIDIn applies the In predicate on the "inviter_id" field.
+func InviterIDIn(vs ...string) predicate.GroupMember {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldSn), v...))
+		s.Where(sql.In(s.C(FieldInviterID), v...))
 	})
 }
 
-// SnNotIn applies the NotIn predicate on the "sn" field.
-func SnNotIn(vs ...string) predicate.GroupMember {
+// InviterIDNotIn applies the NotIn predicate on the "inviter_id" field.
+func InviterIDNotIn(vs ...string) predicate.GroupMember {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldSn), v...))
+		s.Where(sql.NotIn(s.C(FieldInviterID), v...))
 	})
 }
 
-// SnGT applies the GT predicate on the "sn" field.
-func SnGT(v string) predicate.GroupMember {
+// InviterIDGT applies the GT predicate on the "inviter_id" field.
+func InviterIDGT(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldSn), v))
+		s.Where(sql.GT(s.C(FieldInviterID), v))
 	})
 }
 
-// SnGTE applies the GTE predicate on the "sn" field.
-func SnGTE(v string) predicate.GroupMember {
+// InviterIDGTE applies the GTE predicate on the "inviter_id" field.
+func InviterIDGTE(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldSn), v))
+		s.Where(sql.GTE(s.C(FieldInviterID), v))
 	})
 }
 
-// SnLT applies the LT predicate on the "sn" field.
-func SnLT(v string) predicate.GroupMember {
+// InviterIDLT applies the LT predicate on the "inviter_id" field.
+func InviterIDLT(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldSn), v))
+		s.Where(sql.LT(s.C(FieldInviterID), v))
 	})
 }
 
-// SnLTE applies the LTE predicate on the "sn" field.
-func SnLTE(v string) predicate.GroupMember {
+// InviterIDLTE applies the LTE predicate on the "inviter_id" field.
+func InviterIDLTE(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldSn), v))
+		s.Where(sql.LTE(s.C(FieldInviterID), v))
 	})
 }
 
-// SnContains applies the Contains predicate on the "sn" field.
-func SnContains(v string) predicate.GroupMember {
+// InviterIDContains applies the Contains predicate on the "inviter_id" field.
+func InviterIDContains(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldSn), v))
+		s.Where(sql.Contains(s.C(FieldInviterID), v))
 	})
 }
 
-// SnHasPrefix applies the HasPrefix predicate on the "sn" field.
-func SnHasPrefix(v string) predicate.GroupMember {
+// InviterIDHasPrefix applies the HasPrefix predicate on the "inviter_id" field.
+func InviterIDHasPrefix(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldSn), v))
+		s.Where(sql.HasPrefix(s.C(FieldInviterID), v))
 	})
 }
 
-// SnHasSuffix applies the HasSuffix predicate on the "sn" field.
-func SnHasSuffix(v string) predicate.GroupMember {
+// InviterIDHasSuffix applies the HasSuffix predicate on the "inviter_id" field.
+func InviterIDHasSuffix(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldSn), v))
+		s.Where(sql.HasSuffix(s.C(FieldInviterID), v))
 	})
 }
 
-// SnEqualFold applies the EqualFold predicate on the "sn" field.
-func SnEqualFold(v string) predicate.GroupMember {
+// InviterIDIsNil applies the IsNil predicate on the "inviter_id" field.
+func InviterIDIsNil() predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldSn), v))
+		s.Where(sql.IsNull(s.C(FieldInviterID)))
 	})
 }
 
-// SnContainsFold applies the ContainsFold predicate on the "sn" field.
-func SnContainsFold(v string) predicate.GroupMember {
+// InviterIDNotNil applies the NotNil predicate on the "inviter_id" field.
+func InviterIDNotNil() predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldSn), v))
+		s.Where(sql.NotNull(s.C(FieldInviterID)))
+	})
+}
+
+// InviterIDEqualFold applies the EqualFold predicate on the "inviter_id" field.
+func InviterIDEqualFold(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldInviterID), v))
+	})
+}
+
+// InviterIDContainsFold applies the ContainsFold predicate on the "inviter_id" field.
+func InviterIDContainsFold(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldInviterID), v))
+	})
+}
+
+// InviteCodeEQ applies the EQ predicate on the "invite_code" field.
+func InviteCodeEQ(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeNEQ applies the NEQ predicate on the "invite_code" field.
+func InviteCodeNEQ(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeIn applies the In predicate on the "invite_code" field.
+func InviteCodeIn(vs ...string) predicate.GroupMember {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldInviteCode), v...))
+	})
+}
+
+// InviteCodeNotIn applies the NotIn predicate on the "invite_code" field.
+func InviteCodeNotIn(vs ...string) predicate.GroupMember {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldInviteCode), v...))
+	})
+}
+
+// InviteCodeGT applies the GT predicate on the "invite_code" field.
+func InviteCodeGT(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeGTE applies the GTE predicate on the "invite_code" field.
+func InviteCodeGTE(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeLT applies the LT predicate on the "invite_code" field.
+func InviteCodeLT(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeLTE applies the LTE predicate on the "invite_code" field.
+func InviteCodeLTE(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeContains applies the Contains predicate on the "invite_code" field.
+func InviteCodeContains(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeHasPrefix applies the HasPrefix predicate on the "invite_code" field.
+func InviteCodeHasPrefix(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeHasSuffix applies the HasSuffix predicate on the "invite_code" field.
+func InviteCodeHasSuffix(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeEqualFold applies the EqualFold predicate on the "invite_code" field.
+func InviteCodeEqualFold(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteCodeContainsFold applies the ContainsFold predicate on the "invite_code" field.
+func InviteCodeContainsFold(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldInviteCode), v))
+	})
+}
+
+// InviteExpireEQ applies the EQ predicate on the "invite_expire" field.
+func InviteExpireEQ(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldInviteExpire), v))
+	})
+}
+
+// InviteExpireNEQ applies the NEQ predicate on the "invite_expire" field.
+func InviteExpireNEQ(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldInviteExpire), v))
+	})
+}
+
+// InviteExpireIn applies the In predicate on the "invite_expire" field.
+func InviteExpireIn(vs ...time.Time) predicate.GroupMember {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldInviteExpire), v...))
+	})
+}
+
+// InviteExpireNotIn applies the NotIn predicate on the "invite_expire" field.
+func InviteExpireNotIn(vs ...time.Time) predicate.GroupMember {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldInviteExpire), v...))
+	})
+}
+
+// InviteExpireGT applies the GT predicate on the "invite_expire" field.
+func InviteExpireGT(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldInviteExpire), v))
+	})
+}
+
+// InviteExpireGTE applies the GTE predicate on the "invite_expire" field.
+func InviteExpireGTE(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldInviteExpire), v))
+	})
+}
+
+// InviteExpireLT applies the LT predicate on the "invite_expire" field.
+func InviteExpireLT(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldInviteExpire), v))
+	})
+}
+
+// InviteExpireLTE applies the LTE predicate on the "invite_expire" field.
+func InviteExpireLTE(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldInviteExpire), v))
 	})
 }
 
@@ -588,6 +780,34 @@ func HasGroupWith(preds ...predicate.Group) predicate.GroupMember {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(GroupInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, GroupTable, GroupColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasInviter applies the HasEdge predicate on the "inviter" edge.
+func HasInviter() predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InviterTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, InviterTable, InviterColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInviterWith applies the HasEdge predicate on the "inviter" edge with a given conditions (other predicates).
+func HasInviterWith(preds ...predicate.Member) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InviterInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, InviterTable, InviterColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -142,3 +142,15 @@ func (s *memberService) Profile(param any) *model.MemberProfile {
         Intro:    mem.Intro,
     }
 }
+
+// Update member
+func (s *memberService) Update(mem *ent.Member, req *model.MemberUpdateReq) error {
+    updater := s.orm.UpdateOneID(mem.ID)
+    if req.Nickname != "" {
+        updater.SetNickname(req.Nickname)
+    }
+    if req.Intro != "" {
+        updater.SetIntro(req.Intro)
+    }
+    return updater.Exec(s.ctx)
+}

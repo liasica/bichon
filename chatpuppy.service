@@ -1,0 +1,13 @@
+# COPY TO /etc/systemd/system/chatpuppy.service
+
+[Unit]
+Description = chatpuppy server
+After = network.target syslog.target
+Wants = network.target
+
+[Service]
+Type = simple
+ExecStart = /data/chatpuppy-test/puppychat server -c /data/chatpuppy-test/config/chatpuppy.yaml
+
+[Install]
+WantedBy = multi-user.target

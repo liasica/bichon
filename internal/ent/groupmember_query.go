@@ -19,15 +19,16 @@ import (
 // GroupMemberQuery is the builder for querying GroupMember entities.
 type GroupMemberQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.GroupMember
-	withMember *MemberQuery
-	withGroup  *GroupQuery
-	modifiers  []func(*sql.Selector)
+	limit       *int
+	offset      *int
+	unique      *bool
+	order       []OrderFunc
+	fields      []string
+	predicates  []predicate.GroupMember
+	withMember  *MemberQuery
+	withGroup   *GroupQuery
+	withInviter *MemberQuery
+	modifiers   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -101,6 +102,28 @@ func (gmq *GroupMemberQuery) QueryGroup() *GroupQuery {
 			sqlgraph.From(groupmember.Table, groupmember.FieldID, selector),
 			sqlgraph.To(group.Table, group.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, groupmember.GroupTable, groupmember.GroupColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(gmq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInviter chains the current query on the "inviter" edge.
+func (gmq *GroupMemberQuery) QueryInviter() *MemberQuery {
+	query := &MemberQuery{config: gmq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := gmq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := gmq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(groupmember.Table, groupmember.FieldID, selector),
+			sqlgraph.To(member.Table, member.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, groupmember.InviterTable, groupmember.InviterColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gmq.driver.Dialect(), step)
 		return fromU, nil
@@ -284,13 +307,14 @@ func (gmq *GroupMemberQuery) Clone() *GroupMemberQuery {
 		return nil
 	}
 	return &GroupMemberQuery{
-		config:     gmq.config,
-		limit:      gmq.limit,
-		offset:     gmq.offset,
-		order:      append([]OrderFunc{}, gmq.order...),
-		predicates: append([]predicate.GroupMember{}, gmq.predicates...),
-		withMember: gmq.withMember.Clone(),
-		withGroup:  gmq.withGroup.Clone(),
+		config:      gmq.config,
+		limit:       gmq.limit,
+		offset:      gmq.offset,
+		order:       append([]OrderFunc{}, gmq.order...),
+		predicates:  append([]predicate.GroupMember{}, gmq.predicates...),
+		withMember:  gmq.withMember.Clone(),
+		withGroup:   gmq.withGroup.Clone(),
+		withInviter: gmq.withInviter.Clone(),
 		// clone intermediate query.
 		sql:    gmq.sql.Clone(),
 		path:   gmq.path,
@@ -317,6 +341,17 @@ func (gmq *GroupMemberQuery) WithGroup(opts ...func(*GroupQuery)) *GroupMemberQu
 		opt(query)
 	}
 	gmq.withGroup = query
+	return gmq
+}
+
+// WithInviter tells the query-builder to eager-load the nodes that are connected to
+// the "inviter" edge. The optional arguments are used to configure the query builder of the edge.
+func (gmq *GroupMemberQuery) WithInviter(opts ...func(*MemberQuery)) *GroupMemberQuery {
+	query := &MemberQuery{config: gmq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	gmq.withInviter = query
 	return gmq
 }
 
@@ -388,9 +423,10 @@ func (gmq *GroupMemberQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*GroupMember{}
 		_spec       = gmq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			gmq.withMember != nil,
 			gmq.withGroup != nil,
+			gmq.withInviter != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -423,6 +459,12 @@ func (gmq *GroupMemberQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if query := gmq.withGroup; query != nil {
 		if err := gmq.loadGroup(ctx, query, nodes, nil,
 			func(n *GroupMember, e *Group) { n.Edges.Group = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := gmq.withInviter; query != nil {
+		if err := gmq.loadInviter(ctx, query, nodes, nil,
+			func(n *GroupMember, e *Member) { n.Edges.Inviter = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -474,6 +516,35 @@ func (gmq *GroupMemberQuery) loadGroup(ctx context.Context, query *GroupQuery, n
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "group_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (gmq *GroupMemberQuery) loadInviter(ctx context.Context, query *MemberQuery, nodes []*GroupMember, init func(*GroupMember), assign func(*GroupMember, *Member)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*GroupMember)
+	for i := range nodes {
+		if nodes[i].InviterID == nil {
+			continue
+		}
+		fk := *nodes[i].InviterID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(member.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "inviter_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

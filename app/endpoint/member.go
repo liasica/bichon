@@ -51,3 +51,18 @@ func (*member) Profile(c echo.Context) (err error) {
     ctx, req := app.MemberContextAndBinding[model.MemberAddressParam](c)
     return ctx.SendResponse(service.NewMember().Profile(req.Address))
 }
+
+// Update
+// @ID           MemberUpdate
+// @Router       /member/update [POST]
+// @Summary      Update member's info
+// @Description  need signature verify
+// @Tags         Member
+// @Accept       json
+// @Produce      json
+// @Param        body  body     model.MemberUpdateReq  true  "Member's info"
+// @Success      200  {object}  app.Response  "Response success"
+func (*member) Update(c echo.Context) (err error) {
+    ctx, req := app.MemberContextAndBinding[model.MemberUpdateReq](c)
+    return ctx.SendResponse(nil, service.NewMember().Update(ctx.Member, req))
+}

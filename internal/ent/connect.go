@@ -7,6 +7,7 @@ import (
     entsql "entgo.io/ent/dialect/sql"
     "entgo.io/ent/entc/integration/ent/migrate"
     "fmt"
+    "github.com/chatpuppy/puppychat/pkg/snag"
     log "github.com/sirupsen/logrus"
     "strings"
 
@@ -82,4 +83,11 @@ func WithTx(ctx context.Context, fn func(tx *Tx) error) error {
         return fmt.Errorf("committing transaction: %w", err)
     }
     return nil
+}
+
+func WithTxPanic(ctx context.Context, fn func(tx *Tx) (err error)) {
+    err := WithTx(ctx, fn)
+    if err != nil {
+        snag.Panic(err)
+    }
 }

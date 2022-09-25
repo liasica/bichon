@@ -2,6 +2,7 @@ package service
 
 import (
     "context"
+    "entgo.io/ent/dialect/sql"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/message"
@@ -10,11 +11,6 @@ import (
     "github.com/liasica/go-encryption/aes"
     "github.com/liasica/go-encryption/rsa"
     "time"
-)
-
-var (
-    // BroadcastChan broadcast to other online members in group
-    BroadcastChan = make(chan *model.ChatMessage, 1024)
 )
 
 type messageService struct {
@@ -30,22 +26,71 @@ func NewMessage() *messageService {
 }
 
 // Create message and broadcast
-func (s *messageService) Create(mem *ent.Member, req *model.ChatMessage) (res model.ChatMessageCreateRes, err error) {
+func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (res *model.Message, err error) {
+    // owner
+    owner := &model.Member{
+        ID:       mem.ID,
+        Address:  mem.Address,
+        Nickname: mem.Nickname,
+        Avatar:   mem.Avatar,
+    }
+
     var keys *model.GroupMemberRawKeys
     keys, err = model.LoadSharedKeys(mem.ID, req.GroupID)
     if err != nil {
         return
     }
 
+    mc := &model.MessageContent{
+        Encrypted: req.Content,
+    }
+
     // decrypt message
-    err = req.Decrypt(keys)
+    err = mc.Decrypt(keys)
     if err != nil {
         return
     }
 
     // encrypt message by node keys
     var b []byte
-    b, err = rsa.Encrypt([]byte(req.Decrypted), g.RsaPublicKey())
+    b, err = rsa.Encrypt(mc.Decrypted, g.RsaPublicKey())
+
+    // get quote message
+    var (
+        parent *ent.Message
+        bq     *model.Message
+        rq     *model.Message
+    )
+    if req.ParentID != nil {
+        parent, _ = s.orm.Query().Where(message.ID(*req.ParentID), message.GroupID(req.GroupID)).First(s.ctx)
+        if parent != nil {
+            err = model.ErrQuoteMessageNotFound
+            return
+        }
+
+        // decrypt parent message content
+        var pb []byte
+        pb, err = rsa.Decrypt(parent.Content, g.RsaPrivateKey())
+        if err != nil {
+            return
+        }
+
+        // quote message
+        quote := model.Message{
+            ID:        parent.ID,
+            CreatedAt: parent.CreatedAt,
+            Member:    parent.Owner,
+
+            MessageContent: &model.MessageContent{Decrypted: pb},
+        }
+        bq = &quote
+        rq = &quote
+
+        err = s.Share(keys, rq)
+        if err != nil {
+            return
+        }
+    }
 
     // save message
     var m *ent.Message
@@ -54,21 +99,31 @@ func (s *messageService) Create(mem *ent.Member, req *model.ChatMessage) (res mo
         SetMemberID(req.MemberID).
         SetContent(b).
         SetNillableParentID(req.ParentID).
+        SetOwner(owner).
         Save(s.ctx)
     if err != nil {
         return
     }
 
     // broadcast message
-    req.CreatedAt = m.CreatedAt
-    req.ID = m.ID
-    BroadcastChan <- req
-
-    res = model.ChatMessageCreateRes{
+    model.SendBroadcast(model.Message{
         ID:        m.ID,
         CreatedAt: m.CreatedAt,
-    }
+        GroupID:   req.GroupID,
+        Member:    owner,
+        Quote:     bq,
 
+        MessageContent: &model.MessageContent{Decrypted: mc.Decrypted},
+    })
+
+    res = &model.Message{
+        Content:   req.Content,
+        GroupID:   req.GroupID,
+        Member:    owner,
+        ID:        m.ID,
+        CreatedAt: m.CreatedAt,
+        Quote:     rq,
+    }
     return
 }
 
@@ -83,23 +138,27 @@ func (s *messageService) EncryptMessageFromDB(keys *model.GroupMemberRawKeys, co
     return aes.EncryptToBase64(b, keys.Shared)
 }
 
+// Share message content encrypt use sharekey
+func (s *messageService) Share(keys *model.GroupMemberRawKeys, msg *model.Message) (err error) {
+    err = msg.MessageContent.Encrypt(keys)
+    if err != nil {
+        return
+    }
+    msg.Content = msg.MessageContent.Encrypted.(string)
+
+    if msg.Quote != nil {
+        err = s.Share(keys, msg.Quote)
+    }
+
+    return
+}
+
 // Detail get message detail
 func (s *messageService) Detail(keys *model.GroupMemberRawKeys, msg *ent.Message) (res *model.Message, err error) {
-    mem := msg.Edges.Member
-    if mem == nil {
-        mem, _ = NewMember().QueryID(msg.MemberID)
-    }
-    if mem == nil {
-        err = model.ErrMemberNotFound
-    }
     res = &model.Message{
-        ID: msg.ID,
-        Member: &model.Member{
-            ID:       mem.ID,
-            Address:  mem.Address,
-            Nickname: mem.Nickname,
-            Avatar:   mem.Avatar,
-        },
+        ID:        msg.ID,
+        GroupID:   msg.GroupID,
+        Member:    msg.Owner,
         CreatedAt: msg.CreatedAt,
     }
 
@@ -123,15 +182,17 @@ func (s *messageService) List(mem *ent.Member, req *model.MessageListReq) (res [
     var keys *model.GroupMemberRawKeys
     keys, err = model.LoadSharedKeys(mem.ID, req.GroupID)
 
+    if keys == nil {
+        err = model.ErrShareKeyNotFound
+        return
+    }
+
     items, _ := s.orm.Query().
         Where(
             message.GroupID(req.GroupID),
             message.CreatedAtLT(last),
         ).
-        WithMember().
-        WithParent(func(query *ent.MessageQuery) {
-            query.WithMember()
-        }).
+        WithParent().
         Limit(20).
         All(s.ctx)
 
@@ -147,17 +208,78 @@ func (s *messageService) List(mem *ent.Member, req *model.MessageListReq) (res [
     return
 }
 
-// Read mask message as read
-func (s *messageService) Read(mem *ent.Member, req *model.MessageReadReq) {
-    msg, err := s.orm.Query().Where(message.ID(req.ID)).First(s.ctx)
-    if err != nil {
-        return
+// Read mask group message as read
+func (s *messageService) Read(mem *ent.Member, req *model.MessageReadReq) error {
+    // is member in group
+    if !NewGroup().MemberIn(mem.ID, req.GroupID) {
+        return model.ErrNotInGroup
     }
-    _ = ent.Database.MessageRead.Create().
-        SetGroupID(msg.GroupID).
-        SetMemberID(mem.ID).
-        SetLastTime(msg.CreatedAt).
-        SetLastID(msg.ID).
+    msg, err := s.orm.Query().Where(message.GroupID(req.GroupID)).Order(ent.Desc(message.FieldCreatedAt)).First(s.ctx)
+    if err != nil {
+        return err
+    }
+    return s.UpdateRead(msg.ID, mem.ID, req.GroupID, msg.CreatedAt)
+}
+
+// UpdateRead update read message attributes
+func (s *messageService) UpdateRead(id, memID, groupID string, createdAt time.Time) error {
+    return ent.Database.MessageRead.Create().
+        SetGroupID(groupID).
+        SetMemberID(memID).
+        SetLastTime(createdAt).
+        SetLastID(id).
         OnConflictColumns(messageread.FieldGroupID, messageread.FieldMemberID).
         Exec(s.ctx)
+}
+
+// UnreadList group message unread info
+func (s *messageService) UnreadList(memberID string) (items map[string]model.MessageUnread) {
+    var result []struct {
+        Count   int        `json:"count"`
+        GroupID string     `json:"group_id"`
+        ID      *string    `json:"id"`   // first unread message id
+        Time    *time.Time `json:"time"` // first unread message time
+    }
+    _ = s.orm.Query().Modify(func(sel *sql.Selector) {
+        t := sql.Table(messageread.Table)
+        sel.LeftJoin(t).On(t.C(messageread.FieldGroupID), sel.C(message.FieldGroupID)).
+            Where(
+                sql.And(
+                    sql.EQ(sel.C(message.FieldMemberID), memberID),
+                    sql.Or(
+                        sql.ColumnsGT(sel.C(message.FieldCreatedAt), t.C(messageread.FieldLastTime)),
+                        sql.IsNull(t.C(messageread.FieldLastTime)),
+                    ),
+                ),
+            ).
+            Select(
+                sel.C(message.FieldGroupID),
+                sql.As(sql.Count(sel.C(message.FieldID)), "count"),
+                sql.As(sql.Min(sel.C(message.FieldID)), "id"),
+                sql.As(sql.Min(sel.C(message.FieldCreatedAt)), "time"),
+            ).
+            GroupBy(sel.C(message.FieldGroupID))
+    }).Scan(s.ctx, &result)
+    items = make(map[string]model.MessageUnread)
+    for _, r := range result {
+        items[r.GroupID] = model.MessageUnread{
+            Count:   r.Count,
+            GroupID: r.GroupID,
+            ID:      r.ID,
+            Time:    r.Time,
+        }
+    }
+    return
+}
+
+// AutoRead auto update read message attributes from actived group
+func (s *messageService) AutoRead(msg *model.Message) {
+    groupID, ok := model.GroupActived.Load(msg.Member.ID)
+    if !ok {
+        return
+    }
+    if groupID != msg.GroupID {
+        return
+    }
+    _ = s.UpdateRead(msg.ID, msg.Member.ID, msg.GroupID, msg.CreatedAt)
 }

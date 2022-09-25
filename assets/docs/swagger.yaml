@@ -8,27 +8,6 @@ definitions:
       message:
         type: string
     type: object
-  model.ChatMessage:
-    properties:
-      content:
-        description: encrypted message
-        type: string
-      createdAt:
-        type: string
-      groupId:
-        type: string
-      id:
-        type: string
-      memberId:
-        type: string
-      parentId:
-        description: quote message id
-        type: string
-    required:
-    - content
-    - groupId
-    - memberId
-    type: object
   model.ChatMessageCreateRes:
     properties:
       createdAt:
@@ -62,6 +41,36 @@ definitions:
     - name
     - sharedPublic
     type: object
+  model.GroupDetailRes:
+    properties:
+      address:
+        type: string
+      category:
+        type: string
+      id:
+        type: string
+      intro:
+        description: optional
+        type: string
+      inviteCode:
+        type: string
+      members:
+        items:
+          $ref: '#/definitions/model.MemberWithPermission'
+        type: array
+      membersCount:
+        type: integer
+      membersMax:
+        type: integer
+      name:
+        type: string
+      owner:
+        description: group is belongs to current member
+        type: boolean
+      public:
+        description: group is public or private
+        type: boolean
+    type: object
   model.GroupDetailWithPublicKey:
     properties:
       address:
@@ -74,6 +83,8 @@ definitions:
         type: string
       intro:
         description: optional
+        type: string
+      inviteCode:
         type: string
       keyId:
         type: string
@@ -94,11 +105,13 @@ definitions:
     properties:
       groupId:
         type: string
+      inviteCode:
+        description: invite code from group member
+        type: string
       sharedPublic:
         description: Member's public key for `ecdh` exchange
         type: string
     required:
-    - groupId
     - sharedPublic
     type: object
   model.GroupJoinedListRes:
@@ -112,8 +125,6 @@ definitions:
       intro:
         description: optional
         type: string
-      lastTime:
-        type: string
       membersCount:
         type: integer
       membersMax:
@@ -121,7 +132,14 @@ definitions:
       name:
         type: string
       unreadCount:
+        description: unread message count
         type: integer
+      unreadId:
+        description: first unread message id
+        type: string
+      unreadTime:
+        description: first unread message time
+        type: string
     type: object
   model.GroupKeyUsed:
     properties:
@@ -163,33 +181,12 @@ definitions:
       name:
         type: string
     type: object
-  model.GroupMetaRes:
+  model.GroupMemberReq:
     properties:
-      address:
+      groupId:
         type: string
-      category:
+      memberId:
         type: string
-      id:
-        type: string
-      intro:
-        description: optional
-        type: string
-      members:
-        items:
-          $ref: '#/definitions/model.Member'
-        type: array
-      membersCount:
-        type: integer
-      membersMax:
-        type: integer
-      name:
-        type: string
-      owner:
-        description: group is belongs to current member
-        type: boolean
-      public:
-        description: group is public or private
-        type: boolean
     type: object
   model.GroupPublicKey:
     properties:
@@ -209,6 +206,24 @@ definitions:
     required:
     - groupId
     - sharedPublic
+    type: object
+  model.GroupUpdateReq:
+    properties:
+      category:
+        description: group's category
+        type: string
+      groupId:
+        type: string
+      intro:
+        type: string
+      maxMembers:
+        type: integer
+      name:
+        type: string
+      public:
+        type: boolean
+    required:
+    - groupId
     type: object
   model.Member:
     properties:
@@ -250,11 +265,33 @@ definitions:
       token:
         type: string
     type: object
+  model.MemberUpdateReq:
+    properties:
+      intro:
+        type: string
+      nickname:
+        type: string
+    type: object
+  model.MemberWithPermission:
+    properties:
+      address:
+        type: string
+      avatar:
+        type: string
+      id:
+        type: string
+      nickname:
+        type: string
+      permission:
+        type: integer
+    type: object
   model.Message:
     properties:
       content:
         type: string
       createdAt:
+        type: string
+      groupId:
         type: string
       id:
         type: string
@@ -264,6 +301,25 @@ definitions:
       quote:
         allOf:
         - $ref: '#/definitions/model.Message'
+    type: object
+  model.MessageCreateReq:
+    properties:
+      content:
+        description: encrypted message
+        type: string
+      groupId:
+        type: string
+      id:
+        type: string
+      memberId:
+        type: string
+      parentId:
+        description: quote message id
+        type: string
+    required:
+    - content
+    - groupId
+    - memberId
     type: object
   model.Pagination:
     properties:
@@ -399,9 +455,31 @@ paths:
             - $ref: '#/definitions/app.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/model.GroupMetaRes'
+                  $ref: '#/definitions/model.GroupDetailRes'
               type: object
       summary: Detail info of group
+      tags:
+      - Group
+  /group/active:
+    post:
+      consumes:
+      - application/json
+      operationId: GroupActive
+      parameters:
+      - description: Group id
+        in: body
+        name: groupId
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Active group
       tags:
       - Group
   /group/categories:
@@ -423,6 +501,7 @@ paths:
     post:
       consumes:
       - application/json
+      description: need signature verify
       operationId: GroupJoin
       parameters:
       - description: Join info
@@ -512,6 +591,121 @@ paths:
       summary: Setting current key of group
       tags:
       - Group
+  /group/kickout:
+    post:
+      consumes:
+      - application/json
+      description: need signature verify
+      operationId: GroupKickout
+      parameters:
+      - description: Group member info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.GroupMemberReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Kickout member
+      tags:
+      - Group
+  /group/leave:
+    post:
+      consumes:
+      - application/json
+      description: need signature verify
+      operationId: GroupLeave
+      parameters:
+      - description: Group id
+        in: body
+        name: groupId
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Leave group
+      tags:
+      - Group
+  /group/manager:
+    post:
+      consumes:
+      - application/json
+      description: need signature verify
+      operationId: GroupManager
+      parameters:
+      - description: Group member info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.GroupMemberReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Set manager
+      tags:
+      - Group
+  /group/recode:
+    post:
+      consumes:
+      - application/json
+      description: need signature verify
+      operationId: GroupReCode
+      parameters:
+      - description: Group id
+        in: body
+        name: groupId
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Regenerate invite code
+      tags:
+      - Group
+  /group/update:
+    post:
+      consumes:
+      - application/json
+      description: need signature verify
+      operationId: GroupUpdate
+      parameters:
+      - description: Group info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.GroupUpdateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Update group info
+      tags:
+      - Group
   /member/{address}:
     get:
       consumes:
@@ -547,6 +741,29 @@ paths:
                   $ref: '#/definitions/model.MemberNonceRes'
               type: object
       summary: Member signin nonce
+      tags:
+      - Member
+  /member/update:
+    post:
+      consumes:
+      - application/json
+      description: need signature verify
+      operationId: MemberUpdate
+      parameters:
+      - description: Member's info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.MemberUpdateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Update member's info
       tags:
       - Member
   /memeber:
@@ -610,7 +827,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/model.ChatMessage'
+          $ref: '#/definitions/model.MessageCreateReq'
       produces:
       - application/json
       responses:
@@ -624,6 +841,28 @@ paths:
                   $ref: '#/definitions/model.ChatMessageCreateRes'
               type: object
       summary: Create message
+      tags:
+      - Message
+  /message/read:
+    post:
+      consumes:
+      - application/json
+      operationId: MessageRead
+      parameters:
+      - description: group id
+        in: body
+        name: groupId
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response success
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Mask message read
       tags:
       - Message
 swagger: "2.0"

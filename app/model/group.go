@@ -16,13 +16,20 @@ const (
     GroupCreateFrequency = 60
     // GroupKeyShareFrequency group key share interval seconds
     GroupKeyShareFrequency = 60
+    // GroupInviteCodeExpires group invite expiration days
+    GroupInviteCodeExpires = 7 // 7 days
 )
 
 type GroupCategory string
 
 var (
-    keysCache       sync.Map
     GroupCategories = []GroupCategory{"test1", "test2", "test3"}
+
+    keysCache sync.Map
+
+    // GroupActived member current actived group
+    // type is memberID => groupID
+    GroupActived sync.Map
 )
 
 func (cate GroupCategory) IsValid() bool {
@@ -76,16 +83,16 @@ type GroupMeta struct {
 
 type GroupJoinedListRes struct {
     GroupMeta
-    UnreadCount int        `json:"unreadCount"`
-    LastTime    *time.Time `json:"lastTime,omitempty"`
-    // UnreadTime  *time.Time `json:"unreadTime,omitempty"` // last unread message time
-    // UnreadID    *string    `json:"unreadId,omitempty"`
+    UnreadCount int        `json:"unreadCount"`          // unread message count
+    UnreadID    *string    `json:"unreadId,omitempty"`   // first unread message id
+    UnreadTime  *time.Time `json:"unreadTime,omitempty"` // first unread message time
 }
 
 type GroupDetail struct {
     GroupMeta
-    Public bool `json:"public"`          // group is public or private
-    Owner  bool `json:"owner,omitempty"` // group is belongs to current member
+    Public     bool   `json:"public"`          // group is public or private
+    Owner      bool   `json:"owner,omitempty"` // group is belongs to current member
+    InviteCode string `json:"inviteCode"`
 }
 
 type GroupKeys struct {
@@ -110,7 +117,8 @@ func (keys *GroupKeys) Decrypt(hex string) (err error) {
 }
 
 type GroupJoinReq struct {
-    GroupID string `json:"groupId" validate:"required"`
+    GroupID    string `json:"groupId,omitempty" validate:"required_without=InviteCode"`
+    InviteCode string `json:"inviteCode,omitempty" validate:"required_without=GroupID"` // invite code from group member
     *GroupMemberKeyShareReq
 }
 
@@ -118,9 +126,9 @@ type GroupMetaReq struct {
     ID string `json:"id" validate:"required" param:"id"`
 }
 
-type GroupMetaRes struct {
+type GroupDetailRes struct {
     *GroupDetail
-    Members []Member `json:"members"`
+    Members []MemberWithPermission `json:"members"`
 }
 
 type GroupKeyUsed struct {
@@ -145,6 +153,29 @@ type GroupListRes struct {
     Joined bool `json:"joined,omitempty"`
 }
 
-type GroupLeaveReq struct {
-    ID string `json:"id"`
+type GroupIDReq struct {
+    GroupID string `json:"groupId" validate:"required"`
+}
+
+type GroupUpdateReq struct {
+    GroupID    string         `json:"groupId" validate:"required"`
+    Category   *GroupCategory `json:"category"`
+    Name       *string        `json:"name"`
+    Intro      *string        `json:"intro"`
+    Public     *bool          `json:"public"`
+    MaxMembers *int           `json:"maxMembers"`
+}
+
+type GroupInviteCodeRes struct {
+    InviteCode string `json:"inviteCode"`
+}
+
+type GroupActiveData struct {
+    GroupID  string `json:"groupId"`
+    MemberID string `json:"memberId"`
+}
+
+type GroupMemberReq struct {
+    GroupID  string `json:"groupId"`
+    MemberID string `json:"memberId"`
 }

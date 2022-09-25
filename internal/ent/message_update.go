@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chatpuppy/puppychat/app/model"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
@@ -65,6 +66,12 @@ func (mu *MessageUpdate) SetNillableParentID(s *string) *MessageUpdate {
 // ClearParentID clears the value of the "parent_id" field.
 func (mu *MessageUpdate) ClearParentID() *MessageUpdate {
 	mu.mutation.ClearParentID()
+	return mu
+}
+
+// SetOwner sets the "owner" field.
+func (mu *MessageUpdate) SetOwner(m *model.Member) *MessageUpdate {
+	mu.mutation.SetOwner(m)
 	return mu
 }
 
@@ -242,6 +249,13 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeBytes,
 			Value:  value,
 			Column: message.FieldContent,
+		})
+	}
+	if value, ok := mu.mutation.Owner(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: message.FieldOwner,
 		})
 	}
 	if mu.mutation.MemberCleared() {
@@ -462,6 +476,12 @@ func (muo *MessageUpdateOne) ClearParentID() *MessageUpdateOne {
 	return muo
 }
 
+// SetOwner sets the "owner" field.
+func (muo *MessageUpdateOne) SetOwner(m *model.Member) *MessageUpdateOne {
+	muo.mutation.SetOwner(m)
+	return muo
+}
+
 // SetMember sets the "member" edge to the Member entity.
 func (muo *MessageUpdateOne) SetMember(m *Member) *MessageUpdateOne {
 	return muo.SetMemberID(m.ID)
@@ -666,6 +686,13 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Type:   field.TypeBytes,
 			Value:  value,
 			Column: message.FieldContent,
+		})
+	}
+	if value, ok := muo.mutation.Owner(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: message.FieldOwner,
 		})
 	}
 	if muo.mutation.MemberCleared() {

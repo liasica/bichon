@@ -17,6 +17,7 @@ func loadAppRoutes(r *echo.Echo) {
     g.GET("/member/nonce/:address", endpoint.Member.Nonce)
     g.POST("/member", endpoint.Member.Signin)
     g.GET("/member/:address", endpoint.Member.Profile)
+    g.POST("/member/update", endpoint.Member.Update, middleware.Signature())
 
     // group routes
     g.POST("/group", endpoint.Group.Create, middleware.Signature())
@@ -24,10 +25,15 @@ func loadAppRoutes(r *echo.Echo) {
     g.GET("/group/categories", endpoint.Group.Categories)
     g.GET("/group", endpoint.Group.List)
     g.POST("/group/join", endpoint.Group.Join, middleware.Signature())
-    g.POST("/group/leave", endpoint.Group.List)
+    g.POST("/group/leave", endpoint.Group.Leave, middleware.Signature())
     g.POST("/group/key", endpoint.Group.ShareKey)
     g.GET("/group/:id", endpoint.Group.Detail)
     g.POST("/group/key/used", endpoint.Group.KeyUsed)
+    g.POST("/group/key/update", endpoint.Group.Update, middleware.Signature())
+    g.POST("/group/invite/recode", endpoint.Group.ReCode, middleware.Signature())
+    g.POST("/group/active", endpoint.Group.Active)
+    g.POST("/group/kickout", endpoint.Group.Kickout, middleware.Signature())
+    g.POST("/group/manager", endpoint.Group.Manager, middleware.Signature())
 
     // message
     // websocket
@@ -36,4 +42,5 @@ func loadAppRoutes(r *echo.Echo) {
     })
     g.POST("/message", endpoint.Message.Create)
     g.GET("/message", endpoint.Message.List)
+    g.POST("/message/read", endpoint.Message.Read)
 }

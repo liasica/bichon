@@ -430,6 +430,22 @@ func (c *GroupMemberClient) QueryGroup(gm *GroupMember) *GroupQuery {
 	return query
 }
 
+// QueryInviter queries the inviter edge of a GroupMember.
+func (c *GroupMemberClient) QueryInviter(gm *GroupMember) *MemberQuery {
+	query := &MemberQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := gm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(groupmember.Table, groupmember.FieldID, id),
+			sqlgraph.To(member.Table, member.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, groupmember.InviterTable, groupmember.InviterColumn),
+		)
+		fromV = sqlgraph.Neighbors(gm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *GroupMemberClient) Hooks() []Hook {
 	hooks := c.hooks.GroupMember

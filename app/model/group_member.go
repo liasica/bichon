@@ -1,12 +1,45 @@
 package model
 
-import "github.com/liasica/go-encryption/hexutil"
+import (
+    "database/sql/driver"
+    "fmt"
+    "github.com/liasica/go-encryption/hexutil"
+)
+
+type GroupMemberPerm uint8
 
 const (
-    GroupMemberPermDefault uint8 = 0 // ordinary member permission
-    GroupMemberPermManager uint8 = 8 // manager member permission
-    GroupMemberPermOwner   uint8 = 9 // owner
+    GroupMemberPermDefault GroupMemberPerm = 0 // ordinary member permission
+    GroupMemberPermManager GroupMemberPerm = 8 // manager member permission
+    GroupMemberPermOwner   GroupMemberPerm = 9 // owner
 )
+
+func (p *GroupMemberPerm) Scan(v interface{}) (err error) {
+    switch v := v.(type) {
+    case nil:
+    case uint8:
+        *p = GroupMemberPerm(v)
+    default:
+        err = fmt.Errorf("unexpected type %T", v)
+    }
+    return
+}
+
+func (p GroupMemberPerm) Value() (driver.Value, error) {
+    return p.Uint8(), nil
+}
+
+func (p GroupMemberPerm) Uint8() uint8 {
+    return uint8(p)
+}
+
+func (p GroupMemberPerm) IsManager() bool {
+    return p >= GroupMemberPermManager
+}
+
+func (p GroupMemberPerm) IsOwner() bool {
+    return p == GroupMemberPermOwner
+}
 
 type GroupMemberKeyShareReq struct {
     SharedPublic string `json:"sharedPublic" validate:"required"` // Member's public key for `ecdh` exchange

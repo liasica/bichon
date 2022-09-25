@@ -63,10 +63,12 @@ var (
 	GroupMemberColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "permission", Type: field.TypeUint8, Default: 0},
-		{Name: "sn", Type: field.TypeString, Unique: true},
+		{Name: "permission", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "smallint"}},
+		{Name: "invite_code", Type: field.TypeString, Unique: true},
+		{Name: "invite_expire", Type: field.TypeTime},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
+		{Name: "inviter_id", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// GroupMemberTable holds the schema information for the "group_member" table.
 	GroupMemberTable = &schema.Table{
@@ -76,22 +78,28 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "group_member_member_member",
-				Columns:    []*schema.Column{GroupMemberColumns[4]},
+				Columns:    []*schema.Column{GroupMemberColumns[5]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "group_member_group_group",
-				Columns:    []*schema.Column{GroupMemberColumns[5]},
+				Columns:    []*schema.Column{GroupMemberColumns[6]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "group_member_member_inviter",
+				Columns:    []*schema.Column{GroupMemberColumns[7]},
+				RefColumns: []*schema.Column{MemberColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "groupmember_group_id_member_id",
 				Unique:  true,
-				Columns: []*schema.Column{GroupMemberColumns[5], GroupMemberColumns[4]},
+				Columns: []*schema.Column{GroupMemberColumns[6], GroupMemberColumns[5]},
 			},
 			{
 				Name:    "groupmember_created_at",
@@ -170,6 +178,7 @@ var (
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "content", Type: field.TypeBytes},
+		{Name: "owner", Type: field.TypeJSON},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "parent_id", Type: field.TypeString, Nullable: true, Size: 25},
@@ -182,19 +191,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_group_messages",
-				Columns:    []*schema.Column{MessageColumns[3]},
+				Columns:    []*schema.Column{MessageColumns[4]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "message_member_messages",
-				Columns:    []*schema.Column{MessageColumns[4]},
+				Columns:    []*schema.Column{MessageColumns[5]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "message_message_children",
-				Columns:    []*schema.Column{MessageColumns[5]},
+				Columns:    []*schema.Column{MessageColumns[6]},
 				RefColumns: []*schema.Column{MessageColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -208,17 +217,17 @@ var (
 			{
 				Name:    "message_group_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[3]},
+				Columns: []*schema.Column{MessageColumns[4]},
 			},
 			{
 				Name:    "message_member_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[4]},
+				Columns: []*schema.Column{MessageColumns[5]},
 			},
 			{
 				Name:    "message_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[5]},
+				Columns: []*schema.Column{MessageColumns[6]},
 			},
 		},
 	}
@@ -280,6 +289,7 @@ func init() {
 	}
 	GroupMemberTable.ForeignKeys[0].RefTable = MemberTable
 	GroupMemberTable.ForeignKeys[1].RefTable = GroupTable
+	GroupMemberTable.ForeignKeys[2].RefTable = MemberTable
 	GroupMemberTable.Annotation = &entsql.Annotation{
 		Table: "group_member",
 	}

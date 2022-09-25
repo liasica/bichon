@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"github.com/chatpuppy/puppychat/app/model"
 )
 
 const (
@@ -21,12 +22,18 @@ const (
 	FieldGroupID = "group_id"
 	// FieldPermission holds the string denoting the permission field in the database.
 	FieldPermission = "permission"
-	// FieldSn holds the string denoting the sn field in the database.
-	FieldSn = "sn"
+	// FieldInviterID holds the string denoting the inviter_id field in the database.
+	FieldInviterID = "inviter_id"
+	// FieldInviteCode holds the string denoting the invite_code field in the database.
+	FieldInviteCode = "invite_code"
+	// FieldInviteExpire holds the string denoting the invite_expire field in the database.
+	FieldInviteExpire = "invite_expire"
 	// EdgeMember holds the string denoting the member edge name in mutations.
 	EdgeMember = "member"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
+	// EdgeInviter holds the string denoting the inviter edge name in mutations.
+	EdgeInviter = "inviter"
 	// Table holds the table name of the groupmember in the database.
 	Table = "group_member"
 	// MemberTable is the table that holds the member relation/edge.
@@ -43,6 +50,13 @@ const (
 	GroupInverseTable = "group"
 	// GroupColumn is the table column denoting the group relation/edge.
 	GroupColumn = "group_id"
+	// InviterTable is the table that holds the inviter relation/edge.
+	InviterTable = "group_member"
+	// InviterInverseTable is the table name for the Member entity.
+	// It exists in this package in order to avoid circular dependency with the "member" package.
+	InviterInverseTable = "member"
+	// InviterColumn is the table column denoting the inviter relation/edge.
+	InviterColumn = "inviter_id"
 )
 
 // Columns holds all SQL columns for groupmember fields.
@@ -52,7 +66,9 @@ var Columns = []string{
 	FieldMemberID,
 	FieldGroupID,
 	FieldPermission,
-	FieldSn,
+	FieldInviterID,
+	FieldInviteCode,
+	FieldInviteExpire,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -75,7 +91,7 @@ var (
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt time.Time
 	// DefaultPermission holds the default value on creation for the "permission" field.
-	DefaultPermission uint8
+	DefaultPermission model.GroupMemberPerm
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )

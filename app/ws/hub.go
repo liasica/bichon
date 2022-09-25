@@ -3,7 +3,6 @@ package ws
 import (
     "github.com/chatpuppy/puppychat/app/cache"
     "github.com/chatpuppy/puppychat/app/model"
-    "github.com/chatpuppy/puppychat/app/service"
     "sync"
 )
 
@@ -22,11 +21,15 @@ type hub struct {
 }
 
 func CreateHub() {
+    // channel init
+    model.ChanInitialize()
+
     Hub = &hub{
         register:   make(chan *Client, 256),
         unregister: make(chan *Client, 256),
         clients:    sync.Map{},
     }
+
     go Hub.Run()
 }
 
@@ -43,22 +46,27 @@ func (h *hub) Run() {
         case client := <-h.unregister:
             // unregister client
             client.Disconnect()
-        case message := <-service.BroadcastChan:
-            go h.Broadcast(message)
+        case message := <-model.BroadcastChan:
+            go h.broadcast(message)
         }
     }
 }
 
-// Broadcast broadcast message to other online members
-func (h *hub) Broadcast(req *model.ChatMessage) {
+// broadcast message to other online members
+func (h *hub) broadcast(req model.Message) {
     // get members
     memIDs := cache.Group.Members(req.GroupID)
     for _, memID := range memIDs {
         if exists, ok := h.clients.Load(memID); ok {
+            c := exists.(*Client)
+            // TODO skip owner
+            if req.Member.ID == c.mem.ID {
+                // continue
+            }
             // send message to client
-            exists.(*Client).send <- &Message{
+            c.send <- &Message{
                 Operate: OperateChat,
-                Data:    req,
+                Data:    &req,
             }
         }
     }

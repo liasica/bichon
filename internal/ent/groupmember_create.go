@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chatpuppy/puppychat/app/model"
 	"github.com/chatpuppy/puppychat/internal/ent/group"
 	"github.com/chatpuppy/puppychat/internal/ent/groupmember"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
@@ -52,22 +53,42 @@ func (gmc *GroupMemberCreate) SetGroupID(s string) *GroupMemberCreate {
 }
 
 // SetPermission sets the "permission" field.
-func (gmc *GroupMemberCreate) SetPermission(u uint8) *GroupMemberCreate {
-	gmc.mutation.SetPermission(u)
+func (gmc *GroupMemberCreate) SetPermission(mmp model.GroupMemberPerm) *GroupMemberCreate {
+	gmc.mutation.SetPermission(mmp)
 	return gmc
 }
 
 // SetNillablePermission sets the "permission" field if the given value is not nil.
-func (gmc *GroupMemberCreate) SetNillablePermission(u *uint8) *GroupMemberCreate {
-	if u != nil {
-		gmc.SetPermission(*u)
+func (gmc *GroupMemberCreate) SetNillablePermission(mmp *model.GroupMemberPerm) *GroupMemberCreate {
+	if mmp != nil {
+		gmc.SetPermission(*mmp)
 	}
 	return gmc
 }
 
-// SetSn sets the "sn" field.
-func (gmc *GroupMemberCreate) SetSn(s string) *GroupMemberCreate {
-	gmc.mutation.SetSn(s)
+// SetInviterID sets the "inviter_id" field.
+func (gmc *GroupMemberCreate) SetInviterID(s string) *GroupMemberCreate {
+	gmc.mutation.SetInviterID(s)
+	return gmc
+}
+
+// SetNillableInviterID sets the "inviter_id" field if the given value is not nil.
+func (gmc *GroupMemberCreate) SetNillableInviterID(s *string) *GroupMemberCreate {
+	if s != nil {
+		gmc.SetInviterID(*s)
+	}
+	return gmc
+}
+
+// SetInviteCode sets the "invite_code" field.
+func (gmc *GroupMemberCreate) SetInviteCode(s string) *GroupMemberCreate {
+	gmc.mutation.SetInviteCode(s)
+	return gmc
+}
+
+// SetInviteExpire sets the "invite_expire" field.
+func (gmc *GroupMemberCreate) SetInviteExpire(t time.Time) *GroupMemberCreate {
+	gmc.mutation.SetInviteExpire(t)
 	return gmc
 }
 
@@ -85,6 +106,11 @@ func (gmc *GroupMemberCreate) SetMember(m *Member) *GroupMemberCreate {
 // SetGroup sets the "group" edge to the Group entity.
 func (gmc *GroupMemberCreate) SetGroup(g *Group) *GroupMemberCreate {
 	return gmc.SetGroupID(g.ID)
+}
+
+// SetInviter sets the "inviter" edge to the Member entity.
+func (gmc *GroupMemberCreate) SetInviter(m *Member) *GroupMemberCreate {
+	return gmc.SetInviterID(m.ID)
 }
 
 // Mutation returns the GroupMemberMutation object of the builder.
@@ -191,8 +217,11 @@ func (gmc *GroupMemberCreate) check() error {
 	if _, ok := gmc.mutation.Permission(); !ok {
 		return &ValidationError{Name: "permission", err: errors.New(`ent: missing required field "GroupMember.permission"`)}
 	}
-	if _, ok := gmc.mutation.Sn(); !ok {
-		return &ValidationError{Name: "sn", err: errors.New(`ent: missing required field "GroupMember.sn"`)}
+	if _, ok := gmc.mutation.InviteCode(); !ok {
+		return &ValidationError{Name: "invite_code", err: errors.New(`ent: missing required field "GroupMember.invite_code"`)}
+	}
+	if _, ok := gmc.mutation.InviteExpire(); !ok {
+		return &ValidationError{Name: "invite_expire", err: errors.New(`ent: missing required field "GroupMember.invite_expire"`)}
 	}
 	if v, ok := gmc.mutation.ID(); ok {
 		if err := groupmember.IDValidator(v); err != nil {
@@ -252,19 +281,27 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 	}
 	if value, ok := gmc.mutation.Permission(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
+			Type:   field.TypeOther,
 			Value:  value,
 			Column: groupmember.FieldPermission,
 		})
 		_node.Permission = value
 	}
-	if value, ok := gmc.mutation.Sn(); ok {
+	if value, ok := gmc.mutation.InviteCode(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: groupmember.FieldSn,
+			Column: groupmember.FieldInviteCode,
 		})
-		_node.Sn = value
+		_node.InviteCode = value
+	}
+	if value, ok := gmc.mutation.InviteExpire(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: groupmember.FieldInviteExpire,
+		})
+		_node.InviteExpire = value
 	}
 	if nodes := gmc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -304,6 +341,26 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.GroupID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gmc.mutation.InviterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   groupmember.InviterTable,
+			Columns: []string{groupmember.InviterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: member.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.InviterID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -395,7 +452,7 @@ func (u *GroupMemberUpsert) UpdateGroupID() *GroupMemberUpsert {
 }
 
 // SetPermission sets the "permission" field.
-func (u *GroupMemberUpsert) SetPermission(v uint8) *GroupMemberUpsert {
+func (u *GroupMemberUpsert) SetPermission(v model.GroupMemberPerm) *GroupMemberUpsert {
 	u.Set(groupmember.FieldPermission, v)
 	return u
 }
@@ -406,21 +463,45 @@ func (u *GroupMemberUpsert) UpdatePermission() *GroupMemberUpsert {
 	return u
 }
 
-// AddPermission adds v to the "permission" field.
-func (u *GroupMemberUpsert) AddPermission(v uint8) *GroupMemberUpsert {
-	u.Add(groupmember.FieldPermission, v)
+// SetInviterID sets the "inviter_id" field.
+func (u *GroupMemberUpsert) SetInviterID(v string) *GroupMemberUpsert {
+	u.Set(groupmember.FieldInviterID, v)
 	return u
 }
 
-// SetSn sets the "sn" field.
-func (u *GroupMemberUpsert) SetSn(v string) *GroupMemberUpsert {
-	u.Set(groupmember.FieldSn, v)
+// UpdateInviterID sets the "inviter_id" field to the value that was provided on create.
+func (u *GroupMemberUpsert) UpdateInviterID() *GroupMemberUpsert {
+	u.SetExcluded(groupmember.FieldInviterID)
 	return u
 }
 
-// UpdateSn sets the "sn" field to the value that was provided on create.
-func (u *GroupMemberUpsert) UpdateSn() *GroupMemberUpsert {
-	u.SetExcluded(groupmember.FieldSn)
+// ClearInviterID clears the value of the "inviter_id" field.
+func (u *GroupMemberUpsert) ClearInviterID() *GroupMemberUpsert {
+	u.SetNull(groupmember.FieldInviterID)
+	return u
+}
+
+// SetInviteCode sets the "invite_code" field.
+func (u *GroupMemberUpsert) SetInviteCode(v string) *GroupMemberUpsert {
+	u.Set(groupmember.FieldInviteCode, v)
+	return u
+}
+
+// UpdateInviteCode sets the "invite_code" field to the value that was provided on create.
+func (u *GroupMemberUpsert) UpdateInviteCode() *GroupMemberUpsert {
+	u.SetExcluded(groupmember.FieldInviteCode)
+	return u
+}
+
+// SetInviteExpire sets the "invite_expire" field.
+func (u *GroupMemberUpsert) SetInviteExpire(v time.Time) *GroupMemberUpsert {
+	u.Set(groupmember.FieldInviteExpire, v)
+	return u
+}
+
+// UpdateInviteExpire sets the "invite_expire" field to the value that was provided on create.
+func (u *GroupMemberUpsert) UpdateInviteExpire() *GroupMemberUpsert {
+	u.SetExcluded(groupmember.FieldInviteExpire)
 	return u
 }
 
@@ -518,16 +599,9 @@ func (u *GroupMemberUpsertOne) UpdateGroupID() *GroupMemberUpsertOne {
 }
 
 // SetPermission sets the "permission" field.
-func (u *GroupMemberUpsertOne) SetPermission(v uint8) *GroupMemberUpsertOne {
+func (u *GroupMemberUpsertOne) SetPermission(v model.GroupMemberPerm) *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.SetPermission(v)
-	})
-}
-
-// AddPermission adds v to the "permission" field.
-func (u *GroupMemberUpsertOne) AddPermission(v uint8) *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.AddPermission(v)
 	})
 }
 
@@ -538,17 +612,52 @@ func (u *GroupMemberUpsertOne) UpdatePermission() *GroupMemberUpsertOne {
 	})
 }
 
-// SetSn sets the "sn" field.
-func (u *GroupMemberUpsertOne) SetSn(v string) *GroupMemberUpsertOne {
+// SetInviterID sets the "inviter_id" field.
+func (u *GroupMemberUpsertOne) SetInviterID(v string) *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetSn(v)
+		s.SetInviterID(v)
 	})
 }
 
-// UpdateSn sets the "sn" field to the value that was provided on create.
-func (u *GroupMemberUpsertOne) UpdateSn() *GroupMemberUpsertOne {
+// UpdateInviterID sets the "inviter_id" field to the value that was provided on create.
+func (u *GroupMemberUpsertOne) UpdateInviterID() *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateSn()
+		s.UpdateInviterID()
+	})
+}
+
+// ClearInviterID clears the value of the "inviter_id" field.
+func (u *GroupMemberUpsertOne) ClearInviterID() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.ClearInviterID()
+	})
+}
+
+// SetInviteCode sets the "invite_code" field.
+func (u *GroupMemberUpsertOne) SetInviteCode(v string) *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetInviteCode(v)
+	})
+}
+
+// UpdateInviteCode sets the "invite_code" field to the value that was provided on create.
+func (u *GroupMemberUpsertOne) UpdateInviteCode() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateInviteCode()
+	})
+}
+
+// SetInviteExpire sets the "invite_expire" field.
+func (u *GroupMemberUpsertOne) SetInviteExpire(v time.Time) *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetInviteExpire(v)
+	})
+}
+
+// UpdateInviteExpire sets the "invite_expire" field to the value that was provided on create.
+func (u *GroupMemberUpsertOne) UpdateInviteExpire() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateInviteExpire()
 	})
 }
 
@@ -810,16 +919,9 @@ func (u *GroupMemberUpsertBulk) UpdateGroupID() *GroupMemberUpsertBulk {
 }
 
 // SetPermission sets the "permission" field.
-func (u *GroupMemberUpsertBulk) SetPermission(v uint8) *GroupMemberUpsertBulk {
+func (u *GroupMemberUpsertBulk) SetPermission(v model.GroupMemberPerm) *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.SetPermission(v)
-	})
-}
-
-// AddPermission adds v to the "permission" field.
-func (u *GroupMemberUpsertBulk) AddPermission(v uint8) *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.AddPermission(v)
 	})
 }
 
@@ -830,17 +932,52 @@ func (u *GroupMemberUpsertBulk) UpdatePermission() *GroupMemberUpsertBulk {
 	})
 }
 
-// SetSn sets the "sn" field.
-func (u *GroupMemberUpsertBulk) SetSn(v string) *GroupMemberUpsertBulk {
+// SetInviterID sets the "inviter_id" field.
+func (u *GroupMemberUpsertBulk) SetInviterID(v string) *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetSn(v)
+		s.SetInviterID(v)
 	})
 }
 
-// UpdateSn sets the "sn" field to the value that was provided on create.
-func (u *GroupMemberUpsertBulk) UpdateSn() *GroupMemberUpsertBulk {
+// UpdateInviterID sets the "inviter_id" field to the value that was provided on create.
+func (u *GroupMemberUpsertBulk) UpdateInviterID() *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateSn()
+		s.UpdateInviterID()
+	})
+}
+
+// ClearInviterID clears the value of the "inviter_id" field.
+func (u *GroupMemberUpsertBulk) ClearInviterID() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.ClearInviterID()
+	})
+}
+
+// SetInviteCode sets the "invite_code" field.
+func (u *GroupMemberUpsertBulk) SetInviteCode(v string) *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetInviteCode(v)
+	})
+}
+
+// UpdateInviteCode sets the "invite_code" field to the value that was provided on create.
+func (u *GroupMemberUpsertBulk) UpdateInviteCode() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateInviteCode()
+	})
+}
+
+// SetInviteExpire sets the "invite_expire" field.
+func (u *GroupMemberUpsertBulk) SetInviteExpire(v time.Time) *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetInviteExpire(v)
+	})
+}
+
+// UpdateInviteExpire sets the "invite_expire" field to the value that was provided on create.
+func (u *GroupMemberUpsertBulk) UpdateInviteExpire() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateInviteExpire()
 	})
 }
 

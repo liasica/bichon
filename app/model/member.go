@@ -39,3 +39,13 @@ type Member struct {
     Nickname string `json:"nickname,omitempty"`
     Avatar   string `json:"avatar,omitempty"`
 }
+
+type MemberWithPermission struct {
+    Member
+    Permission GroupMemberPerm `json:"permission"`
+}
+
+type MemberUpdateReq struct {
+    Nickname string `json:"nickname"`
+    Intro    string `json:"intro"`
+}

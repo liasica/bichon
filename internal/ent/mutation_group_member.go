@@ -9,6 +9,7 @@ import (
     "errors"
     "time"
     "github.com/chatpuppy/puppychat/internal/ent/groupmember"
+    "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent/predicate"
 
     "entgo.io/ent"
@@ -18,21 +19,23 @@ import (
 // GroupMemberMutation represents an operation that mutates the GroupMember nodes in the graph.
 type GroupMemberMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *string
-	created_at    *time.Time
-	permission    *uint8
-	addpermission *int8
-	sn            *string
-	clearedFields map[string]struct{}
-	member        *string
-	clearedmember bool
-	group         *string
-	clearedgroup  bool
-	done          bool
-	oldValue      func(context.Context) (*GroupMember, error)
-	predicates    []predicate.GroupMember
+	op             Op
+	typ            string
+	id             *string
+	created_at     *time.Time
+	permission     *model.GroupMemberPerm
+	invite_code    *string
+	invite_expire  *time.Time
+	clearedFields  map[string]struct{}
+	member         *string
+	clearedmember  bool
+	group          *string
+	clearedgroup   bool
+	inviter        *string
+	clearedinviter bool
+	done           bool
+	oldValue       func(context.Context) (*GroupMember, error)
+	predicates     []predicate.GroupMember
 }
 
 var _ ent.Mutation = (*GroupMemberMutation)(nil)
@@ -248,13 +251,12 @@ func (m *GroupMemberMutation) ResetGroupID() {
 }
 
 // SetPermission sets the "permission" field.
-func (m *GroupMemberMutation) SetPermission(u uint8) {
-	m.permission = &u
-	m.addpermission = nil
+func (m *GroupMemberMutation) SetPermission(mmp model.GroupMemberPerm) {
+	m.permission = &mmp
 }
 
 // Permission returns the value of the "permission" field in the mutation.
-func (m *GroupMemberMutation) Permission() (r uint8, exists bool) {
+func (m *GroupMemberMutation) Permission() (r model.GroupMemberPerm, exists bool) {
 	v := m.permission
 	if v == nil {
 		return
@@ -265,7 +267,7 @@ func (m *GroupMemberMutation) Permission() (r uint8, exists bool) {
 // OldPermission returns the old "permission" field's value of the GroupMember entity.
 // If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMemberMutation) OldPermission(ctx context.Context) (v uint8, err error) {
+func (m *GroupMemberMutation) OldPermission(ctx context.Context) (v model.GroupMemberPerm, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPermission is only allowed on UpdateOne operations")
 	}
@@ -279,64 +281,130 @@ func (m *GroupMemberMutation) OldPermission(ctx context.Context) (v uint8, err e
 	return oldValue.Permission, nil
 }
 
-// AddPermission adds u to the "permission" field.
-func (m *GroupMemberMutation) AddPermission(u int8) {
-	if m.addpermission != nil {
-		*m.addpermission += u
-	} else {
-		m.addpermission = &u
-	}
-}
-
-// AddedPermission returns the value that was added to the "permission" field in this mutation.
-func (m *GroupMemberMutation) AddedPermission() (r int8, exists bool) {
-	v := m.addpermission
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetPermission resets all changes to the "permission" field.
 func (m *GroupMemberMutation) ResetPermission() {
 	m.permission = nil
-	m.addpermission = nil
 }
 
-// SetSn sets the "sn" field.
-func (m *GroupMemberMutation) SetSn(s string) {
-	m.sn = &s
+// SetInviterID sets the "inviter_id" field.
+func (m *GroupMemberMutation) SetInviterID(s string) {
+	m.inviter = &s
 }
 
-// Sn returns the value of the "sn" field in the mutation.
-func (m *GroupMemberMutation) Sn() (r string, exists bool) {
-	v := m.sn
+// InviterID returns the value of the "inviter_id" field in the mutation.
+func (m *GroupMemberMutation) InviterID() (r string, exists bool) {
+	v := m.inviter
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldSn returns the old "sn" field's value of the GroupMember entity.
+// OldInviterID returns the old "inviter_id" field's value of the GroupMember entity.
 // If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMemberMutation) OldSn(ctx context.Context) (v string, err error) {
+func (m *GroupMemberMutation) OldInviterID(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSn is only allowed on UpdateOne operations")
+		return v, errors.New("OldInviterID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSn requires an ID field in the mutation")
+		return v, errors.New("OldInviterID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSn: %w", err)
+		return v, fmt.Errorf("querying old value for OldInviterID: %w", err)
 	}
-	return oldValue.Sn, nil
+	return oldValue.InviterID, nil
 }
 
-// ResetSn resets all changes to the "sn" field.
-func (m *GroupMemberMutation) ResetSn() {
-	m.sn = nil
+// ClearInviterID clears the value of the "inviter_id" field.
+func (m *GroupMemberMutation) ClearInviterID() {
+	m.inviter = nil
+	m.clearedFields[groupmember.FieldInviterID] = struct{}{}
+}
+
+// InviterIDCleared returns if the "inviter_id" field was cleared in this mutation.
+func (m *GroupMemberMutation) InviterIDCleared() bool {
+	_, ok := m.clearedFields[groupmember.FieldInviterID]
+	return ok
+}
+
+// ResetInviterID resets all changes to the "inviter_id" field.
+func (m *GroupMemberMutation) ResetInviterID() {
+	m.inviter = nil
+	delete(m.clearedFields, groupmember.FieldInviterID)
+}
+
+// SetInviteCode sets the "invite_code" field.
+func (m *GroupMemberMutation) SetInviteCode(s string) {
+	m.invite_code = &s
+}
+
+// InviteCode returns the value of the "invite_code" field in the mutation.
+func (m *GroupMemberMutation) InviteCode() (r string, exists bool) {
+	v := m.invite_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInviteCode returns the old "invite_code" field's value of the GroupMember entity.
+// If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMemberMutation) OldInviteCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInviteCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInviteCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInviteCode: %w", err)
+	}
+	return oldValue.InviteCode, nil
+}
+
+// ResetInviteCode resets all changes to the "invite_code" field.
+func (m *GroupMemberMutation) ResetInviteCode() {
+	m.invite_code = nil
+}
+
+// SetInviteExpire sets the "invite_expire" field.
+func (m *GroupMemberMutation) SetInviteExpire(t time.Time) {
+	m.invite_expire = &t
+}
+
+// InviteExpire returns the value of the "invite_expire" field in the mutation.
+func (m *GroupMemberMutation) InviteExpire() (r time.Time, exists bool) {
+	v := m.invite_expire
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInviteExpire returns the old "invite_expire" field's value of the GroupMember entity.
+// If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMemberMutation) OldInviteExpire(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInviteExpire is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInviteExpire requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInviteExpire: %w", err)
+	}
+	return oldValue.InviteExpire, nil
+}
+
+// ResetInviteExpire resets all changes to the "invite_expire" field.
+func (m *GroupMemberMutation) ResetInviteExpire() {
+	m.invite_expire = nil
 }
 
 // ClearMember clears the "member" edge to the Member entity.
@@ -391,6 +459,32 @@ func (m *GroupMemberMutation) ResetGroup() {
 	m.clearedgroup = false
 }
 
+// ClearInviter clears the "inviter" edge to the Member entity.
+func (m *GroupMemberMutation) ClearInviter() {
+	m.clearedinviter = true
+}
+
+// InviterCleared reports if the "inviter" edge to the Member entity was cleared.
+func (m *GroupMemberMutation) InviterCleared() bool {
+	return m.InviterIDCleared() || m.clearedinviter
+}
+
+// InviterIDs returns the "inviter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// InviterID instead. It exists only for internal usage by the builders.
+func (m *GroupMemberMutation) InviterIDs() (ids []string) {
+	if id := m.inviter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetInviter resets all changes to the "inviter" edge.
+func (m *GroupMemberMutation) ResetInviter() {
+	m.inviter = nil
+	m.clearedinviter = false
+}
+
 // Where appends a list predicates to the GroupMemberMutation builder.
 func (m *GroupMemberMutation) Where(ps ...predicate.GroupMember) {
 	m.predicates = append(m.predicates, ps...)
@@ -410,7 +504,7 @@ func (m *GroupMemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMemberMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, groupmember.FieldCreatedAt)
 	}
@@ -423,8 +517,14 @@ func (m *GroupMemberMutation) Fields() []string {
 	if m.permission != nil {
 		fields = append(fields, groupmember.FieldPermission)
 	}
-	if m.sn != nil {
-		fields = append(fields, groupmember.FieldSn)
+	if m.inviter != nil {
+		fields = append(fields, groupmember.FieldInviterID)
+	}
+	if m.invite_code != nil {
+		fields = append(fields, groupmember.FieldInviteCode)
+	}
+	if m.invite_expire != nil {
+		fields = append(fields, groupmember.FieldInviteExpire)
 	}
 	return fields
 }
@@ -442,8 +542,12 @@ func (m *GroupMemberMutation) Field(name string) (ent.Value, bool) {
 		return m.GroupID()
 	case groupmember.FieldPermission:
 		return m.Permission()
-	case groupmember.FieldSn:
-		return m.Sn()
+	case groupmember.FieldInviterID:
+		return m.InviterID()
+	case groupmember.FieldInviteCode:
+		return m.InviteCode()
+	case groupmember.FieldInviteExpire:
+		return m.InviteExpire()
 	}
 	return nil, false
 }
@@ -461,8 +565,12 @@ func (m *GroupMemberMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldGroupID(ctx)
 	case groupmember.FieldPermission:
 		return m.OldPermission(ctx)
-	case groupmember.FieldSn:
-		return m.OldSn(ctx)
+	case groupmember.FieldInviterID:
+		return m.OldInviterID(ctx)
+	case groupmember.FieldInviteCode:
+		return m.OldInviteCode(ctx)
+	case groupmember.FieldInviteExpire:
+		return m.OldInviteExpire(ctx)
 	}
 	return nil, fmt.Errorf("unknown GroupMember field %s", name)
 }
@@ -494,18 +602,32 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 		m.SetGroupID(v)
 		return nil
 	case groupmember.FieldPermission:
-		v, ok := value.(uint8)
+		v, ok := value.(model.GroupMemberPerm)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPermission(v)
 		return nil
-	case groupmember.FieldSn:
+	case groupmember.FieldInviterID:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetSn(v)
+		m.SetInviterID(v)
+		return nil
+	case groupmember.FieldInviteCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInviteCode(v)
+		return nil
+	case groupmember.FieldInviteExpire:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInviteExpire(v)
 		return nil
 	}
 	return fmt.Errorf("unknown GroupMember field %s", name)
@@ -514,21 +636,13 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *GroupMemberMutation) AddedFields() []string {
-	var fields []string
-	if m.addpermission != nil {
-		fields = append(fields, groupmember.FieldPermission)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *GroupMemberMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case groupmember.FieldPermission:
-		return m.AddedPermission()
-	}
 	return nil, false
 }
 
@@ -537,13 +651,6 @@ func (m *GroupMemberMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GroupMemberMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case groupmember.FieldPermission:
-		v, ok := value.(int8)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddPermission(v)
-		return nil
 	}
 	return fmt.Errorf("unknown GroupMember numeric field %s", name)
 }
@@ -551,7 +658,11 @@ func (m *GroupMemberMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GroupMemberMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(groupmember.FieldInviterID) {
+		fields = append(fields, groupmember.FieldInviterID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -564,6 +675,11 @@ func (m *GroupMemberMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GroupMemberMutation) ClearField(name string) error {
+	switch name {
+	case groupmember.FieldInviterID:
+		m.ClearInviterID()
+		return nil
+	}
 	return fmt.Errorf("unknown GroupMember nullable field %s", name)
 }
 
@@ -583,8 +699,14 @@ func (m *GroupMemberMutation) ResetField(name string) error {
 	case groupmember.FieldPermission:
 		m.ResetPermission()
 		return nil
-	case groupmember.FieldSn:
-		m.ResetSn()
+	case groupmember.FieldInviterID:
+		m.ResetInviterID()
+		return nil
+	case groupmember.FieldInviteCode:
+		m.ResetInviteCode()
+		return nil
+	case groupmember.FieldInviteExpire:
+		m.ResetInviteExpire()
 		return nil
 	}
 	return fmt.Errorf("unknown GroupMember field %s", name)
@@ -592,12 +714,15 @@ func (m *GroupMemberMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GroupMemberMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.member != nil {
 		edges = append(edges, groupmember.EdgeMember)
 	}
 	if m.group != nil {
 		edges = append(edges, groupmember.EdgeGroup)
+	}
+	if m.inviter != nil {
+		edges = append(edges, groupmember.EdgeInviter)
 	}
 	return edges
 }
@@ -614,13 +739,17 @@ func (m *GroupMemberMutation) AddedIDs(name string) []ent.Value {
 		if id := m.group; id != nil {
 			return []ent.Value{*id}
 		}
+	case groupmember.EdgeInviter:
+		if id := m.inviter; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GroupMemberMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -634,12 +763,15 @@ func (m *GroupMemberMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GroupMemberMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedmember {
 		edges = append(edges, groupmember.EdgeMember)
 	}
 	if m.clearedgroup {
 		edges = append(edges, groupmember.EdgeGroup)
+	}
+	if m.clearedinviter {
+		edges = append(edges, groupmember.EdgeInviter)
 	}
 	return edges
 }
@@ -652,6 +784,8 @@ func (m *GroupMemberMutation) EdgeCleared(name string) bool {
 		return m.clearedmember
 	case groupmember.EdgeGroup:
 		return m.clearedgroup
+	case groupmember.EdgeInviter:
+		return m.clearedinviter
 	}
 	return false
 }
@@ -666,6 +800,9 @@ func (m *GroupMemberMutation) ClearEdge(name string) error {
 	case groupmember.EdgeGroup:
 		m.ClearGroup()
 		return nil
+	case groupmember.EdgeInviter:
+		m.ClearInviter()
+		return nil
 	}
 	return fmt.Errorf("unknown GroupMember unique edge %s", name)
 }
@@ -679,6 +816,9 @@ func (m *GroupMemberMutation) ResetEdge(name string) error {
 		return nil
 	case groupmember.EdgeGroup:
 		m.ResetGroup()
+		return nil
+	case groupmember.EdgeInviter:
+		m.ResetInviter()
 		return nil
 	}
 	return fmt.Errorf("unknown GroupMember edge %s", name)
