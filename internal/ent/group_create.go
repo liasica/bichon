@@ -40,6 +40,20 @@ func (gc *GroupCreate) SetNillableCreatedAt(t *time.Time) *GroupCreate {
 	return gc
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (gc *GroupCreate) SetUpdatedAt(t time.Time) *GroupCreate {
+	gc.mutation.SetUpdatedAt(t)
+	return gc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableUpdatedAt(t *time.Time) *GroupCreate {
+	if t != nil {
+		gc.SetUpdatedAt(*t)
+	}
+	return gc
+}
+
 // SetName sets the "name" field.
 func (gc *GroupCreate) SetName(s string) *GroupCreate {
 	gc.mutation.SetName(s)
@@ -246,8 +260,18 @@ func (gc *GroupCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (gc *GroupCreate) defaults() error {
 	if _, ok := gc.mutation.CreatedAt(); !ok {
-		v := group.DefaultCreatedAt
+		if group.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized group.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
+		v := group.DefaultCreatedAt()
 		gc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := gc.mutation.UpdatedAt(); !ok {
+		if group.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized group.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := group.DefaultUpdatedAt()
+		gc.mutation.SetUpdatedAt(v)
 	}
 	if _, ok := gc.mutation.MembersCount(); !ok {
 		v := group.DefaultMembersCount
@@ -260,6 +284,9 @@ func (gc *GroupCreate) defaults() error {
 func (gc *GroupCreate) check() error {
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Group.created_at"`)}
+	}
+	if _, ok := gc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Group.updated_at"`)}
 	}
 	if _, ok := gc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Group.name"`)}
@@ -337,6 +364,14 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 			Column: group.FieldCreatedAt,
 		})
 		_node.CreatedAt = value
+	}
+	if value, ok := gc.mutation.UpdatedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: group.FieldUpdatedAt,
+		})
+		_node.UpdatedAt = value
 	}
 	if value, ok := gc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -547,6 +582,18 @@ func (u *GroupUpsert) UpdateCreatedAt() *GroupUpsert {
 	return u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GroupUpsert) SetUpdatedAt(v time.Time) *GroupUpsert {
+	u.Set(group.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateUpdatedAt() *GroupUpsert {
+	u.SetExcluded(group.FieldUpdatedAt)
+	return u
+}
+
 // SetName sets the "name" field.
 func (u *GroupUpsert) SetName(v string) *GroupUpsert {
 	u.Set(group.FieldName, v)
@@ -738,6 +785,20 @@ func (u *GroupUpsertOne) SetCreatedAt(v time.Time) *GroupUpsertOne {
 func (u *GroupUpsertOne) UpdateCreatedAt() *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GroupUpsertOne) SetUpdatedAt(v time.Time) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateUpdatedAt() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 
@@ -1117,6 +1178,20 @@ func (u *GroupUpsertBulk) SetCreatedAt(v time.Time) *GroupUpsertBulk {
 func (u *GroupUpsertBulk) UpdateCreatedAt() *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GroupUpsertBulk) SetUpdatedAt(v time.Time) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateUpdatedAt() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 

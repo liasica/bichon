@@ -1,14 +1,14 @@
 package model
 
 var (
-    // BroadcastChan broadcast to other online members in group
-    BroadcastChan chan Message
+    // MessageBroadcastChan broadcast to other online members in group
+    MessageBroadcastChan chan MessageBroadcast
 )
 
 func ChanInitialize() {
-    BroadcastChan = make(chan Message, 1024)
+    MessageBroadcastChan = make(chan MessageBroadcast, 1024)
 }
 
-func SendBroadcast(msg Message) {
-    BroadcastChan <- msg
+func SendBroadcast(msg MessageBroadcast) {
+    MessageBroadcastChan <- msg
 }

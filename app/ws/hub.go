@@ -1,8 +1,10 @@
 package ws
 
 import (
+    "fmt"
     "github.com/chatpuppy/puppychat/app/cache"
     "github.com/chatpuppy/puppychat/app/model"
+    log "github.com/sirupsen/logrus"
     "sync"
 )
 
@@ -46,16 +48,18 @@ func (h *hub) Run() {
         case client := <-h.unregister:
             // unregister client
             client.Disconnect()
-        case message := <-model.BroadcastChan:
+        case message := <-model.MessageBroadcastChan:
             go h.broadcast(message)
         }
     }
 }
 
 // broadcast message to other online members
-func (h *hub) broadcast(req model.Message) {
+func (h *hub) broadcast(req model.MessageBroadcast) {
     // get members
     memIDs := cache.Group.Members(req.GroupID)
+    str := fmt.Sprintf("%s has %d online members, ", req.GroupAddress, len(memIDs))
+    n := 0
     for _, memID := range memIDs {
         if exists, ok := h.clients.Load(memID); ok {
             c := exists.(*Client)
@@ -66,8 +70,11 @@ func (h *hub) broadcast(req model.Message) {
             // send message to client
             c.send <- &Message{
                 Operate: OperateChat,
-                Data:    &req,
+                Data:    &req.Message,
             }
+            n += 1
         }
     }
+    str += fmt.Sprintf("sent %d members", n)
+    log.Info(str)
 }

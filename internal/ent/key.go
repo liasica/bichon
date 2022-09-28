@@ -20,6 +20,8 @@ type Key struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// MemberID holds the value of the "member_id" field.
 	MemberID string `json:"member_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
@@ -75,7 +77,7 @@ func (*Key) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case key.FieldID, key.FieldMemberID, key.FieldGroupID, key.FieldKeys:
 			values[i] = new(sql.NullString)
-		case key.FieldCreatedAt:
+		case key.FieldCreatedAt, key.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Key", columns[i])
@@ -103,6 +105,12 @@ func (k *Key) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				k.CreatedAt = value.Time
+			}
+		case key.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				k.UpdatedAt = value.Time
 			}
 		case key.FieldMemberID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -162,6 +170,9 @@ func (k *Key) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", k.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(k.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(k.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("member_id=")
 	builder.WriteString(k.MemberID)

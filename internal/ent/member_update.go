@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,6 +29,12 @@ type MemberUpdate struct {
 // Where appends a list predicates to the MemberUpdate builder.
 func (mu *MemberUpdate) Where(ps ...predicate.Member) *MemberUpdate {
 	mu.mutation.Where(ps...)
+	return mu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (mu *MemberUpdate) SetUpdatedAt(t time.Time) *MemberUpdate {
+	mu.mutation.SetUpdatedAt(t)
 	return mu
 }
 
@@ -292,6 +299,9 @@ func (mu *MemberUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
+	if err := mu.defaults(); err != nil {
+		return 0, err
+	}
 	if len(mu.hooks) == 0 {
 		affected, err = mu.sqlSave(ctx)
 	} else {
@@ -340,6 +350,18 @@ func (mu *MemberUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (mu *MemberUpdate) defaults() error {
+	if _, ok := mu.mutation.UpdatedAt(); !ok {
+		if member.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized member.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := member.UpdateDefaultUpdatedAt()
+		mu.mutation.SetUpdatedAt(v)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (mu *MemberUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *MemberUpdate {
 	mu.modifiers = append(mu.modifiers, modifiers...)
@@ -363,6 +385,13 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := mu.mutation.UpdatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: member.FieldUpdatedAt,
+		})
 	}
 	if value, ok := mu.mutation.Address(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -686,6 +715,12 @@ type MemberUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (muo *MemberUpdateOne) SetUpdatedAt(t time.Time) *MemberUpdateOne {
+	muo.mutation.SetUpdatedAt(t)
+	return muo
+}
+
 // SetAddress sets the "address" field.
 func (muo *MemberUpdateOne) SetAddress(s string) *MemberUpdateOne {
 	muo.mutation.SetAddress(s)
@@ -954,6 +989,9 @@ func (muo *MemberUpdateOne) Save(ctx context.Context) (*Member, error) {
 		err  error
 		node *Member
 	)
+	if err := muo.defaults(); err != nil {
+		return nil, err
+	}
 	if len(muo.hooks) == 0 {
 		node, err = muo.sqlSave(ctx)
 	} else {
@@ -1008,6 +1046,18 @@ func (muo *MemberUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (muo *MemberUpdateOne) defaults() error {
+	if _, ok := muo.mutation.UpdatedAt(); !ok {
+		if member.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized member.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := member.UpdateDefaultUpdatedAt()
+		muo.mutation.SetUpdatedAt(v)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (muo *MemberUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *MemberUpdateOne {
 	muo.modifiers = append(muo.modifiers, modifiers...)
@@ -1048,6 +1098,13 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := muo.mutation.UpdatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: member.FieldUpdatedAt,
+		})
 	}
 	if value, ok := muo.mutation.Address(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{

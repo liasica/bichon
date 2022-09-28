@@ -32,6 +32,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type: "Group",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			group.FieldCreatedAt:    {Type: field.TypeTime, Column: group.FieldCreatedAt},
+			group.FieldUpdatedAt:    {Type: field.TypeTime, Column: group.FieldUpdatedAt},
 			group.FieldName:         {Type: field.TypeString, Column: group.FieldName},
 			group.FieldCategory:     {Type: field.TypeString, Column: group.FieldCategory},
 			group.FieldOwnerID:      {Type: field.TypeString, Column: group.FieldOwnerID},
@@ -55,6 +56,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type: "GroupMember",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			groupmember.FieldCreatedAt:    {Type: field.TypeTime, Column: groupmember.FieldCreatedAt},
+			groupmember.FieldUpdatedAt:    {Type: field.TypeTime, Column: groupmember.FieldUpdatedAt},
 			groupmember.FieldMemberID:     {Type: field.TypeString, Column: groupmember.FieldMemberID},
 			groupmember.FieldGroupID:      {Type: field.TypeString, Column: groupmember.FieldGroupID},
 			groupmember.FieldPermission:   {Type: field.TypeOther, Column: groupmember.FieldPermission},
@@ -75,6 +77,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type: "Key",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			key.FieldCreatedAt: {Type: field.TypeTime, Column: key.FieldCreatedAt},
+			key.FieldUpdatedAt: {Type: field.TypeTime, Column: key.FieldUpdatedAt},
 			key.FieldMemberID:  {Type: field.TypeString, Column: key.FieldMemberID},
 			key.FieldGroupID:   {Type: field.TypeString, Column: key.FieldGroupID},
 			key.FieldKeys:      {Type: field.TypeString, Column: key.FieldKeys},
@@ -92,6 +95,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type: "Member",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			member.FieldCreatedAt:    {Type: field.TypeTime, Column: member.FieldCreatedAt},
+			member.FieldUpdatedAt:    {Type: field.TypeTime, Column: member.FieldUpdatedAt},
 			member.FieldAddress:      {Type: field.TypeString, Column: member.FieldAddress},
 			member.FieldNickname:     {Type: field.TypeString, Column: member.FieldNickname},
 			member.FieldAvatar:       {Type: field.TypeString, Column: member.FieldAvatar},
@@ -113,6 +117,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type: "Message",
 		Fields: map[string]*sqlgraph.FieldSpec{
 			message.FieldCreatedAt: {Type: field.TypeTime, Column: message.FieldCreatedAt},
+			message.FieldUpdatedAt: {Type: field.TypeTime, Column: message.FieldUpdatedAt},
 			message.FieldGroupID:   {Type: field.TypeString, Column: message.FieldGroupID},
 			message.FieldMemberID:  {Type: field.TypeString, Column: message.FieldMemberID},
 			message.FieldContent:   {Type: field.TypeBytes, Column: message.FieldContent},
@@ -419,6 +424,11 @@ func (f *GroupFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(group.FieldCreatedAt))
 }
 
+// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+func (f *GroupFilter) WhereUpdatedAt(p entql.TimeP) {
+	f.Where(p.Field(group.FieldUpdatedAt))
+}
+
 // WhereName applies the entql string predicate on the name field.
 func (f *GroupFilter) WhereName(p entql.StringP) {
 	f.Where(p.Field(group.FieldName))
@@ -565,6 +575,11 @@ func (f *GroupMemberFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(groupmember.FieldCreatedAt))
 }
 
+// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+func (f *GroupMemberFilter) WhereUpdatedAt(p entql.TimeP) {
+	f.Where(p.Field(groupmember.FieldUpdatedAt))
+}
+
 // WhereMemberID applies the entql string predicate on the member_id field.
 func (f *GroupMemberFilter) WhereMemberID(p entql.StringP) {
 	f.Where(p.Field(groupmember.FieldMemberID))
@@ -682,6 +697,11 @@ func (f *KeyFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(key.FieldCreatedAt))
 }
 
+// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+func (f *KeyFilter) WhereUpdatedAt(p entql.TimeP) {
+	f.Where(p.Field(key.FieldUpdatedAt))
+}
+
 // WhereMemberID applies the entql string predicate on the member_id field.
 func (f *KeyFilter) WhereMemberID(p entql.StringP) {
 	f.Where(p.Field(key.FieldMemberID))
@@ -768,6 +788,11 @@ func (f *MemberFilter) WhereID(p entql.StringP) {
 // WhereCreatedAt applies the entql time.Time predicate on the created_at field.
 func (f *MemberFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(member.FieldCreatedAt))
+}
+
+// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+func (f *MemberFilter) WhereUpdatedAt(p entql.TimeP) {
+	f.Where(p.Field(member.FieldUpdatedAt))
 }
 
 // WhereAddress applies the entql string predicate on the address field.
@@ -904,6 +929,11 @@ func (f *MessageFilter) WhereID(p entql.StringP) {
 // WhereCreatedAt applies the entql time.Time predicate on the created_at field.
 func (f *MessageFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(message.FieldCreatedAt))
+}
+
+// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+func (f *MessageFilter) WhereUpdatedAt(p entql.TimeP) {
+	f.Where(p.Field(message.FieldUpdatedAt))
 }
 
 // WhereGroupID applies the entql string predicate on the group_id field.

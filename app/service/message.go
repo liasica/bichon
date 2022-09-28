@@ -5,6 +5,8 @@ import (
     "entgo.io/ent/dialect/sql"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
+    "github.com/chatpuppy/puppychat/internal/ent/group"
+    "github.com/chatpuppy/puppychat/internal/ent/member"
     "github.com/chatpuppy/puppychat/internal/ent/message"
     "github.com/chatpuppy/puppychat/internal/ent/messageread"
     "github.com/chatpuppy/puppychat/internal/g"
@@ -27,6 +29,12 @@ func NewMessage() *messageService {
 
 // Create message and broadcast
 func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (res *model.Message, err error) {
+    // find group
+    gro, _ := ent.Database.Group.Query().Where(group.HasMembersWith(member.ID(mem.ID))).First(s.ctx)
+    if gro == nil {
+        err = model.ErrNotFoundGroup
+        return
+    }
     // owner
     owner := &model.Member{
         ID:       mem.ID,
@@ -106,14 +114,17 @@ func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (r
     }
 
     // broadcast message
-    model.SendBroadcast(model.Message{
-        ID:        m.ID,
-        CreatedAt: m.CreatedAt,
-        GroupID:   req.GroupID,
-        Member:    owner,
-        Quote:     bq,
+    model.SendBroadcast(model.MessageBroadcast{
+        Message: model.Message{
+            ID:        m.ID,
+            CreatedAt: m.CreatedAt,
+            GroupID:   req.GroupID,
+            Member:    owner,
+            Quote:     bq,
 
-        MessageContent: &model.MessageContent{Decrypted: mc.Decrypted},
+            MessageContent: &model.MessageContent{Decrypted: mc.Decrypted},
+        },
+        GroupAddress: gro.Address,
     })
 
     res = &model.Message{
@@ -187,14 +198,16 @@ func (s *messageService) List(mem *ent.Member, req *model.MessageListReq) (res [
         return
     }
 
-    items, _ := s.orm.Query().
+    q := s.orm.Query().
         Where(
             message.GroupID(req.GroupID),
             message.CreatedAtLT(last),
         ).
         WithParent().
-        Limit(20).
-        All(s.ctx)
+        Order(ent.Desc(message.FieldCreatedAt)).
+        Limit(20)
+
+    items, _ := q.All(s.ctx)
 
     res = make([]*model.Message, len(items))
 

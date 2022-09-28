@@ -13,6 +13,7 @@ var (
 	GroupColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "category", Type: field.TypeString},
 		{Name: "members_max", Type: field.TypeInt},
@@ -31,7 +32,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "group_member_own_groups",
-				Columns:    []*schema.Column{GroupColumns[10]},
+				Columns:    []*schema.Column{GroupColumns[11]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -45,7 +46,7 @@ var (
 			{
 				Name:    "group_name",
 				Unique:  false,
-				Columns: []*schema.Column{GroupColumns[2]},
+				Columns: []*schema.Column{GroupColumns[3]},
 				Annotation: &entsql.IndexAnnotation{
 					Types: map[string]string{
 						"postgres": "GIN",
@@ -55,7 +56,7 @@ var (
 			{
 				Name:    "group_owner_id",
 				Unique:  false,
-				Columns: []*schema.Column{GroupColumns[10]},
+				Columns: []*schema.Column{GroupColumns[11]},
 			},
 		},
 	}
@@ -63,6 +64,7 @@ var (
 	GroupMemberColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "permission", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "smallint"}},
 		{Name: "invite_code", Type: field.TypeString, Unique: true},
 		{Name: "invite_expire", Type: field.TypeTime},
@@ -78,19 +80,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "group_member_member_member",
-				Columns:    []*schema.Column{GroupMemberColumns[5]},
+				Columns:    []*schema.Column{GroupMemberColumns[6]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "group_member_group_group",
-				Columns:    []*schema.Column{GroupMemberColumns[6]},
+				Columns:    []*schema.Column{GroupMemberColumns[7]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "group_member_member_inviter",
-				Columns:    []*schema.Column{GroupMemberColumns[7]},
+				Columns:    []*schema.Column{GroupMemberColumns[8]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -99,7 +101,7 @@ var (
 			{
 				Name:    "groupmember_group_id_member_id",
 				Unique:  true,
-				Columns: []*schema.Column{GroupMemberColumns[6], GroupMemberColumns[5]},
+				Columns: []*schema.Column{GroupMemberColumns[7], GroupMemberColumns[6]},
 			},
 			{
 				Name:    "groupmember_created_at",
@@ -112,6 +114,7 @@ var (
 	KeyColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
@@ -124,13 +127,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "key_member_member",
-				Columns:    []*schema.Column{KeyColumns[3]},
+				Columns:    []*schema.Column{KeyColumns[4]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "key_group_group",
-				Columns:    []*schema.Column{KeyColumns[4]},
+				Columns:    []*schema.Column{KeyColumns[5]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -147,6 +150,7 @@ var (
 	MemberColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "address", Type: field.TypeString, Unique: true},
 		{Name: "nickname", Type: field.TypeString, Nullable: true},
 		{Name: "avatar", Type: field.TypeString, Nullable: true},
@@ -169,7 +173,7 @@ var (
 			{
 				Name:    "member_nonce",
 				Unique:  false,
-				Columns: []*schema.Column{MemberColumns[7]},
+				Columns: []*schema.Column{MemberColumns[8]},
 			},
 		},
 	}
@@ -177,6 +181,7 @@ var (
 	MessageColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "content", Type: field.TypeBytes},
 		{Name: "owner", Type: field.TypeJSON},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
@@ -191,19 +196,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_group_messages",
-				Columns:    []*schema.Column{MessageColumns[4]},
+				Columns:    []*schema.Column{MessageColumns[5]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "message_member_messages",
-				Columns:    []*schema.Column{MessageColumns[5]},
+				Columns:    []*schema.Column{MessageColumns[6]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "message_message_children",
-				Columns:    []*schema.Column{MessageColumns[6]},
+				Columns:    []*schema.Column{MessageColumns[7]},
 				RefColumns: []*schema.Column{MessageColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -217,17 +222,17 @@ var (
 			{
 				Name:    "message_group_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[4]},
+				Columns: []*schema.Column{MessageColumns[5]},
 			},
 			{
 				Name:    "message_member_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[5]},
+				Columns: []*schema.Column{MessageColumns[6]},
 			},
 			{
 				Name:    "message_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[6]},
+				Columns: []*schema.Column{MessageColumns[7]},
 			},
 		},
 	}

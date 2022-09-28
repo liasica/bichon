@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,6 +29,12 @@ type GroupUpdate struct {
 // Where appends a list predicates to the GroupUpdate builder.
 func (gu *GroupUpdate) Where(ps ...predicate.Group) *GroupUpdate {
 	gu.mutation.Where(ps...)
+	return gu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (gu *GroupUpdate) SetUpdatedAt(t time.Time) *GroupUpdate {
+	gu.mutation.SetUpdatedAt(t)
 	return gu
 }
 
@@ -245,6 +252,9 @@ func (gu *GroupUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
+	if err := gu.defaults(); err != nil {
+		return 0, err
+	}
 	if len(gu.hooks) == 0 {
 		if err = gu.check(); err != nil {
 			return 0, err
@@ -299,6 +309,18 @@ func (gu *GroupUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (gu *GroupUpdate) defaults() error {
+	if _, ok := gu.mutation.UpdatedAt(); !ok {
+		if group.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized group.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := group.UpdateDefaultUpdatedAt()
+		gu.mutation.SetUpdatedAt(v)
+	}
+	return nil
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (gu *GroupUpdate) check() error {
 	if _, ok := gu.mutation.OwnerID(); gu.mutation.OwnerCleared() && !ok {
@@ -330,6 +352,13 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := gu.mutation.UpdatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: group.FieldUpdatedAt,
+		})
 	}
 	if value, ok := gu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -630,6 +659,12 @@ type GroupUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (guo *GroupUpdateOne) SetUpdatedAt(t time.Time) *GroupUpdateOne {
+	guo.mutation.SetUpdatedAt(t)
+	return guo
+}
+
 // SetName sets the "name" field.
 func (guo *GroupUpdateOne) SetName(s string) *GroupUpdateOne {
 	guo.mutation.SetName(s)
@@ -851,6 +886,9 @@ func (guo *GroupUpdateOne) Save(ctx context.Context) (*Group, error) {
 		err  error
 		node *Group
 	)
+	if err := guo.defaults(); err != nil {
+		return nil, err
+	}
 	if len(guo.hooks) == 0 {
 		if err = guo.check(); err != nil {
 			return nil, err
@@ -911,6 +949,18 @@ func (guo *GroupUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (guo *GroupUpdateOne) defaults() error {
+	if _, ok := guo.mutation.UpdatedAt(); !ok {
+		if group.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized group.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := group.UpdateDefaultUpdatedAt()
+		guo.mutation.SetUpdatedAt(v)
+	}
+	return nil
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (guo *GroupUpdateOne) check() error {
 	if _, ok := guo.mutation.OwnerID(); guo.mutation.OwnerCleared() && !ok {
@@ -959,6 +1009,13 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := guo.mutation.UpdatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: group.FieldUpdatedAt,
+		})
 	}
 	if value, ok := guo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{

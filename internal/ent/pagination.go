@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/chatpuppy/puppychat/app/model"
 )
 
@@ -21,8 +22,15 @@ func (gq *GroupQuery) PaginationItemsX(req model.PaginationReq) any {
 
 // PaginationResult returns pagination for GroupQuery.
 func (gq *GroupQuery) PaginationResult(req model.PaginationReq) model.Pagination {
-	ids := gq.Clone().Select("id").GroupBy("id").IntsX(context.Background())
-	total := len(ids)
+	query := gq.Clone()
+	query.order = nil
+	var result []struct {
+		Count int `json:"count"`
+	}
+	query.Modify(func(s *sql.Selector) {
+		s.SelectExpr(sql.Raw("COUNT(1) AS count"))
+	}).ScanX(context.Background(), &result)
+	total := result[0].Count
 	return model.Pagination{
 		Current: req.GetCurrent(),
 		Pages:   req.GetPages(total),
@@ -43,8 +51,15 @@ func (gmq *GroupMemberQuery) PaginationItemsX(req model.PaginationReq) any {
 
 // PaginationResult returns pagination for GroupMemberQuery.
 func (gmq *GroupMemberQuery) PaginationResult(req model.PaginationReq) model.Pagination {
-	ids := gmq.Clone().Select("id").GroupBy("id").IntsX(context.Background())
-	total := len(ids)
+	query := gmq.Clone()
+	query.order = nil
+	var result []struct {
+		Count int `json:"count"`
+	}
+	query.Modify(func(s *sql.Selector) {
+		s.SelectExpr(sql.Raw("COUNT(1) AS count"))
+	}).ScanX(context.Background(), &result)
+	total := result[0].Count
 	return model.Pagination{
 		Current: req.GetCurrent(),
 		Pages:   req.GetPages(total),
@@ -65,8 +80,15 @@ func (kq *KeyQuery) PaginationItemsX(req model.PaginationReq) any {
 
 // PaginationResult returns pagination for KeyQuery.
 func (kq *KeyQuery) PaginationResult(req model.PaginationReq) model.Pagination {
-	ids := kq.Clone().Select("id").GroupBy("id").IntsX(context.Background())
-	total := len(ids)
+	query := kq.Clone()
+	query.order = nil
+	var result []struct {
+		Count int `json:"count"`
+	}
+	query.Modify(func(s *sql.Selector) {
+		s.SelectExpr(sql.Raw("COUNT(1) AS count"))
+	}).ScanX(context.Background(), &result)
+	total := result[0].Count
 	return model.Pagination{
 		Current: req.GetCurrent(),
 		Pages:   req.GetPages(total),
@@ -87,8 +109,15 @@ func (mq *MemberQuery) PaginationItemsX(req model.PaginationReq) any {
 
 // PaginationResult returns pagination for MemberQuery.
 func (mq *MemberQuery) PaginationResult(req model.PaginationReq) model.Pagination {
-	ids := mq.Clone().Select("id").GroupBy("id").IntsX(context.Background())
-	total := len(ids)
+	query := mq.Clone()
+	query.order = nil
+	var result []struct {
+		Count int `json:"count"`
+	}
+	query.Modify(func(s *sql.Selector) {
+		s.SelectExpr(sql.Raw("COUNT(1) AS count"))
+	}).ScanX(context.Background(), &result)
+	total := result[0].Count
 	return model.Pagination{
 		Current: req.GetCurrent(),
 		Pages:   req.GetPages(total),
@@ -109,8 +138,15 @@ func (mq *MessageQuery) PaginationItemsX(req model.PaginationReq) any {
 
 // PaginationResult returns pagination for MessageQuery.
 func (mq *MessageQuery) PaginationResult(req model.PaginationReq) model.Pagination {
-	ids := mq.Clone().Select("id").GroupBy("id").IntsX(context.Background())
-	total := len(ids)
+	query := mq.Clone()
+	query.order = nil
+	var result []struct {
+		Count int `json:"count"`
+	}
+	query.Modify(func(s *sql.Selector) {
+		s.SelectExpr(sql.Raw("COUNT(1) AS count"))
+	}).ScanX(context.Background(), &result)
+	total := result[0].Count
 	return model.Pagination{
 		Current: req.GetCurrent(),
 		Pages:   req.GetPages(total),
@@ -131,8 +167,15 @@ func (mrq *MessageReadQuery) PaginationItemsX(req model.PaginationReq) any {
 
 // PaginationResult returns pagination for MessageReadQuery.
 func (mrq *MessageReadQuery) PaginationResult(req model.PaginationReq) model.Pagination {
-	ids := mrq.Clone().Select("id").GroupBy("id").IntsX(context.Background())
-	total := len(ids)
+	query := mrq.Clone()
+	query.order = nil
+	var result []struct {
+		Count int `json:"count"`
+	}
+	query.Modify(func(s *sql.Selector) {
+		s.SelectExpr(sql.Raw("COUNT(1) AS count"))
+	}).ScanX(context.Background(), &result)
+	total := result[0].Count
 	return model.Pagination{
 		Current: req.GetCurrent(),
 		Pages:   req.GetPages(total),

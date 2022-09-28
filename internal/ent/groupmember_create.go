@@ -40,6 +40,20 @@ func (gmc *GroupMemberCreate) SetNillableCreatedAt(t *time.Time) *GroupMemberCre
 	return gmc
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (gmc *GroupMemberCreate) SetUpdatedAt(t time.Time) *GroupMemberCreate {
+	gmc.mutation.SetUpdatedAt(t)
+	return gmc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (gmc *GroupMemberCreate) SetNillableUpdatedAt(t *time.Time) *GroupMemberCreate {
+	if t != nil {
+		gmc.SetUpdatedAt(*t)
+	}
+	return gmc
+}
+
 // SetMemberID sets the "member_id" field.
 func (gmc *GroupMemberCreate) SetMemberID(s string) *GroupMemberCreate {
 	gmc.mutation.SetMemberID(s)
@@ -193,8 +207,18 @@ func (gmc *GroupMemberCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (gmc *GroupMemberCreate) defaults() error {
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
-		v := groupmember.DefaultCreatedAt
+		if groupmember.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized groupmember.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
+		v := groupmember.DefaultCreatedAt()
 		gmc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := gmc.mutation.UpdatedAt(); !ok {
+		if groupmember.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized groupmember.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := groupmember.DefaultUpdatedAt()
+		gmc.mutation.SetUpdatedAt(v)
 	}
 	if _, ok := gmc.mutation.Permission(); !ok {
 		v := groupmember.DefaultPermission
@@ -207,6 +231,9 @@ func (gmc *GroupMemberCreate) defaults() error {
 func (gmc *GroupMemberCreate) check() error {
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "GroupMember.created_at"`)}
+	}
+	if _, ok := gmc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "GroupMember.updated_at"`)}
 	}
 	if _, ok := gmc.mutation.MemberID(); !ok {
 		return &ValidationError{Name: "member_id", err: errors.New(`ent: missing required field "GroupMember.member_id"`)}
@@ -278,6 +305,14 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 			Column: groupmember.FieldCreatedAt,
 		})
 		_node.CreatedAt = value
+	}
+	if value, ok := gmc.mutation.UpdatedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: groupmember.FieldUpdatedAt,
+		})
+		_node.UpdatedAt = value
 	}
 	if value, ok := gmc.mutation.Permission(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -427,6 +462,18 @@ func (u *GroupMemberUpsert) UpdateCreatedAt() *GroupMemberUpsert {
 	return u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GroupMemberUpsert) SetUpdatedAt(v time.Time) *GroupMemberUpsert {
+	u.Set(groupmember.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GroupMemberUpsert) UpdateUpdatedAt() *GroupMemberUpsert {
+	u.SetExcluded(groupmember.FieldUpdatedAt)
+	return u
+}
+
 // SetMemberID sets the "member_id" field.
 func (u *GroupMemberUpsert) SetMemberID(v string) *GroupMemberUpsert {
 	u.Set(groupmember.FieldMemberID, v)
@@ -567,6 +614,20 @@ func (u *GroupMemberUpsertOne) SetCreatedAt(v time.Time) *GroupMemberUpsertOne {
 func (u *GroupMemberUpsertOne) UpdateCreatedAt() *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GroupMemberUpsertOne) SetUpdatedAt(v time.Time) *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GroupMemberUpsertOne) UpdateUpdatedAt() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 
@@ -887,6 +948,20 @@ func (u *GroupMemberUpsertBulk) SetCreatedAt(v time.Time) *GroupMemberUpsertBulk
 func (u *GroupMemberUpsertBulk) UpdateCreatedAt() *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GroupMemberUpsertBulk) SetUpdatedAt(v time.Time) *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GroupMemberUpsertBulk) UpdateUpdatedAt() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 

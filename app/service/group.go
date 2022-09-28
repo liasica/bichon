@@ -189,14 +189,16 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
 
     // create group member set share sn and permission
     ic, it := s.GenerateInviteCode(mem.ID, gro.ID)
-    _, err = tx.GroupMember.Create().
+    creater := tx.GroupMember.Create().
         SetGroup(gro).
         SetMember(mem).
         SetInviteCode(ic).
         SetInviteExpire(it).
-        SetPermission(perm).
-        SetInviter(inviter).
-        Save(s.ctx)
+        SetPermission(perm)
+    if inviter != nil {
+        creater.SetInviter(inviter)
+    }
+    _, err = creater.Save(s.ctx)
     if err != nil {
         return
     }

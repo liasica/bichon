@@ -20,6 +20,7 @@ func command() *cobra.Command {
         apiCommand(),
         serialCommand(),
         nodeCommand(),
+        toolsCommand(),
     )
 
     return cmd

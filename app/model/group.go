@@ -23,7 +23,7 @@ const (
 type GroupCategory string
 
 var (
-    GroupCategories = []GroupCategory{"test1", "test2", "test3"}
+    GroupCategories = []GroupCategory{"TEST", "test1", "test2", "test3"}
 
     keysCache sync.Map
 

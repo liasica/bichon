@@ -21,6 +21,8 @@ type GroupMember struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// MemberID holds the value of the "member_id" field.
 	MemberID string `json:"member_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
@@ -99,7 +101,7 @@ func (*GroupMember) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(model.GroupMemberPerm)
 		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldInviterID, groupmember.FieldInviteCode:
 			values[i] = new(sql.NullString)
-		case groupmember.FieldCreatedAt, groupmember.FieldInviteExpire:
+		case groupmember.FieldCreatedAt, groupmember.FieldUpdatedAt, groupmember.FieldInviteExpire:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type GroupMember", columns[i])
@@ -127,6 +129,12 @@ func (gm *GroupMember) assignValues(columns []string, values []interface{}) erro
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				gm.CreatedAt = value.Time
+			}
+		case groupmember.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				gm.UpdatedAt = value.Time
 			}
 		case groupmember.FieldMemberID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -210,6 +218,9 @@ func (gm *GroupMember) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", gm.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(gm.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(gm.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("member_id=")
 	builder.WriteString(gm.MemberID)

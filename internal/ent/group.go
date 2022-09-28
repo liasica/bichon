@@ -19,6 +19,8 @@ type Group struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Category holds the value of the "category" field.
@@ -108,7 +110,7 @@ func (*Group) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case group.FieldID, group.FieldName, group.FieldCategory, group.FieldOwnerID, group.FieldAddress, group.FieldIntro, group.FieldKeys:
 			values[i] = new(sql.NullString)
-		case group.FieldCreatedAt:
+		case group.FieldCreatedAt, group.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Group", columns[i])
@@ -136,6 +138,12 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				gr.CreatedAt = value.Time
+			}
+		case group.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				gr.UpdatedAt = value.Time
 			}
 		case group.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -241,6 +249,9 @@ func (gr *Group) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", gr.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(gr.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(gr.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(gr.Name)

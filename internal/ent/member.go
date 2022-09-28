@@ -18,6 +18,8 @@ type Member struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Address holds the value of the "address" field.
 	Address string `json:"address,omitempty"`
 	// Nickname holds the value of the "nickname" field.
@@ -97,7 +99,7 @@ func (*Member) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullBool)
 		case member.FieldID, member.FieldAddress, member.FieldNickname, member.FieldAvatar, member.FieldIntro, member.FieldPublicKey, member.FieldNonce:
 			values[i] = new(sql.NullString)
-		case member.FieldCreatedAt:
+		case member.FieldCreatedAt, member.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Member", columns[i])
@@ -125,6 +127,12 @@ func (m *Member) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				m.CreatedAt = value.Time
+			}
+		case member.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				m.UpdatedAt = value.Time
 			}
 		case member.FieldAddress:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -218,6 +226,9 @@ func (m *Member) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", m.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("address=")
 	builder.WriteString(m.Address)

@@ -22,6 +22,7 @@ type MemberMutation struct {
 	typ                  string
 	id                   *string
 	created_at           *time.Time
+	updated_at           *time.Time
 	address              *string
 	nickname             *string
 	avatar               *string
@@ -185,6 +186,42 @@ func (m *MemberMutation) OldCreatedAt(ctx context.Context) (v time.Time, err err
 // ResetCreatedAt resets all changes to the "created_at" field.
 func (m *MemberMutation) ResetCreatedAt() {
 	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MemberMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MemberMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Member entity.
+// If the Member object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemberMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MemberMutation) ResetUpdatedAt() {
+	m.updated_at = nil
 }
 
 // SetAddress sets the "address" field.
@@ -726,9 +763,12 @@ func (m *MemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemberMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, member.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, member.FieldUpdatedAt)
 	}
 	if m.address != nil {
 		fields = append(fields, member.FieldAddress)
@@ -761,6 +801,8 @@ func (m *MemberMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case member.FieldCreatedAt:
 		return m.CreatedAt()
+	case member.FieldUpdatedAt:
+		return m.UpdatedAt()
 	case member.FieldAddress:
 		return m.Address()
 	case member.FieldNickname:
@@ -786,6 +828,8 @@ func (m *MemberMutation) OldField(ctx context.Context, name string) (ent.Value, 
 	switch name {
 	case member.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
+	case member.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
 	case member.FieldAddress:
 		return m.OldAddress(ctx)
 	case member.FieldNickname:
@@ -815,6 +859,13 @@ func (m *MemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
+		return nil
+	case member.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
 		return nil
 	case member.FieldAddress:
 		v, ok := value.(string)
@@ -943,6 +994,9 @@ func (m *MemberMutation) ResetField(name string) error {
 	switch name {
 	case member.FieldCreatedAt:
 		m.ResetCreatedAt()
+		return nil
+	case member.FieldUpdatedAt:
+		m.ResetUpdatedAt()
 		return nil
 	case member.FieldAddress:
 		m.ResetAddress()

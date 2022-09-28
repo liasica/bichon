@@ -23,6 +23,7 @@ type GroupMemberMutation struct {
 	typ            string
 	id             *string
 	created_at     *time.Time
+	updated_at     *time.Time
 	permission     *model.GroupMemberPerm
 	invite_code    *string
 	invite_expire  *time.Time
@@ -176,6 +177,42 @@ func (m *GroupMemberMutation) OldCreatedAt(ctx context.Context) (v time.Time, er
 // ResetCreatedAt resets all changes to the "created_at" field.
 func (m *GroupMemberMutation) ResetCreatedAt() {
 	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *GroupMemberMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *GroupMemberMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the GroupMember entity.
+// If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMemberMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *GroupMemberMutation) ResetUpdatedAt() {
+	m.updated_at = nil
 }
 
 // SetMemberID sets the "member_id" field.
@@ -504,9 +541,12 @@ func (m *GroupMemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMemberMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, groupmember.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, groupmember.FieldUpdatedAt)
 	}
 	if m.member != nil {
 		fields = append(fields, groupmember.FieldMemberID)
@@ -536,6 +576,8 @@ func (m *GroupMemberMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case groupmember.FieldCreatedAt:
 		return m.CreatedAt()
+	case groupmember.FieldUpdatedAt:
+		return m.UpdatedAt()
 	case groupmember.FieldMemberID:
 		return m.MemberID()
 	case groupmember.FieldGroupID:
@@ -559,6 +601,8 @@ func (m *GroupMemberMutation) OldField(ctx context.Context, name string) (ent.Va
 	switch name {
 	case groupmember.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
+	case groupmember.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
 	case groupmember.FieldMemberID:
 		return m.OldMemberID(ctx)
 	case groupmember.FieldGroupID:
@@ -586,6 +630,13 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
+		return nil
+	case groupmember.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
 		return nil
 	case groupmember.FieldMemberID:
 		v, ok := value.(string)
@@ -689,6 +740,9 @@ func (m *GroupMemberMutation) ResetField(name string) error {
 	switch name {
 	case groupmember.FieldCreatedAt:
 		m.ResetCreatedAt()
+		return nil
+	case groupmember.FieldUpdatedAt:
+		m.ResetUpdatedAt()
 		return nil
 	case groupmember.FieldMemberID:
 		m.ResetMemberID()

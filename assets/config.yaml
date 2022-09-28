@@ -5,7 +5,7 @@ app:
   printStack: false
 
 database:
-  dsn: "host=localhost user= dbname=chatpuppy port=5432 sslmode=disable"
+  dsn: "host=localhost user= dbname=chatpuppy port=5432 sslmode=disable TimeZone=UTC"
   debug: false
 
 redis:

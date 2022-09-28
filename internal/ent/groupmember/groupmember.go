@@ -16,6 +16,8 @@ const (
 	FieldID = "id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// FieldMemberID holds the string denoting the member_id field in the database.
 	FieldMemberID = "member_id"
 	// FieldGroupID holds the string denoting the group_id field in the database.
@@ -63,6 +65,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
+	FieldUpdatedAt,
 	FieldMemberID,
 	FieldGroupID,
 	FieldPermission,
@@ -89,7 +92,11 @@ func ValidColumn(column string) bool {
 var (
 	Hooks [2]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
-	DefaultCreatedAt time.Time
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultPermission holds the default value on creation for the "permission" field.
 	DefaultPermission model.GroupMemberPerm
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.

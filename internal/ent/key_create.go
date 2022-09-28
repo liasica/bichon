@@ -39,6 +39,20 @@ func (kc *KeyCreate) SetNillableCreatedAt(t *time.Time) *KeyCreate {
 	return kc
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (kc *KeyCreate) SetUpdatedAt(t time.Time) *KeyCreate {
+	kc.mutation.SetUpdatedAt(t)
+	return kc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (kc *KeyCreate) SetNillableUpdatedAt(t *time.Time) *KeyCreate {
+	if t != nil {
+		kc.SetUpdatedAt(*t)
+	}
+	return kc
+}
+
 // SetMemberID sets the "member_id" field.
 func (kc *KeyCreate) SetMemberID(s string) *KeyCreate {
 	kc.mutation.SetMemberID(s)
@@ -153,8 +167,18 @@ func (kc *KeyCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (kc *KeyCreate) defaults() error {
 	if _, ok := kc.mutation.CreatedAt(); !ok {
-		v := key.DefaultCreatedAt
+		if key.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized key.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
+		v := key.DefaultCreatedAt()
 		kc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := kc.mutation.UpdatedAt(); !ok {
+		if key.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized key.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := key.DefaultUpdatedAt()
+		kc.mutation.SetUpdatedAt(v)
 	}
 	return nil
 }
@@ -163,6 +187,9 @@ func (kc *KeyCreate) defaults() error {
 func (kc *KeyCreate) check() error {
 	if _, ok := kc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Key.created_at"`)}
+	}
+	if _, ok := kc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Key.updated_at"`)}
 	}
 	if _, ok := kc.mutation.MemberID(); !ok {
 		return &ValidationError{Name: "member_id", err: errors.New(`ent: missing required field "Key.member_id"`)}
@@ -228,6 +255,14 @@ func (kc *KeyCreate) createSpec() (*Key, *sqlgraph.CreateSpec) {
 			Column: key.FieldCreatedAt,
 		})
 		_node.CreatedAt = value
+	}
+	if value, ok := kc.mutation.UpdatedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: key.FieldUpdatedAt,
+		})
+		_node.UpdatedAt = value
 	}
 	if value, ok := kc.mutation.Keys(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -341,6 +376,18 @@ func (u *KeyUpsert) UpdateCreatedAt() *KeyUpsert {
 	return u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (u *KeyUpsert) SetUpdatedAt(v time.Time) *KeyUpsert {
+	u.Set(key.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *KeyUpsert) UpdateUpdatedAt() *KeyUpsert {
+	u.SetExcluded(key.FieldUpdatedAt)
+	return u
+}
+
 // SetMemberID sets the "member_id" field.
 func (u *KeyUpsert) SetMemberID(v string) *KeyUpsert {
 	u.Set(key.FieldMemberID, v)
@@ -439,6 +486,20 @@ func (u *KeyUpsertOne) SetCreatedAt(v time.Time) *KeyUpsertOne {
 func (u *KeyUpsertOne) UpdateCreatedAt() *KeyUpsertOne {
 	return u.Update(func(s *KeyUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *KeyUpsertOne) SetUpdatedAt(v time.Time) *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *KeyUpsertOne) UpdateUpdatedAt() *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 
@@ -710,6 +771,20 @@ func (u *KeyUpsertBulk) SetCreatedAt(v time.Time) *KeyUpsertBulk {
 func (u *KeyUpsertBulk) UpdateCreatedAt() *KeyUpsertBulk {
 	return u.Update(func(s *KeyUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *KeyUpsertBulk) SetUpdatedAt(v time.Time) *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *KeyUpsertBulk) UpdateUpdatedAt() *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 

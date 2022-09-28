@@ -40,6 +40,20 @@ func (mc *MemberCreate) SetNillableCreatedAt(t *time.Time) *MemberCreate {
 	return mc
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (mc *MemberCreate) SetUpdatedAt(t time.Time) *MemberCreate {
+	mc.mutation.SetUpdatedAt(t)
+	return mc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (mc *MemberCreate) SetNillableUpdatedAt(t *time.Time) *MemberCreate {
+	if t != nil {
+		mc.SetUpdatedAt(*t)
+	}
+	return mc
+}
+
 // SetAddress sets the "address" field.
 func (mc *MemberCreate) SetAddress(s string) *MemberCreate {
 	mc.mutation.SetAddress(s)
@@ -268,8 +282,18 @@ func (mc *MemberCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (mc *MemberCreate) defaults() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
-		v := member.DefaultCreatedAt
+		if member.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized member.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
+		v := member.DefaultCreatedAt()
 		mc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := mc.mutation.UpdatedAt(); !ok {
+		if member.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized member.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := member.DefaultUpdatedAt()
+		mc.mutation.SetUpdatedAt(v)
 	}
 	if _, ok := mc.mutation.ShowNickname(); !ok {
 		v := member.DefaultShowNickname
@@ -282,6 +306,9 @@ func (mc *MemberCreate) defaults() error {
 func (mc *MemberCreate) check() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Member.created_at"`)}
+	}
+	if _, ok := mc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Member.updated_at"`)}
 	}
 	if _, ok := mc.mutation.Address(); !ok {
 		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "Member.address"`)}
@@ -341,6 +368,14 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Column: member.FieldCreatedAt,
 		})
 		_node.CreatedAt = value
+	}
+	if value, ok := mc.mutation.UpdatedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: member.FieldUpdatedAt,
+		})
+		_node.UpdatedAt = value
 	}
 	if value, ok := mc.mutation.Address(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -542,6 +577,18 @@ func (u *MemberUpsert) UpdateCreatedAt() *MemberUpsert {
 	return u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MemberUpsert) SetUpdatedAt(v time.Time) *MemberUpsert {
+	u.Set(member.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MemberUpsert) UpdateUpdatedAt() *MemberUpsert {
+	u.SetExcluded(member.FieldUpdatedAt)
+	return u
+}
+
 // SetAddress sets the "address" field.
 func (u *MemberUpsert) SetAddress(v string) *MemberUpsert {
 	u.Set(member.FieldAddress, v)
@@ -712,6 +759,20 @@ func (u *MemberUpsertOne) SetCreatedAt(v time.Time) *MemberUpsertOne {
 func (u *MemberUpsertOne) UpdateCreatedAt() *MemberUpsertOne {
 	return u.Update(func(s *MemberUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MemberUpsertOne) SetUpdatedAt(v time.Time) *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MemberUpsertOne) UpdateUpdatedAt() *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 
@@ -1067,6 +1128,20 @@ func (u *MemberUpsertBulk) SetCreatedAt(v time.Time) *MemberUpsertBulk {
 func (u *MemberUpsertBulk) UpdateCreatedAt() *MemberUpsertBulk {
 	return u.Update(func(s *MemberUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MemberUpsertBulk) SetUpdatedAt(v time.Time) *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MemberUpsertBulk) UpdateUpdatedAt() *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 

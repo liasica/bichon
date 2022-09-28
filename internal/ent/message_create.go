@@ -40,6 +40,20 @@ func (mc *MessageCreate) SetNillableCreatedAt(t *time.Time) *MessageCreate {
 	return mc
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (mc *MessageCreate) SetUpdatedAt(t time.Time) *MessageCreate {
+	mc.mutation.SetUpdatedAt(t)
+	return mc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (mc *MessageCreate) SetNillableUpdatedAt(t *time.Time) *MessageCreate {
+	if t != nil {
+		mc.SetUpdatedAt(*t)
+	}
+	return mc
+}
+
 // SetGroupID sets the "group_id" field.
 func (mc *MessageCreate) SetGroupID(s string) *MessageCreate {
 	mc.mutation.SetGroupID(s)
@@ -194,8 +208,18 @@ func (mc *MessageCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (mc *MessageCreate) defaults() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
-		v := message.DefaultCreatedAt
+		if message.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized message.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
+		v := message.DefaultCreatedAt()
 		mc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := mc.mutation.UpdatedAt(); !ok {
+		if message.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized message.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := message.DefaultUpdatedAt()
+		mc.mutation.SetUpdatedAt(v)
 	}
 	return nil
 }
@@ -204,6 +228,9 @@ func (mc *MessageCreate) defaults() error {
 func (mc *MessageCreate) check() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Message.created_at"`)}
+	}
+	if _, ok := mc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Message.updated_at"`)}
 	}
 	if _, ok := mc.mutation.GroupID(); !ok {
 		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "Message.group_id"`)}
@@ -272,6 +299,14 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Column: message.FieldCreatedAt,
 		})
 		_node.CreatedAt = value
+	}
+	if value, ok := mc.mutation.UpdatedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: message.FieldUpdatedAt,
+		})
+		_node.UpdatedAt = value
 	}
 	if value, ok := mc.mutation.Content(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -432,6 +467,18 @@ func (u *MessageUpsert) UpdateCreatedAt() *MessageUpsert {
 	return u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MessageUpsert) SetUpdatedAt(v time.Time) *MessageUpsert {
+	u.Set(message.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateUpdatedAt() *MessageUpsert {
+	u.SetExcluded(message.FieldUpdatedAt)
+	return u
+}
+
 // SetGroupID sets the "group_id" field.
 func (u *MessageUpsert) SetGroupID(v string) *MessageUpsert {
 	u.Set(message.FieldGroupID, v)
@@ -560,6 +607,20 @@ func (u *MessageUpsertOne) SetCreatedAt(v time.Time) *MessageUpsertOne {
 func (u *MessageUpsertOne) UpdateCreatedAt() *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MessageUpsertOne) SetUpdatedAt(v time.Time) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateUpdatedAt() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 
@@ -866,6 +927,20 @@ func (u *MessageUpsertBulk) SetCreatedAt(v time.Time) *MessageUpsertBulk {
 func (u *MessageUpsertBulk) UpdateCreatedAt() *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MessageUpsertBulk) SetUpdatedAt(v time.Time) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateUpdatedAt() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 

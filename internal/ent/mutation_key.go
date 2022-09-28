@@ -22,6 +22,7 @@ type KeyMutation struct {
 	typ           string
 	id            *string
 	created_at    *time.Time
+	updated_at    *time.Time
 	keys          *string
 	clearedFields map[string]struct{}
 	member        *string
@@ -171,6 +172,42 @@ func (m *KeyMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error)
 // ResetCreatedAt resets all changes to the "created_at" field.
 func (m *KeyMutation) ResetCreatedAt() {
 	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *KeyMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *KeyMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Key entity.
+// If the Key object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *KeyMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *KeyMutation) ResetUpdatedAt() {
+	m.updated_at = nil
 }
 
 // SetMemberID sets the "member_id" field.
@@ -352,9 +389,12 @@ func (m *KeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *KeyMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.created_at != nil {
 		fields = append(fields, key.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, key.FieldUpdatedAt)
 	}
 	if m.member != nil {
 		fields = append(fields, key.FieldMemberID)
@@ -375,6 +415,8 @@ func (m *KeyMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case key.FieldCreatedAt:
 		return m.CreatedAt()
+	case key.FieldUpdatedAt:
+		return m.UpdatedAt()
 	case key.FieldMemberID:
 		return m.MemberID()
 	case key.FieldGroupID:
@@ -392,6 +434,8 @@ func (m *KeyMutation) OldField(ctx context.Context, name string) (ent.Value, err
 	switch name {
 	case key.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
+	case key.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
 	case key.FieldMemberID:
 		return m.OldMemberID(ctx)
 	case key.FieldGroupID:
@@ -413,6 +457,13 @@ func (m *KeyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
+		return nil
+	case key.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
 		return nil
 	case key.FieldMemberID:
 		v, ok := value.(string)
@@ -486,6 +537,9 @@ func (m *KeyMutation) ResetField(name string) error {
 	switch name {
 	case key.FieldCreatedAt:
 		m.ResetCreatedAt()
+		return nil
+	case key.FieldUpdatedAt:
+		m.ResetUpdatedAt()
 		return nil
 	case key.FieldMemberID:
 		m.ResetMemberID()

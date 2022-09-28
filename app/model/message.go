@@ -16,6 +16,11 @@ type Message struct {
     MessageContent *MessageContent `json:"-"`
 }
 
+type MessageBroadcast struct {
+    Message
+    GroupAddress string `json:"groupAddress"`
+}
+
 type MessageCreateReq struct {
     ID       string  `json:"id"`
     MemberID string  `json:"memberId" validate:"required"`
