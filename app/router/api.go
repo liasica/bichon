@@ -29,7 +29,7 @@ func loadAppRoutes(r *echo.Echo) {
     g.POST("/group/key", endpoint.Group.ShareKey)
     g.GET("/group/:id", endpoint.Group.Detail)
     g.POST("/group/key/used", endpoint.Group.KeyUsed)
-    g.POST("/group/key/update", endpoint.Group.Update, middleware.Signature())
+    g.POST("/group/update", endpoint.Group.Update, middleware.Signature())
     g.POST("/group/invite/recode", endpoint.Group.ReCode, middleware.Signature())
     g.POST("/group/active", endpoint.Group.Active)
     g.POST("/group/kickout", endpoint.Group.Kickout, middleware.Signature())

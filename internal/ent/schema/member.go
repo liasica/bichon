@@ -13,7 +13,8 @@ import (
 
 type MemberMixin struct {
     mixin.Schema
-    Optional bool
+    Optional     bool
+    WithoutIndex bool
 }
 
 func (m MemberMixin) Fields() []ent.Field {
@@ -30,6 +31,13 @@ func (m MemberMixin) Edges() []ent.Edge {
         e.Required()
     }
     return []ent.Edge{e}
+}
+
+func (m MemberMixin) Indexes() (arr []ent.Index) {
+    if !m.WithoutIndex {
+        arr = append(arr, index.Fields("member_id"))
+    }
+    return
 }
 
 // Member holds the schema definition for the Member entity.

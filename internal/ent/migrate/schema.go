@@ -108,6 +108,16 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{GroupMemberColumns[1]},
 			},
+			{
+				Name:    "groupmember_member_id",
+				Unique:  false,
+				Columns: []*schema.Column{GroupMemberColumns[6]},
+			},
+			{
+				Name:    "groupmember_group_id",
+				Unique:  false,
+				Columns: []*schema.Column{GroupMemberColumns[7]},
+			},
 		},
 	}
 	// KeyColumns holds the columns for the "key" table.
@@ -143,6 +153,16 @@ var (
 				Name:    "key_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{KeyColumns[1]},
+			},
+			{
+				Name:    "key_member_id",
+				Unique:  false,
+				Columns: []*schema.Column{KeyColumns[4]},
+			},
+			{
+				Name:    "key_group_id",
+				Unique:  false,
+				Columns: []*schema.Column{KeyColumns[5]},
 			},
 		},
 	}
@@ -273,6 +293,11 @@ var (
 				Name:    "messageread_last_time",
 				Unique:  false,
 				Columns: []*schema.Column{MessageReadColumns[2]},
+			},
+			{
+				Name:    "messageread_member_id_group_id",
+				Unique:  true,
+				Columns: []*schema.Column{MessageReadColumns[3], MessageReadColumns[4]},
 			},
 		},
 	}

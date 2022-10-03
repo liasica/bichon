@@ -10,9 +10,42 @@ import (
     "entgo.io/ent/schema"
     "entgo.io/ent/schema/edge"
     "entgo.io/ent/schema/field"
+    "entgo.io/ent/schema/index"
+    "entgo.io/ent/schema/mixin"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
 )
+
+type GroupMemberMixin struct {
+    mixin.Schema
+    Optional     bool
+    WithoutIndex bool
+}
+
+func (m GroupMemberMixin) Fields() []ent.Field {
+    f := field.String("group_member_id")
+    if m.Optional {
+        f.Optional().Nillable()
+    }
+    return []ent.Field{f}
+}
+
+func (m GroupMemberMixin) Edges() []ent.Edge {
+    e := edge.To("groupMember", GroupMember.Type).Unique().Field("group_member_id")
+    if !m.Optional {
+        e.Required()
+    }
+    return []ent.Edge{e}
+}
+
+func (m GroupMemberMixin) Indexes() (arr []ent.Index) {
+    if !m.WithoutIndex {
+        arr = append(arr, index.Fields("group_member_id"))
+    }
+    return
+}
+
+// TODO: 存储message_read
 
 // GroupMember holds the schema definition for the GroupMember entity.
 type GroupMember struct {

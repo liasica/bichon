@@ -47,6 +47,8 @@ definitions:
         type: string
       category:
         type: string
+      createdAt:
+        type: string
       id:
         type: string
       intro:
@@ -76,6 +78,8 @@ definitions:
       address:
         type: string
       category:
+        type: string
+      createdAt:
         type: string
       groupPublicKey:
         type: string
@@ -119,6 +123,8 @@ definitions:
       address:
         type: string
       category:
+        type: string
+      createdAt:
         type: string
       id:
         type: string
@@ -166,6 +172,8 @@ definitions:
       address:
         type: string
       category:
+        type: string
+      createdAt:
         type: string
       id:
         type: string

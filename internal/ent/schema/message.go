@@ -7,9 +7,39 @@ import (
     "entgo.io/ent/schema/edge"
     "entgo.io/ent/schema/field"
     "entgo.io/ent/schema/index"
+    "entgo.io/ent/schema/mixin"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
 )
+
+type MessageMixin struct {
+    mixin.Schema
+    Optional     bool
+    WithoutIndex bool
+}
+
+func (m MessageMixin) Fields() []ent.Field {
+    f := field.String("message_id")
+    if m.Optional {
+        f.Optional().Nillable()
+    }
+    return []ent.Field{f}
+}
+
+func (m MessageMixin) Edges() []ent.Edge {
+    e := edge.To("message", Message.Type).Unique().Field("message_id")
+    if !m.Optional {
+        e.Required()
+    }
+    return []ent.Edge{e}
+}
+
+func (m MessageMixin) Indexes() (arr []ent.Index) {
+    if !m.WithoutIndex {
+        arr = append(arr, index.Fields("message_id"))
+    }
+    return
+}
 
 // Message holds the schema definition for the Message entity.
 type Message struct {

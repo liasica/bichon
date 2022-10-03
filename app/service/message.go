@@ -242,6 +242,7 @@ func (s *messageService) UpdateRead(id, memID, groupID string, createdAt time.Ti
         SetLastTime(createdAt).
         SetLastID(id).
         OnConflictColumns(messageread.FieldGroupID, messageread.FieldMemberID).
+        UpdateNewValues().
         Exec(s.ctx)
 }
 

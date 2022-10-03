@@ -886,6 +886,9 @@
                 "category": {
                     "type": "string"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -928,6 +931,9 @@
                     "type": "string"
                 },
                 "category": {
+                    "type": "string"
+                },
+                "createdAt": {
                     "type": "string"
                 },
                 "groupPublicKey": {
@@ -991,6 +997,9 @@
                     "type": "string"
                 },
                 "category": {
+                    "type": "string"
+                },
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {
@@ -1060,6 +1069,9 @@
                     "type": "string"
                 },
                 "category": {
+                    "type": "string"
+                },
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {

@@ -6,13 +6,15 @@ import (
     "entgo.io/ent/schema"
     "entgo.io/ent/schema/edge"
     "entgo.io/ent/schema/field"
+    "entgo.io/ent/schema/index"
     "entgo.io/ent/schema/mixin"
     "github.com/chatpuppy/puppychat/internal/ent/internal"
 )
 
 type KeyMixin struct {
     mixin.Schema
-    Optional bool
+    Optional     bool
+    WithoutIndex bool
 }
 
 func (m KeyMixin) Fields() []ent.Field {
@@ -29,6 +31,13 @@ func (m KeyMixin) Edges() []ent.Edge {
         e.Required()
     }
     return []ent.Edge{e}
+}
+
+func (m KeyMixin) Indexes() (arr []ent.Index) {
+    if !m.WithoutIndex {
+        arr = append(arr, index.Fields("key_id"))
+    }
+    return
 }
 
 // Key holds the schema definition for the Key entity.

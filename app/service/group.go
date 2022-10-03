@@ -63,6 +63,7 @@ func (s *groupService) Meta(gro *ent.Group) model.GroupMeta {
         MembersCount: gro.MembersCount,
         Intro:        gro.Intro,
         Category:     gro.Category,
+        CreatedAt:    gro.CreatedAt,
     }
 }
 
@@ -378,14 +379,15 @@ func (s *groupService) List(mem *ent.Member, req *model.GroupListReq) (res *mode
         q.Where(group.Category(string(req.Category)))
     }
     var result []struct {
-        ID           string `json:"id"`
-        Name         string `json:"name"`
-        Address      string `json:"address"`
-        Intro        string `json:"intro"`
-        Category     string `json:"category"`
-        MembersMax   int    `json:"members_max"`
-        MembersCount int    `json:"members_count"`
-        Joined       bool   `json:"joined"`
+        ID           string    `json:"id"`
+        Name         string    `json:"name"`
+        Address      string    `json:"address"`
+        Intro        string    `json:"intro"`
+        Category     string    `json:"category"`
+        MembersMax   int       `json:"members_max"`
+        MembersCount int       `json:"members_count"`
+        Joined       bool      `json:"joined"`
+        CreatedAt    time.Time `json:"created_at"`
     }
     err = q.
         Limit(req.GetLimit()).
@@ -401,6 +403,7 @@ func (s *groupService) List(mem *ent.Member, req *model.GroupListReq) (res *mode
                     sel.C(group.FieldMembersCount),
                     sel.C(group.FieldIntro),
                     sel.C(group.FieldCategory),
+                    sel.C(group.FieldCreatedAt),
                 )
             if mem != nil {
                 t := sql.Table(groupmember.Table)
@@ -428,6 +431,7 @@ func (s *groupService) List(mem *ent.Member, req *model.GroupListReq) (res *mode
                 MembersCount: gro.MembersCount,
                 Intro:        gro.Intro,
                 Category:     gro.Category,
+                CreatedAt:    gro.CreatedAt,
             },
             Joined: gro.Joined,
         }

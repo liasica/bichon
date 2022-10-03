@@ -894,6 +894,9 @@ const docTemplate = `{
                 "category": {
                     "type": "string"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -936,6 +939,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "category": {
+                    "type": "string"
+                },
+                "createdAt": {
                     "type": "string"
                 },
                 "groupPublicKey": {
@@ -999,6 +1005,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "category": {
+                    "type": "string"
+                },
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {
@@ -1068,6 +1077,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "category": {
+                    "type": "string"
+                },
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {

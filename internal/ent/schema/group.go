@@ -14,7 +14,8 @@ import (
 
 type GroupMixin struct {
     mixin.Schema
-    Optional bool
+    Optional     bool
+    WithoutIndex bool
 }
 
 func (m GroupMixin) Fields() []ent.Field {
@@ -31,6 +32,13 @@ func (m GroupMixin) Edges() []ent.Edge {
         e.Required()
     }
     return []ent.Edge{e}
+}
+
+func (m GroupMixin) Indexes() (arr []ent.Index) {
+    if !m.WithoutIndex {
+        arr = append(arr, index.Fields("group_id"))
+    }
+    return
 }
 
 // Group holds the schema definition for the Group entity.

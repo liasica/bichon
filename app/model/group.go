@@ -72,13 +72,14 @@ type GroupDetailWithPublicKey struct {
 }
 
 type GroupMeta struct {
-    ID           string `json:"id"`
-    Name         string `json:"name"`
-    Address      string `json:"address"`
-    MembersMax   int    `json:"membersMax"`
-    MembersCount int    `json:"membersCount"`
-    Intro        string `json:"intro,omitempty"` // optional
-    Category     string `json:"category"`
+    ID           string    `json:"id"`
+    Name         string    `json:"name"`
+    Address      string    `json:"address"`
+    MembersMax   int       `json:"membersMax"`
+    MembersCount int       `json:"membersCount"`
+    Intro        string    `json:"intro,omitempty"` // optional
+    Category     string    `json:"category"`
+    CreatedAt    time.Time `json:"createdAt"`
 }
 
 type GroupJoinedListRes struct {
