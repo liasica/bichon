@@ -106,6 +106,34 @@ func (gmc *GroupMemberCreate) SetInviteExpire(t time.Time) *GroupMemberCreate {
 	return gmc
 }
 
+// SetReadID sets the "read_id" field.
+func (gmc *GroupMemberCreate) SetReadID(s string) *GroupMemberCreate {
+	gmc.mutation.SetReadID(s)
+	return gmc
+}
+
+// SetNillableReadID sets the "read_id" field if the given value is not nil.
+func (gmc *GroupMemberCreate) SetNillableReadID(s *string) *GroupMemberCreate {
+	if s != nil {
+		gmc.SetReadID(*s)
+	}
+	return gmc
+}
+
+// SetReadTime sets the "read_time" field.
+func (gmc *GroupMemberCreate) SetReadTime(t time.Time) *GroupMemberCreate {
+	gmc.mutation.SetReadTime(t)
+	return gmc
+}
+
+// SetNillableReadTime sets the "read_time" field if the given value is not nil.
+func (gmc *GroupMemberCreate) SetNillableReadTime(t *time.Time) *GroupMemberCreate {
+	if t != nil {
+		gmc.SetReadTime(*t)
+	}
+	return gmc
+}
+
 // SetID sets the "id" field.
 func (gmc *GroupMemberCreate) SetID(s string) *GroupMemberCreate {
 	gmc.mutation.SetID(s)
@@ -338,6 +366,22 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 		})
 		_node.InviteExpire = value
 	}
+	if value, ok := gmc.mutation.ReadID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: groupmember.FieldReadID,
+		})
+		_node.ReadID = &value
+	}
+	if value, ok := gmc.mutation.ReadTime(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: groupmember.FieldReadTime,
+		})
+		_node.ReadTime = &value
+	}
 	if nodes := gmc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -552,6 +596,42 @@ func (u *GroupMemberUpsert) UpdateInviteExpire() *GroupMemberUpsert {
 	return u
 }
 
+// SetReadID sets the "read_id" field.
+func (u *GroupMemberUpsert) SetReadID(v string) *GroupMemberUpsert {
+	u.Set(groupmember.FieldReadID, v)
+	return u
+}
+
+// UpdateReadID sets the "read_id" field to the value that was provided on create.
+func (u *GroupMemberUpsert) UpdateReadID() *GroupMemberUpsert {
+	u.SetExcluded(groupmember.FieldReadID)
+	return u
+}
+
+// ClearReadID clears the value of the "read_id" field.
+func (u *GroupMemberUpsert) ClearReadID() *GroupMemberUpsert {
+	u.SetNull(groupmember.FieldReadID)
+	return u
+}
+
+// SetReadTime sets the "read_time" field.
+func (u *GroupMemberUpsert) SetReadTime(v time.Time) *GroupMemberUpsert {
+	u.Set(groupmember.FieldReadTime, v)
+	return u
+}
+
+// UpdateReadTime sets the "read_time" field to the value that was provided on create.
+func (u *GroupMemberUpsert) UpdateReadTime() *GroupMemberUpsert {
+	u.SetExcluded(groupmember.FieldReadTime)
+	return u
+}
+
+// ClearReadTime clears the value of the "read_time" field.
+func (u *GroupMemberUpsert) ClearReadTime() *GroupMemberUpsert {
+	u.SetNull(groupmember.FieldReadTime)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -719,6 +799,48 @@ func (u *GroupMemberUpsertOne) SetInviteExpire(v time.Time) *GroupMemberUpsertOn
 func (u *GroupMemberUpsertOne) UpdateInviteExpire() *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.UpdateInviteExpire()
+	})
+}
+
+// SetReadID sets the "read_id" field.
+func (u *GroupMemberUpsertOne) SetReadID(v string) *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetReadID(v)
+	})
+}
+
+// UpdateReadID sets the "read_id" field to the value that was provided on create.
+func (u *GroupMemberUpsertOne) UpdateReadID() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateReadID()
+	})
+}
+
+// ClearReadID clears the value of the "read_id" field.
+func (u *GroupMemberUpsertOne) ClearReadID() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.ClearReadID()
+	})
+}
+
+// SetReadTime sets the "read_time" field.
+func (u *GroupMemberUpsertOne) SetReadTime(v time.Time) *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetReadTime(v)
+	})
+}
+
+// UpdateReadTime sets the "read_time" field to the value that was provided on create.
+func (u *GroupMemberUpsertOne) UpdateReadTime() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateReadTime()
+	})
+}
+
+// ClearReadTime clears the value of the "read_time" field.
+func (u *GroupMemberUpsertOne) ClearReadTime() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.ClearReadTime()
 	})
 }
 
@@ -1053,6 +1175,48 @@ func (u *GroupMemberUpsertBulk) SetInviteExpire(v time.Time) *GroupMemberUpsertB
 func (u *GroupMemberUpsertBulk) UpdateInviteExpire() *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.UpdateInviteExpire()
+	})
+}
+
+// SetReadID sets the "read_id" field.
+func (u *GroupMemberUpsertBulk) SetReadID(v string) *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetReadID(v)
+	})
+}
+
+// UpdateReadID sets the "read_id" field to the value that was provided on create.
+func (u *GroupMemberUpsertBulk) UpdateReadID() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateReadID()
+	})
+}
+
+// ClearReadID clears the value of the "read_id" field.
+func (u *GroupMemberUpsertBulk) ClearReadID() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.ClearReadID()
+	})
+}
+
+// SetReadTime sets the "read_time" field.
+func (u *GroupMemberUpsertBulk) SetReadTime(v time.Time) *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetReadTime(v)
+	})
+}
+
+// UpdateReadTime sets the "read_time" field to the value that was provided on create.
+func (u *GroupMemberUpsertBulk) UpdateReadTime() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateReadTime()
+	})
+}
+
+// ClearReadTime clears the value of the "read_time" field.
+func (u *GroupMemberUpsertBulk) ClearReadTime() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.ClearReadTime()
 	})
 }
 

@@ -30,6 +30,10 @@ const (
 	FieldInviteCode = "invite_code"
 	// FieldInviteExpire holds the string denoting the invite_expire field in the database.
 	FieldInviteExpire = "invite_expire"
+	// FieldReadID holds the string denoting the read_id field in the database.
+	FieldReadID = "read_id"
+	// FieldReadTime holds the string denoting the read_time field in the database.
+	FieldReadTime = "read_time"
 	// EdgeMember holds the string denoting the member edge name in mutations.
 	EdgeMember = "member"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
@@ -72,6 +76,8 @@ var Columns = []string{
 	FieldInviterID,
 	FieldInviteCode,
 	FieldInviteExpire,
+	FieldReadID,
+	FieldReadTime,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

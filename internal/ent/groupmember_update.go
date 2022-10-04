@@ -96,6 +96,46 @@ func (gmu *GroupMemberUpdate) SetInviteExpire(t time.Time) *GroupMemberUpdate {
 	return gmu
 }
 
+// SetReadID sets the "read_id" field.
+func (gmu *GroupMemberUpdate) SetReadID(s string) *GroupMemberUpdate {
+	gmu.mutation.SetReadID(s)
+	return gmu
+}
+
+// SetNillableReadID sets the "read_id" field if the given value is not nil.
+func (gmu *GroupMemberUpdate) SetNillableReadID(s *string) *GroupMemberUpdate {
+	if s != nil {
+		gmu.SetReadID(*s)
+	}
+	return gmu
+}
+
+// ClearReadID clears the value of the "read_id" field.
+func (gmu *GroupMemberUpdate) ClearReadID() *GroupMemberUpdate {
+	gmu.mutation.ClearReadID()
+	return gmu
+}
+
+// SetReadTime sets the "read_time" field.
+func (gmu *GroupMemberUpdate) SetReadTime(t time.Time) *GroupMemberUpdate {
+	gmu.mutation.SetReadTime(t)
+	return gmu
+}
+
+// SetNillableReadTime sets the "read_time" field if the given value is not nil.
+func (gmu *GroupMemberUpdate) SetNillableReadTime(t *time.Time) *GroupMemberUpdate {
+	if t != nil {
+		gmu.SetReadTime(*t)
+	}
+	return gmu
+}
+
+// ClearReadTime clears the value of the "read_time" field.
+func (gmu *GroupMemberUpdate) ClearReadTime() *GroupMemberUpdate {
+	gmu.mutation.ClearReadTime()
+	return gmu
+}
+
 // SetMember sets the "member" edge to the Member entity.
 func (gmu *GroupMemberUpdate) SetMember(m *Member) *GroupMemberUpdate {
 	return gmu.SetMemberID(m.ID)
@@ -270,6 +310,32 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: groupmember.FieldInviteExpire,
+		})
+	}
+	if value, ok := gmu.mutation.ReadID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: groupmember.FieldReadID,
+		})
+	}
+	if gmu.mutation.ReadIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: groupmember.FieldReadID,
+		})
+	}
+	if value, ok := gmu.mutation.ReadTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: groupmember.FieldReadTime,
+		})
+	}
+	if gmu.mutation.ReadTimeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: groupmember.FieldReadTime,
 		})
 	}
 	if gmu.mutation.MemberCleared() {
@@ -459,6 +525,46 @@ func (gmuo *GroupMemberUpdateOne) SetInviteCode(s string) *GroupMemberUpdateOne 
 // SetInviteExpire sets the "invite_expire" field.
 func (gmuo *GroupMemberUpdateOne) SetInviteExpire(t time.Time) *GroupMemberUpdateOne {
 	gmuo.mutation.SetInviteExpire(t)
+	return gmuo
+}
+
+// SetReadID sets the "read_id" field.
+func (gmuo *GroupMemberUpdateOne) SetReadID(s string) *GroupMemberUpdateOne {
+	gmuo.mutation.SetReadID(s)
+	return gmuo
+}
+
+// SetNillableReadID sets the "read_id" field if the given value is not nil.
+func (gmuo *GroupMemberUpdateOne) SetNillableReadID(s *string) *GroupMemberUpdateOne {
+	if s != nil {
+		gmuo.SetReadID(*s)
+	}
+	return gmuo
+}
+
+// ClearReadID clears the value of the "read_id" field.
+func (gmuo *GroupMemberUpdateOne) ClearReadID() *GroupMemberUpdateOne {
+	gmuo.mutation.ClearReadID()
+	return gmuo
+}
+
+// SetReadTime sets the "read_time" field.
+func (gmuo *GroupMemberUpdateOne) SetReadTime(t time.Time) *GroupMemberUpdateOne {
+	gmuo.mutation.SetReadTime(t)
+	return gmuo
+}
+
+// SetNillableReadTime sets the "read_time" field if the given value is not nil.
+func (gmuo *GroupMemberUpdateOne) SetNillableReadTime(t *time.Time) *GroupMemberUpdateOne {
+	if t != nil {
+		gmuo.SetReadTime(*t)
+	}
+	return gmuo
+}
+
+// ClearReadTime clears the value of the "read_time" field.
+func (gmuo *GroupMemberUpdateOne) ClearReadTime() *GroupMemberUpdateOne {
+	gmuo.mutation.ClearReadTime()
 	return gmuo
 }
 
@@ -666,6 +772,32 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: groupmember.FieldInviteExpire,
+		})
+	}
+	if value, ok := gmuo.mutation.ReadID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: groupmember.FieldReadID,
+		})
+	}
+	if gmuo.mutation.ReadIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: groupmember.FieldReadID,
+		})
+	}
+	if value, ok := gmuo.mutation.ReadTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: groupmember.FieldReadTime,
+		})
+	}
+	if gmuo.mutation.ReadTimeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: groupmember.FieldReadTime,
 		})
 	}
 	if gmuo.mutation.MemberCleared() {

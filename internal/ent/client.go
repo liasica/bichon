@@ -15,7 +15,6 @@ import (
 	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
-	"github.com/chatpuppy/puppychat/internal/ent/messageread"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -37,8 +36,6 @@ type Client struct {
 	Member *MemberClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
-	// MessageRead is the client for interacting with the MessageRead builders.
-	MessageRead *MessageReadClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -57,7 +54,6 @@ func (c *Client) init() {
 	c.Key = NewKeyClient(c.config)
 	c.Member = NewMemberClient(c.config)
 	c.Message = NewMessageClient(c.config)
-	c.MessageRead = NewMessageReadClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -96,7 +92,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Key:         NewKeyClient(cfg),
 		Member:      NewMemberClient(cfg),
 		Message:     NewMessageClient(cfg),
-		MessageRead: NewMessageReadClient(cfg),
 	}, nil
 }
 
@@ -121,7 +116,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Key:         NewKeyClient(cfg),
 		Member:      NewMemberClient(cfg),
 		Message:     NewMessageClient(cfg),
-		MessageRead: NewMessageReadClient(cfg),
 	}, nil
 }
 
@@ -155,7 +149,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Key.Use(hooks...)
 	c.Member.Use(hooks...)
 	c.Message.Use(hooks...)
-	c.MessageRead.Use(hooks...)
 }
 
 // GroupClient is a client for the Group schema.
@@ -883,127 +876,4 @@ func (c *MessageClient) QueryChildren(m *Message) *MessageQuery {
 func (c *MessageClient) Hooks() []Hook {
 	hooks := c.hooks.Message
 	return append(hooks[:len(hooks):len(hooks)], message.Hooks[:]...)
-}
-
-// MessageReadClient is a client for the MessageRead schema.
-type MessageReadClient struct {
-	config
-}
-
-// NewMessageReadClient returns a client for the MessageRead from the given config.
-func NewMessageReadClient(c config) *MessageReadClient {
-	return &MessageReadClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `messageread.Hooks(f(g(h())))`.
-func (c *MessageReadClient) Use(hooks ...Hook) {
-	c.hooks.MessageRead = append(c.hooks.MessageRead, hooks...)
-}
-
-// Create returns a builder for creating a MessageRead entity.
-func (c *MessageReadClient) Create() *MessageReadCreate {
-	mutation := newMessageReadMutation(c.config, OpCreate)
-	return &MessageReadCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of MessageRead entities.
-func (c *MessageReadClient) CreateBulk(builders ...*MessageReadCreate) *MessageReadCreateBulk {
-	return &MessageReadCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for MessageRead.
-func (c *MessageReadClient) Update() *MessageReadUpdate {
-	mutation := newMessageReadMutation(c.config, OpUpdate)
-	return &MessageReadUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *MessageReadClient) UpdateOne(mr *MessageRead) *MessageReadUpdateOne {
-	mutation := newMessageReadMutation(c.config, OpUpdateOne, withMessageRead(mr))
-	return &MessageReadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *MessageReadClient) UpdateOneID(id string) *MessageReadUpdateOne {
-	mutation := newMessageReadMutation(c.config, OpUpdateOne, withMessageReadID(id))
-	return &MessageReadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for MessageRead.
-func (c *MessageReadClient) Delete() *MessageReadDelete {
-	mutation := newMessageReadMutation(c.config, OpDelete)
-	return &MessageReadDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *MessageReadClient) DeleteOne(mr *MessageRead) *MessageReadDeleteOne {
-	return c.DeleteOneID(mr.ID)
-}
-
-// DeleteOne returns a builder for deleting the given entity by its id.
-func (c *MessageReadClient) DeleteOneID(id string) *MessageReadDeleteOne {
-	builder := c.Delete().Where(messageread.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &MessageReadDeleteOne{builder}
-}
-
-// Query returns a query builder for MessageRead.
-func (c *MessageReadClient) Query() *MessageReadQuery {
-	return &MessageReadQuery{
-		config: c.config,
-	}
-}
-
-// Get returns a MessageRead entity by its id.
-func (c *MessageReadClient) Get(ctx context.Context, id string) (*MessageRead, error) {
-	return c.Query().Where(messageread.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *MessageReadClient) GetX(ctx context.Context, id string) *MessageRead {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryMember queries the member edge of a MessageRead.
-func (c *MessageReadClient) QueryMember(mr *MessageRead) *MemberQuery {
-	query := &MemberQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := mr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(messageread.Table, messageread.FieldID, id),
-			sqlgraph.To(member.Table, member.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, messageread.MemberTable, messageread.MemberColumn),
-		)
-		fromV = sqlgraph.Neighbors(mr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryGroup queries the group edge of a MessageRead.
-func (c *MessageReadClient) QueryGroup(mr *MessageRead) *GroupQuery {
-	query := &GroupQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := mr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(messageread.Table, messageread.FieldID, id),
-			sqlgraph.To(group.Table, group.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, messageread.GroupTable, messageread.GroupColumn),
-		)
-		fromV = sqlgraph.Neighbors(mr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *MessageReadClient) Hooks() []Hook {
-	hooks := c.hooks.MessageRead
-	return append(hooks[:len(hooks):len(hooks)], messageread.Hooks[:]...)
 }

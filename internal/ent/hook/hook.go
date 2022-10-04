@@ -74,19 +74,6 @@ func (f MessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return f(ctx, mv)
 }
 
-// The MessageReadFunc type is an adapter to allow the use of ordinary
-// function as MessageRead mutator.
-type MessageReadFunc func(context.Context, *ent.MessageReadMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f MessageReadFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MessageReadMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageReadMutation", m)
-	}
-	return f(ctx, mv)
-}
-
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

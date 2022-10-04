@@ -45,8 +45,6 @@ func (m GroupMemberMixin) Indexes() (arr []ent.Index) {
     return
 }
 
-// TODO: 存储message_read
-
 // GroupMember holds the schema definition for the GroupMember entity.
 type GroupMember struct {
     ent.Schema
@@ -68,6 +66,8 @@ func (GroupMember) Fields() []ent.Field {
         field.String("inviter_id").Optional().Nillable(),
         field.String("invite_code").Unique().Comment("invite code"),
         field.Time("invite_expire").Comment("invite code expire time"),
+        field.String("read_id").Optional().Nillable().Comment("last read message id"),
+        field.Time("read_time").Optional().Nillable().Comment("last read message time"),
     }
 }
 
@@ -88,7 +88,10 @@ func (GroupMember) Mixin() []ent.Mixin {
 }
 
 func (GroupMember) Indexes() []ent.Index {
-    return []ent.Index{}
+    return []ent.Index{
+        index.Fields("read_id"),
+        index.Fields("read_time"),
+    }
 }
 
 type GroupMemberMutator interface {

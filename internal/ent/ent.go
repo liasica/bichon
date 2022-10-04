@@ -15,7 +15,6 @@ import (
 	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
-	"github.com/chatpuppy/puppychat/internal/ent/messageread"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -41,7 +40,6 @@ func columnChecker(table string) func(string) error {
 		key.Table:         key.ValidColumn,
 		member.Table:      member.ValidColumn,
 		message.Table:     message.ValidColumn,
-		messageread.Table: messageread.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

@@ -27,6 +27,8 @@ type GroupMemberMutation struct {
 	permission     *model.GroupMemberPerm
 	invite_code    *string
 	invite_expire  *time.Time
+	read_id        *string
+	read_time      *time.Time
 	clearedFields  map[string]struct{}
 	member         *string
 	clearedmember  bool
@@ -444,6 +446,104 @@ func (m *GroupMemberMutation) ResetInviteExpire() {
 	m.invite_expire = nil
 }
 
+// SetReadID sets the "read_id" field.
+func (m *GroupMemberMutation) SetReadID(s string) {
+	m.read_id = &s
+}
+
+// ReadID returns the value of the "read_id" field in the mutation.
+func (m *GroupMemberMutation) ReadID() (r string, exists bool) {
+	v := m.read_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReadID returns the old "read_id" field's value of the GroupMember entity.
+// If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMemberMutation) OldReadID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReadID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReadID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReadID: %w", err)
+	}
+	return oldValue.ReadID, nil
+}
+
+// ClearReadID clears the value of the "read_id" field.
+func (m *GroupMemberMutation) ClearReadID() {
+	m.read_id = nil
+	m.clearedFields[groupmember.FieldReadID] = struct{}{}
+}
+
+// ReadIDCleared returns if the "read_id" field was cleared in this mutation.
+func (m *GroupMemberMutation) ReadIDCleared() bool {
+	_, ok := m.clearedFields[groupmember.FieldReadID]
+	return ok
+}
+
+// ResetReadID resets all changes to the "read_id" field.
+func (m *GroupMemberMutation) ResetReadID() {
+	m.read_id = nil
+	delete(m.clearedFields, groupmember.FieldReadID)
+}
+
+// SetReadTime sets the "read_time" field.
+func (m *GroupMemberMutation) SetReadTime(t time.Time) {
+	m.read_time = &t
+}
+
+// ReadTime returns the value of the "read_time" field in the mutation.
+func (m *GroupMemberMutation) ReadTime() (r time.Time, exists bool) {
+	v := m.read_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReadTime returns the old "read_time" field's value of the GroupMember entity.
+// If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMemberMutation) OldReadTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReadTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReadTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReadTime: %w", err)
+	}
+	return oldValue.ReadTime, nil
+}
+
+// ClearReadTime clears the value of the "read_time" field.
+func (m *GroupMemberMutation) ClearReadTime() {
+	m.read_time = nil
+	m.clearedFields[groupmember.FieldReadTime] = struct{}{}
+}
+
+// ReadTimeCleared returns if the "read_time" field was cleared in this mutation.
+func (m *GroupMemberMutation) ReadTimeCleared() bool {
+	_, ok := m.clearedFields[groupmember.FieldReadTime]
+	return ok
+}
+
+// ResetReadTime resets all changes to the "read_time" field.
+func (m *GroupMemberMutation) ResetReadTime() {
+	m.read_time = nil
+	delete(m.clearedFields, groupmember.FieldReadTime)
+}
+
 // ClearMember clears the "member" edge to the Member entity.
 func (m *GroupMemberMutation) ClearMember() {
 	m.clearedmember = true
@@ -541,7 +641,7 @@ func (m *GroupMemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMemberMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, groupmember.FieldCreatedAt)
 	}
@@ -565,6 +665,12 @@ func (m *GroupMemberMutation) Fields() []string {
 	}
 	if m.invite_expire != nil {
 		fields = append(fields, groupmember.FieldInviteExpire)
+	}
+	if m.read_id != nil {
+		fields = append(fields, groupmember.FieldReadID)
+	}
+	if m.read_time != nil {
+		fields = append(fields, groupmember.FieldReadTime)
 	}
 	return fields
 }
@@ -590,6 +696,10 @@ func (m *GroupMemberMutation) Field(name string) (ent.Value, bool) {
 		return m.InviteCode()
 	case groupmember.FieldInviteExpire:
 		return m.InviteExpire()
+	case groupmember.FieldReadID:
+		return m.ReadID()
+	case groupmember.FieldReadTime:
+		return m.ReadTime()
 	}
 	return nil, false
 }
@@ -615,6 +725,10 @@ func (m *GroupMemberMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldInviteCode(ctx)
 	case groupmember.FieldInviteExpire:
 		return m.OldInviteExpire(ctx)
+	case groupmember.FieldReadID:
+		return m.OldReadID(ctx)
+	case groupmember.FieldReadTime:
+		return m.OldReadTime(ctx)
 	}
 	return nil, fmt.Errorf("unknown GroupMember field %s", name)
 }
@@ -680,6 +794,20 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetInviteExpire(v)
 		return nil
+	case groupmember.FieldReadID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReadID(v)
+		return nil
+	case groupmember.FieldReadTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReadTime(v)
+		return nil
 	}
 	return fmt.Errorf("unknown GroupMember field %s", name)
 }
@@ -713,6 +841,12 @@ func (m *GroupMemberMutation) ClearedFields() []string {
 	if m.FieldCleared(groupmember.FieldInviterID) {
 		fields = append(fields, groupmember.FieldInviterID)
 	}
+	if m.FieldCleared(groupmember.FieldReadID) {
+		fields = append(fields, groupmember.FieldReadID)
+	}
+	if m.FieldCleared(groupmember.FieldReadTime) {
+		fields = append(fields, groupmember.FieldReadTime)
+	}
 	return fields
 }
 
@@ -729,6 +863,12 @@ func (m *GroupMemberMutation) ClearField(name string) error {
 	switch name {
 	case groupmember.FieldInviterID:
 		m.ClearInviterID()
+		return nil
+	case groupmember.FieldReadID:
+		m.ClearReadID()
+		return nil
+	case groupmember.FieldReadTime:
+		m.ClearReadTime()
 		return nil
 	}
 	return fmt.Errorf("unknown GroupMember nullable field %s", name)
@@ -761,6 +901,12 @@ func (m *GroupMemberMutation) ResetField(name string) error {
 		return nil
 	case groupmember.FieldInviteExpire:
 		m.ResetInviteExpire()
+		return nil
+	case groupmember.FieldReadID:
+		m.ResetReadID()
+		return nil
+	case groupmember.FieldReadTime:
+		m.ResetReadTime()
 		return nil
 	}
 	return fmt.Errorf("unknown GroupMember field %s", name)

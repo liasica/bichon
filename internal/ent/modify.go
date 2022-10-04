@@ -85,10 +85,3 @@ func (c *MessageClient) ModifyOne(old *Message, data any) *MessageUpdateOne {
 	up := &MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 	return EntitySetAttributes[MessageUpdateOne, Message](up, old, data)
 }
-
-// ModifyOne returns an update with pointer struct builder for MessageRead.
-func (c *MessageReadClient) ModifyOne(old *MessageRead, data any) *MessageReadUpdateOne {
-	mutation := newMessageReadMutation(c.config, OpUpdateOne, withMessageRead(old))
-	up := &MessageReadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-	return EntitySetAttributes[MessageReadUpdateOne, MessageRead](up, old, data)
-}

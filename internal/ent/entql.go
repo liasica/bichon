@@ -8,7 +8,6 @@ import (
 	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
-	"github.com/chatpuppy/puppychat/internal/ent/messageread"
 	"github.com/chatpuppy/puppychat/internal/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -19,7 +18,7 @@ import (
 
 // schemaGraph holds a representation of ent/schema at runtime.
 var schemaGraph = func() *sqlgraph.Schema {
-	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 6)}
+	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 5)}
 	graph.Nodes[0] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   group.Table,
@@ -63,6 +62,8 @@ var schemaGraph = func() *sqlgraph.Schema {
 			groupmember.FieldInviterID:    {Type: field.TypeString, Column: groupmember.FieldInviterID},
 			groupmember.FieldInviteCode:   {Type: field.TypeString, Column: groupmember.FieldInviteCode},
 			groupmember.FieldInviteExpire: {Type: field.TypeTime, Column: groupmember.FieldInviteExpire},
+			groupmember.FieldReadID:       {Type: field.TypeString, Column: groupmember.FieldReadID},
+			groupmember.FieldReadTime:     {Type: field.TypeTime, Column: groupmember.FieldReadTime},
 		},
 	}
 	graph.Nodes[2] = &sqlgraph.Node{
@@ -123,23 +124,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 			message.FieldContent:   {Type: field.TypeBytes, Column: message.FieldContent},
 			message.FieldParentID:  {Type: field.TypeString, Column: message.FieldParentID},
 			message.FieldOwner:     {Type: field.TypeJSON, Column: message.FieldOwner},
-		},
-	}
-	graph.Nodes[5] = &sqlgraph.Node{
-		NodeSpec: sqlgraph.NodeSpec{
-			Table:   messageread.Table,
-			Columns: messageread.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: messageread.FieldID,
-			},
-		},
-		Type: "MessageRead",
-		Fields: map[string]*sqlgraph.FieldSpec{
-			messageread.FieldMemberID: {Type: field.TypeString, Column: messageread.FieldMemberID},
-			messageread.FieldGroupID:  {Type: field.TypeString, Column: messageread.FieldGroupID},
-			messageread.FieldLastID:   {Type: field.TypeString, Column: messageread.FieldLastID},
-			messageread.FieldLastTime: {Type: field.TypeTime, Column: messageread.FieldLastTime},
 		},
 	}
 	graph.MustAddE(
@@ -345,30 +329,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"Message",
 		"Message",
-	)
-	graph.MustAddE(
-		"member",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   messageread.MemberTable,
-			Columns: []string{messageread.MemberColumn},
-			Bidi:    false,
-		},
-		"MessageRead",
-		"Member",
-	)
-	graph.MustAddE(
-		"group",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   messageread.GroupTable,
-			Columns: []string{messageread.GroupColumn},
-			Bidi:    false,
-		},
-		"MessageRead",
-		"Group",
 	)
 	return graph
 }()
@@ -608,6 +568,16 @@ func (f *GroupMemberFilter) WhereInviteCode(p entql.StringP) {
 // WhereInviteExpire applies the entql time.Time predicate on the invite_expire field.
 func (f *GroupMemberFilter) WhereInviteExpire(p entql.TimeP) {
 	f.Where(p.Field(groupmember.FieldInviteExpire))
+}
+
+// WhereReadID applies the entql string predicate on the read_id field.
+func (f *GroupMemberFilter) WhereReadID(p entql.StringP) {
+	f.Where(p.Field(groupmember.FieldReadID))
+}
+
+// WhereReadTime applies the entql time.Time predicate on the read_time field.
+func (f *GroupMemberFilter) WhereReadTime(p entql.TimeP) {
+	f.Where(p.Field(groupmember.FieldReadTime))
 }
 
 // WhereHasMember applies a predicate to check if query has an edge member.
@@ -1011,94 +981,6 @@ func (f *MessageFilter) WhereHasChildren() {
 // WhereHasChildrenWith applies a predicate to check if query has an edge children with a given conditions (other predicates).
 func (f *MessageFilter) WhereHasChildrenWith(preds ...predicate.Message) {
 	f.Where(entql.HasEdgeWith("children", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// addPredicate implements the predicateAdder interface.
-func (mrq *MessageReadQuery) addPredicate(pred func(s *sql.Selector)) {
-	mrq.predicates = append(mrq.predicates, pred)
-}
-
-// Filter returns a Filter implementation to apply filters on the MessageReadQuery builder.
-func (mrq *MessageReadQuery) Filter() *MessageReadFilter {
-	return &MessageReadFilter{config: mrq.config, predicateAdder: mrq}
-}
-
-// addPredicate implements the predicateAdder interface.
-func (m *MessageReadMutation) addPredicate(pred func(s *sql.Selector)) {
-	m.predicates = append(m.predicates, pred)
-}
-
-// Filter returns an entql.Where implementation to apply filters on the MessageReadMutation builder.
-func (m *MessageReadMutation) Filter() *MessageReadFilter {
-	return &MessageReadFilter{config: m.config, predicateAdder: m}
-}
-
-// MessageReadFilter provides a generic filtering capability at runtime for MessageReadQuery.
-type MessageReadFilter struct {
-	predicateAdder
-	config
-}
-
-// Where applies the entql predicate on the query filter.
-func (f *MessageReadFilter) Where(p entql.P) {
-	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[5].Type, p, s); err != nil {
-			s.AddError(err)
-		}
-	})
-}
-
-// WhereID applies the entql string predicate on the id field.
-func (f *MessageReadFilter) WhereID(p entql.StringP) {
-	f.Where(p.Field(messageread.FieldID))
-}
-
-// WhereMemberID applies the entql string predicate on the member_id field.
-func (f *MessageReadFilter) WhereMemberID(p entql.StringP) {
-	f.Where(p.Field(messageread.FieldMemberID))
-}
-
-// WhereGroupID applies the entql string predicate on the group_id field.
-func (f *MessageReadFilter) WhereGroupID(p entql.StringP) {
-	f.Where(p.Field(messageread.FieldGroupID))
-}
-
-// WhereLastID applies the entql string predicate on the last_id field.
-func (f *MessageReadFilter) WhereLastID(p entql.StringP) {
-	f.Where(p.Field(messageread.FieldLastID))
-}
-
-// WhereLastTime applies the entql time.Time predicate on the last_time field.
-func (f *MessageReadFilter) WhereLastTime(p entql.TimeP) {
-	f.Where(p.Field(messageread.FieldLastTime))
-}
-
-// WhereHasMember applies a predicate to check if query has an edge member.
-func (f *MessageReadFilter) WhereHasMember() {
-	f.Where(entql.HasEdge("member"))
-}
-
-// WhereHasMemberWith applies a predicate to check if query has an edge member with a given conditions (other predicates).
-func (f *MessageReadFilter) WhereHasMemberWith(preds ...predicate.Member) {
-	f.Where(entql.HasEdgeWith("member", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// WhereHasGroup applies a predicate to check if query has an edge group.
-func (f *MessageReadFilter) WhereHasGroup() {
-	f.Where(entql.HasEdge("group"))
-}
-
-// WhereHasGroupWith applies a predicate to check if query has an edge group with a given conditions (other predicates).
-func (f *MessageReadFilter) WhereHasGroupWith(preds ...predicate.Group) {
-	f.Where(entql.HasEdgeWith("group", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}

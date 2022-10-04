@@ -35,6 +35,10 @@ type GroupMember struct {
 	InviteCode string `json:"invite_code,omitempty"`
 	// invite code expire time
 	InviteExpire time.Time `json:"invite_expire,omitempty"`
+	// last read message id
+	ReadID *string `json:"read_id,omitempty"`
+	// last read message time
+	ReadTime *time.Time `json:"read_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GroupMemberQuery when eager-loading is set.
 	Edges GroupMemberEdges `json:"edges"`
@@ -99,9 +103,9 @@ func (*GroupMember) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case groupmember.FieldPermission:
 			values[i] = new(model.GroupMemberPerm)
-		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldInviterID, groupmember.FieldInviteCode:
+		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldInviterID, groupmember.FieldInviteCode, groupmember.FieldReadID:
 			values[i] = new(sql.NullString)
-		case groupmember.FieldCreatedAt, groupmember.FieldUpdatedAt, groupmember.FieldInviteExpire:
+		case groupmember.FieldCreatedAt, groupmember.FieldUpdatedAt, groupmember.FieldInviteExpire, groupmember.FieldReadTime:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type GroupMember", columns[i])
@@ -173,6 +177,20 @@ func (gm *GroupMember) assignValues(columns []string, values []interface{}) erro
 			} else if value.Valid {
 				gm.InviteExpire = value.Time
 			}
+		case groupmember.FieldReadID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field read_id", values[i])
+			} else if value.Valid {
+				gm.ReadID = new(string)
+				*gm.ReadID = value.String
+			}
+		case groupmember.FieldReadTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field read_time", values[i])
+			} else if value.Valid {
+				gm.ReadTime = new(time.Time)
+				*gm.ReadTime = value.Time
+			}
 		}
 	}
 	return nil
@@ -241,6 +259,16 @@ func (gm *GroupMember) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("invite_expire=")
 	builder.WriteString(gm.InviteExpire.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := gm.ReadID; v != nil {
+		builder.WriteString("read_id=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := gm.ReadTime; v != nil {
+		builder.WriteString("read_time=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

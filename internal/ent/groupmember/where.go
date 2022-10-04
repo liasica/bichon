@@ -138,6 +138,20 @@ func InviteExpire(v time.Time) predicate.GroupMember {
 	})
 }
 
+// ReadID applies equality check predicate on the "read_id" field. It's identical to ReadIDEQ.
+func ReadID(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReadID), v))
+	})
+}
+
+// ReadTime applies equality check predicate on the "read_time" field. It's identical to ReadTimeEQ.
+func ReadTime(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReadTime), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
@@ -801,6 +815,197 @@ func InviteExpireLT(v time.Time) predicate.GroupMember {
 func InviteExpireLTE(v time.Time) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldInviteExpire), v))
+	})
+}
+
+// ReadIDEQ applies the EQ predicate on the "read_id" field.
+func ReadIDEQ(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDNEQ applies the NEQ predicate on the "read_id" field.
+func ReadIDNEQ(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDIn applies the In predicate on the "read_id" field.
+func ReadIDIn(vs ...string) predicate.GroupMember {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldReadID), v...))
+	})
+}
+
+// ReadIDNotIn applies the NotIn predicate on the "read_id" field.
+func ReadIDNotIn(vs ...string) predicate.GroupMember {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldReadID), v...))
+	})
+}
+
+// ReadIDGT applies the GT predicate on the "read_id" field.
+func ReadIDGT(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDGTE applies the GTE predicate on the "read_id" field.
+func ReadIDGTE(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDLT applies the LT predicate on the "read_id" field.
+func ReadIDLT(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDLTE applies the LTE predicate on the "read_id" field.
+func ReadIDLTE(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDContains applies the Contains predicate on the "read_id" field.
+func ReadIDContains(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDHasPrefix applies the HasPrefix predicate on the "read_id" field.
+func ReadIDHasPrefix(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDHasSuffix applies the HasSuffix predicate on the "read_id" field.
+func ReadIDHasSuffix(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDIsNil applies the IsNil predicate on the "read_id" field.
+func ReadIDIsNil() predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldReadID)))
+	})
+}
+
+// ReadIDNotNil applies the NotNil predicate on the "read_id" field.
+func ReadIDNotNil() predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldReadID)))
+	})
+}
+
+// ReadIDEqualFold applies the EqualFold predicate on the "read_id" field.
+func ReadIDEqualFold(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldReadID), v))
+	})
+}
+
+// ReadIDContainsFold applies the ContainsFold predicate on the "read_id" field.
+func ReadIDContainsFold(v string) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldReadID), v))
+	})
+}
+
+// ReadTimeEQ applies the EQ predicate on the "read_time" field.
+func ReadTimeEQ(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReadTime), v))
+	})
+}
+
+// ReadTimeNEQ applies the NEQ predicate on the "read_time" field.
+func ReadTimeNEQ(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldReadTime), v))
+	})
+}
+
+// ReadTimeIn applies the In predicate on the "read_time" field.
+func ReadTimeIn(vs ...time.Time) predicate.GroupMember {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldReadTime), v...))
+	})
+}
+
+// ReadTimeNotIn applies the NotIn predicate on the "read_time" field.
+func ReadTimeNotIn(vs ...time.Time) predicate.GroupMember {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldReadTime), v...))
+	})
+}
+
+// ReadTimeGT applies the GT predicate on the "read_time" field.
+func ReadTimeGT(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldReadTime), v))
+	})
+}
+
+// ReadTimeGTE applies the GTE predicate on the "read_time" field.
+func ReadTimeGTE(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldReadTime), v))
+	})
+}
+
+// ReadTimeLT applies the LT predicate on the "read_time" field.
+func ReadTimeLT(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldReadTime), v))
+	})
+}
+
+// ReadTimeLTE applies the LTE predicate on the "read_time" field.
+func ReadTimeLTE(v time.Time) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldReadTime), v))
+	})
+}
+
+// ReadTimeIsNil applies the IsNil predicate on the "read_time" field.
+func ReadTimeIsNil() predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldReadTime)))
+	})
+}
+
+// ReadTimeNotNil applies the NotNil predicate on the "read_time" field.
+func ReadTimeNotNil() predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldReadTime)))
 	})
 }
 

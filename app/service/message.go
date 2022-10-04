@@ -6,9 +6,9 @@ import (
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/group"
+    "github.com/chatpuppy/puppychat/internal/ent/groupmember"
     "github.com/chatpuppy/puppychat/internal/ent/member"
     "github.com/chatpuppy/puppychat/internal/ent/message"
-    "github.com/chatpuppy/puppychat/internal/ent/messageread"
     "github.com/chatpuppy/puppychat/internal/g"
     "github.com/liasica/go-encryption/aes"
     "github.com/liasica/go-encryption/rsa"
@@ -236,13 +236,10 @@ func (s *messageService) Read(mem *ent.Member, req *model.MessageReadReq) error 
 
 // UpdateRead update read message attributes
 func (s *messageService) UpdateRead(id, memID, groupID string, createdAt time.Time) error {
-    return ent.Database.MessageRead.Create().
-        SetGroupID(groupID).
-        SetMemberID(memID).
-        SetLastTime(createdAt).
-        SetLastID(id).
-        OnConflictColumns(messageread.FieldGroupID, messageread.FieldMemberID).
-        UpdateNewValues().
+    return ent.Database.GroupMember.Update().
+        Where(groupmember.GroupID(groupID), groupmember.MemberID(memID)).
+        SetReadTime(createdAt).
+        SetReadID(id).
         Exec(s.ctx)
 }
 
@@ -255,14 +252,14 @@ func (s *messageService) UnreadList(memberID string) (items map[string]model.Mes
         Time    *time.Time `json:"time"` // first unread message time
     }
     _ = s.orm.Query().Modify(func(sel *sql.Selector) {
-        t := sql.Table(messageread.Table)
-        sel.LeftJoin(t).On(t.C(messageread.FieldGroupID), sel.C(message.FieldGroupID)).
+        t := sql.Table(groupmember.Table)
+        sel.LeftJoin(t).On(t.C(groupmember.FieldGroupID), sel.C(message.FieldGroupID)).
             Where(
                 sql.And(
                     sql.EQ(sel.C(message.FieldMemberID), memberID),
                     sql.Or(
-                        sql.ColumnsGT(sel.C(message.FieldCreatedAt), t.C(messageread.FieldLastTime)),
-                        sql.IsNull(t.C(messageread.FieldLastTime)),
+                        sql.ColumnsGT(sel.C(message.FieldCreatedAt), t.C(groupmember.FieldReadTime)),
+                        sql.IsNull(t.C(groupmember.FieldReadTime)),
                     ),
                 ),
             ).
