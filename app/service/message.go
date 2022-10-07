@@ -359,3 +359,9 @@ func (s *messageService) SaveSyncData(b []byte, op ent.Op) (err error) {
 
     return
 }
+
+// LastMessage getting last message of group
+func (s *messageService) LastMessage(groupID string) *ent.Message {
+    m, _ := s.orm.Query().Where(message.GroupID(groupID)).Order(ent.Desc(message.FieldCreatedAt)).First(s.ctx)
+    return m
+}

@@ -102,7 +102,6 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *
         PrivateKey: hexutil.Encode(crypto.FromECDSA(priv)),
         PublicKey:  hexutil.Encode(crypto.FromECDSAPub(&pub)),
     }
-    fmt.Println(keys)
 
     var keysHex string
     keysHex, err = keys.Encrypt()
@@ -552,6 +551,9 @@ func (s *groupService) Update(mem *ent.Member, req *model.GroupUpdateReq) error 
     if req.Intro != nil {
         updater.SetNillableIntro(req.Intro)
     }
+    if req.Name != nil {
+        updater.SetName(*req.Name)
+    }
     return updater.Exec(s.ctx)
 }
 
@@ -574,6 +576,11 @@ func (s *groupService) ReGenerateInviteCode(mem *ent.Member, req *model.GroupIDR
 // Active setting actived group
 func (s *groupService) Active(mem *ent.Member, req *model.GroupIDReq) {
     model.GroupActived.Store(mem.ID, req.GroupID)
+    // read messages
+    msg := NewMessage().LastMessage(req.GroupID)
+    if msg != nil {
+        _ = NewMessage().UpdateRead(msg.ID, mem.ID, msg.GroupID, msg.CreatedAt)
+    }
 }
 
 // Kickout member

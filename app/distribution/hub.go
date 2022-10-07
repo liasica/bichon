@@ -94,27 +94,38 @@ func (h *hub) OnOpen(c gnet.Conn) (out []byte, action gnet.Action) {
 
 func (h *hub) OnClose(c gnet.Conn, err error) (action gnet.Action) {
     log.Infof("[D] client closed: fd = %d, error?: %v", c.Fd(), err)
+    h.disconnect(c)
     return
 }
 
 func (h *hub) Close(c gnet.Conn, err error) {
-    str := fmt.Sprintf("[D] closing connect fd = %d", c.Fd())
+    _, _ = c.Write(model.SyncResError(err))
+
+    _ = c.Close()
+
+    id := h.disconnect(c)
+
+    log.Infof("[D] close connect fd = %d, nodeid = %d", c.Fd(), id)
+}
+
+func (h *hub) disconnect(c gnet.Conn) (id int64) {
+
     h.clients.Range(func(key, value any) bool {
         if value == nil {
             return true
         }
         conn := value.(gnet.Conn)
         if conn.Fd() == c.Fd() {
-            str += fmt.Sprintf(", nodeid = %d", key.(*Node).NodeID)
+            node := key.(*Node)
+            id = node.NodeID
+            // str += fmt.Sprintf(", nodeid = %d", key.(*Node).NodeID)
             h.clients.Store(key, nil)
             return false
         }
         return true
     })
 
-    _, _ = c.Write(model.SyncResError(err))
-
-    _ = c.Close()
+    return
 }
 
 func CreateHub() {
@@ -216,6 +227,7 @@ func (h *hub) readRequest(c gnet.Conn, b []byte) {
     // register message
     // store connection
     if req.Data == nil {
+        node.ApiUrl = *req.ApiUrl
         h.clients.Store(node, c)
     }
 

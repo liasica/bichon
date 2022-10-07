@@ -24,6 +24,7 @@ type SyncRequest struct {
     Nonce       []byte    `json:"nonce"`
     Data        *SyncData `json:"data,omitempty"`
     SyncedStart *uint64   `json:"syncedStart,omitempty"`
+    ApiUrl      *string   `json:"apiUrl,omitempty"`
 }
 
 func (r *SyncRequest) Marshal() []byte {

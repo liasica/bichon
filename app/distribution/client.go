@@ -42,7 +42,10 @@ func (c *client) storeSyncedIndex(index uint64) {
 }
 
 func CreateClient() {
-    conn, err := net.Dial("tcp", g.Config.App.Distribution.String())
+    addr := g.Config.App.Distribution.String()
+    log.Infof("[D] connecting distribution node: %s", addr)
+
+    conn, err := net.Dial("tcp", addr)
     if err != nil {
         log.Fatal(err)
     }
@@ -91,7 +94,7 @@ func (c *client) sendRequest(msg *model.SyncRequest) (err error) {
 func (c *client) startSync() {
     index := c.syncedIndex()
 
-    msg := &model.SyncRequest{SyncedStart: tea.UInt64(index)}
+    msg := &model.SyncRequest{SyncedStart: tea.UInt64(index), ApiUrl: tea.String(g.ApiUrl())}
 
     err := c.sendRequest(msg)
     if err != nil {

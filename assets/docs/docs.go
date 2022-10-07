@@ -834,7 +834,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tags"
+                    "Node"
                 ],
                 "summary": "Getting current online nodes.",
                 "operationId": "NodeNodes",

@@ -10,6 +10,8 @@ import (
     "os"
     "path/filepath"
     "regexp"
+    "sort"
+    "strings"
 )
 
 const (
@@ -120,9 +122,16 @@ func (h *hub) OnlineNodes() (ns []string) {
 
     h.clients.Range(func(key, value any) bool {
         if value != nil {
-            ns = append(ns, key.(*Node).ApiUrl)
+            node := key.(*Node)
+            if node.Synced {
+                ns = append(ns, node.ApiUrl)
+            }
         }
         return true
+    })
+
+    sort.Slice(ns, func(i, j int) bool {
+        return strings.Compare(ns[i], ns[j]) < 0
     })
 
     return ns

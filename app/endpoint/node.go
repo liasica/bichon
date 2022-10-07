@@ -14,7 +14,7 @@ var Node = new(node)
 // @ID           NodeNodes
 // @Router       /nodes [GET]
 // @Summary      Getting current online nodes.
-// @Tags         tags
+// @Tags         Node
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  app.Response{data=[]string}  "Node api urls"

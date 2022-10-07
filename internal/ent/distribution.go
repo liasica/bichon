@@ -1,7 +1,6 @@
 package ent
 
 import (
-    "fmt"
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent/group"
     "github.com/chatpuppy/puppychat/internal/ent/groupmember"
@@ -112,7 +111,6 @@ func (m *MessageMutation) Parse(op Op) *model.SyncData {
     if !op.Is(OpDelete | OpDeleteOne) {
         if data.Content != nil {
             content, _ := rsaTools.DecryptUsePrivateKey(*data.Content, g.RsaPrivateKey())
-            fmt.Println("DIS DEMO: content =", string(content))
             data.Content = tea.Pointer(content)
         }
     }

@@ -894,5 +894,5 @@ paths:
               type: object
       summary: Getting current online nodes.
       tags:
-      - tags
+      - Node
 swagger: "2.0"
