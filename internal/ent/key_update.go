@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -31,12 +30,6 @@ func (ku *KeyUpdate) Where(ps ...predicate.Key) *KeyUpdate {
 	return ku
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (ku *KeyUpdate) SetUpdatedAt(t time.Time) *KeyUpdate {
-	ku.mutation.SetUpdatedAt(t)
-	return ku
-}
-
 // SetMemberID sets the "member_id" field.
 func (ku *KeyUpdate) SetMemberID(s string) *KeyUpdate {
 	ku.mutation.SetMemberID(s)
@@ -52,6 +45,19 @@ func (ku *KeyUpdate) SetGroupID(s string) *KeyUpdate {
 // SetKeys sets the "keys" field.
 func (ku *KeyUpdate) SetKeys(s string) *KeyUpdate {
 	ku.mutation.SetKeys(s)
+	return ku
+}
+
+// SetLastNode sets the "last_node" field.
+func (ku *KeyUpdate) SetLastNode(i int64) *KeyUpdate {
+	ku.mutation.ResetLastNode()
+	ku.mutation.SetLastNode(i)
+	return ku
+}
+
+// AddLastNode adds i to the "last_node" field.
+func (ku *KeyUpdate) AddLastNode(i int64) *KeyUpdate {
+	ku.mutation.AddLastNode(i)
 	return ku
 }
 
@@ -88,9 +94,6 @@ func (ku *KeyUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
-	if err := ku.defaults(); err != nil {
-		return 0, err
-	}
 	if len(ku.hooks) == 0 {
 		if err = ku.check(); err != nil {
 			return 0, err
@@ -145,18 +148,6 @@ func (ku *KeyUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (ku *KeyUpdate) defaults() error {
-	if _, ok := ku.mutation.UpdatedAt(); !ok {
-		if key.UpdateDefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized key.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := key.UpdateDefaultUpdatedAt()
-		ku.mutation.SetUpdatedAt(v)
-	}
-	return nil
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (ku *KeyUpdate) check() error {
 	if _, ok := ku.mutation.MemberID(); ku.mutation.MemberCleared() && !ok {
@@ -192,18 +183,25 @@ func (ku *KeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ku.mutation.UpdatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: key.FieldUpdatedAt,
-		})
-	}
 	if value, ok := ku.mutation.Keys(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: key.FieldKeys,
+		})
+	}
+	if value, ok := ku.mutation.LastNode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: key.FieldLastNode,
+		})
+	}
+	if value, ok := ku.mutation.AddedLastNode(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: key.FieldLastNode,
 		})
 	}
 	if ku.mutation.MemberCleared() {
@@ -297,12 +295,6 @@ type KeyUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (kuo *KeyUpdateOne) SetUpdatedAt(t time.Time) *KeyUpdateOne {
-	kuo.mutation.SetUpdatedAt(t)
-	return kuo
-}
-
 // SetMemberID sets the "member_id" field.
 func (kuo *KeyUpdateOne) SetMemberID(s string) *KeyUpdateOne {
 	kuo.mutation.SetMemberID(s)
@@ -318,6 +310,19 @@ func (kuo *KeyUpdateOne) SetGroupID(s string) *KeyUpdateOne {
 // SetKeys sets the "keys" field.
 func (kuo *KeyUpdateOne) SetKeys(s string) *KeyUpdateOne {
 	kuo.mutation.SetKeys(s)
+	return kuo
+}
+
+// SetLastNode sets the "last_node" field.
+func (kuo *KeyUpdateOne) SetLastNode(i int64) *KeyUpdateOne {
+	kuo.mutation.ResetLastNode()
+	kuo.mutation.SetLastNode(i)
+	return kuo
+}
+
+// AddLastNode adds i to the "last_node" field.
+func (kuo *KeyUpdateOne) AddLastNode(i int64) *KeyUpdateOne {
+	kuo.mutation.AddLastNode(i)
 	return kuo
 }
 
@@ -361,9 +366,6 @@ func (kuo *KeyUpdateOne) Save(ctx context.Context) (*Key, error) {
 		err  error
 		node *Key
 	)
-	if err := kuo.defaults(); err != nil {
-		return nil, err
-	}
 	if len(kuo.hooks) == 0 {
 		if err = kuo.check(); err != nil {
 			return nil, err
@@ -424,18 +426,6 @@ func (kuo *KeyUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (kuo *KeyUpdateOne) defaults() error {
-	if _, ok := kuo.mutation.UpdatedAt(); !ok {
-		if key.UpdateDefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized key.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := key.UpdateDefaultUpdatedAt()
-		kuo.mutation.SetUpdatedAt(v)
-	}
-	return nil
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (kuo *KeyUpdateOne) check() error {
 	if _, ok := kuo.mutation.MemberID(); kuo.mutation.MemberCleared() && !ok {
@@ -488,18 +478,25 @@ func (kuo *KeyUpdateOne) sqlSave(ctx context.Context) (_node *Key, err error) {
 			}
 		}
 	}
-	if value, ok := kuo.mutation.UpdatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: key.FieldUpdatedAt,
-		})
-	}
 	if value, ok := kuo.mutation.Keys(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: key.FieldKeys,
+		})
+	}
+	if value, ok := kuo.mutation.LastNode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: key.FieldLastNode,
+		})
+	}
+	if value, ok := kuo.mutation.AddedLastNode(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: key.FieldLastNode,
 		})
 	}
 	if kuo.mutation.MemberCleared() {

@@ -873,4 +873,26 @@ paths:
       summary: Mask message read
       tags:
       - Message
+  /nodes:
+    get:
+      consumes:
+      - application/json
+      operationId: NodeNodes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Node api urls
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.Response'
+            - properties:
+                data:
+                  items:
+                    type: string
+                  type: array
+              type: object
+      summary: Getting current online nodes.
+      tags:
+      - tags
 swagger: "2.0"

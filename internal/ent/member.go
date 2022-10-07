@@ -18,8 +18,6 @@ type Member struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Address holds the value of the "address" field.
 	Address string `json:"address,omitempty"`
 	// Nickname holds the value of the "nickname" field.
@@ -34,6 +32,8 @@ type Member struct {
 	Nonce string `json:"nonce,omitempty"`
 	// ShowNickname holds the value of the "show_nickname" field.
 	ShowNickname bool `json:"show_nickname,omitempty"`
+	// LastNode holds the value of the "last_node" field.
+	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MemberQuery when eager-loading is set.
 	Edges MemberEdges `json:"edges"`
@@ -91,15 +91,17 @@ func (e MemberEdges) GroupMembersOrErr() ([]*GroupMember, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Member) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*Member) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case member.FieldShowNickname:
 			values[i] = new(sql.NullBool)
+		case member.FieldLastNode:
+			values[i] = new(sql.NullInt64)
 		case member.FieldID, member.FieldAddress, member.FieldNickname, member.FieldAvatar, member.FieldIntro, member.FieldPublicKey, member.FieldNonce:
 			values[i] = new(sql.NullString)
-		case member.FieldCreatedAt, member.FieldUpdatedAt:
+		case member.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Member", columns[i])
@@ -110,7 +112,7 @@ func (*Member) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Member fields.
-func (m *Member) assignValues(columns []string, values []interface{}) error {
+func (m *Member) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -127,12 +129,6 @@ func (m *Member) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				m.CreatedAt = value.Time
-			}
-		case member.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				m.UpdatedAt = value.Time
 			}
 		case member.FieldAddress:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -175,6 +171,12 @@ func (m *Member) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field show_nickname", values[i])
 			} else if value.Valid {
 				m.ShowNickname = value.Bool
+			}
+		case member.FieldLastNode:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_node", values[i])
+			} else if value.Valid {
+				m.LastNode = value.Int64
 			}
 		}
 	}
@@ -227,9 +229,6 @@ func (m *Member) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
 	builder.WriteString("address=")
 	builder.WriteString(m.Address)
 	builder.WriteString(", ")
@@ -250,6 +249,9 @@ func (m *Member) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("show_nickname=")
 	builder.WriteString(fmt.Sprintf("%v", m.ShowNickname))
+	builder.WriteString(", ")
+	builder.WriteString("last_node=")
+	builder.WriteString(fmt.Sprintf("%v", m.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

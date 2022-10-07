@@ -35,7 +35,7 @@ func IDNEQ(id string) predicate.GroupMember {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -46,7 +46,7 @@ func IDIn(ids ...string) predicate.GroupMember {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -86,13 +86,6 @@ func IDLTE(id string) predicate.GroupMember {
 func CreatedAt(v time.Time) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
-}
-
-// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
-func UpdatedAt(v time.Time) predicate.GroupMember {
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
 	})
 }
 
@@ -152,6 +145,13 @@ func ReadTime(v time.Time) predicate.GroupMember {
 	})
 }
 
+// LastNode applies equality check predicate on the "last_node" field. It's identical to LastNodeEQ.
+func LastNode(v int64) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLastNode), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
@@ -168,7 +168,7 @@ func CreatedAtNEQ(v time.Time) predicate.GroupMember {
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -179,7 +179,7 @@ func CreatedAtIn(vs ...time.Time) predicate.GroupMember {
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -216,70 +216,6 @@ func CreatedAtLTE(v time.Time) predicate.GroupMember {
 	})
 }
 
-// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
-func UpdatedAtEQ(v time.Time) predicate.GroupMember {
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
-func UpdatedAtNEQ(v time.Time) predicate.GroupMember {
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtIn applies the In predicate on the "updated_at" field.
-func UpdatedAtIn(vs ...time.Time) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUpdatedAt), v...))
-	})
-}
-
-// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
-func UpdatedAtNotIn(vs ...time.Time) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUpdatedAt), v...))
-	})
-}
-
-// UpdatedAtGT applies the GT predicate on the "updated_at" field.
-func UpdatedAtGT(v time.Time) predicate.GroupMember {
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
-func UpdatedAtGTE(v time.Time) predicate.GroupMember {
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtLT applies the LT predicate on the "updated_at" field.
-func UpdatedAtLT(v time.Time) predicate.GroupMember {
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
-func UpdatedAtLTE(v time.Time) predicate.GroupMember {
-	return predicate.GroupMember(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
-	})
-}
-
 // MemberIDEQ applies the EQ predicate on the "member_id" field.
 func MemberIDEQ(v string) predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
@@ -296,7 +232,7 @@ func MemberIDNEQ(v string) predicate.GroupMember {
 
 // MemberIDIn applies the In predicate on the "member_id" field.
 func MemberIDIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -307,7 +243,7 @@ func MemberIDIn(vs ...string) predicate.GroupMember {
 
 // MemberIDNotIn applies the NotIn predicate on the "member_id" field.
 func MemberIDNotIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -395,7 +331,7 @@ func GroupIDNEQ(v string) predicate.GroupMember {
 
 // GroupIDIn applies the In predicate on the "group_id" field.
 func GroupIDIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -406,7 +342,7 @@ func GroupIDIn(vs ...string) predicate.GroupMember {
 
 // GroupIDNotIn applies the NotIn predicate on the "group_id" field.
 func GroupIDNotIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -494,7 +430,7 @@ func PermissionNEQ(v model.GroupMemberPerm) predicate.GroupMember {
 
 // PermissionIn applies the In predicate on the "permission" field.
 func PermissionIn(vs ...model.GroupMemberPerm) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -505,7 +441,7 @@ func PermissionIn(vs ...model.GroupMemberPerm) predicate.GroupMember {
 
 // PermissionNotIn applies the NotIn predicate on the "permission" field.
 func PermissionNotIn(vs ...model.GroupMemberPerm) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -558,7 +494,7 @@ func InviterIDNEQ(v string) predicate.GroupMember {
 
 // InviterIDIn applies the In predicate on the "inviter_id" field.
 func InviterIDIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -569,7 +505,7 @@ func InviterIDIn(vs ...string) predicate.GroupMember {
 
 // InviterIDNotIn applies the NotIn predicate on the "inviter_id" field.
 func InviterIDNotIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -671,7 +607,7 @@ func InviteCodeNEQ(v string) predicate.GroupMember {
 
 // InviteCodeIn applies the In predicate on the "invite_code" field.
 func InviteCodeIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -682,7 +618,7 @@ func InviteCodeIn(vs ...string) predicate.GroupMember {
 
 // InviteCodeNotIn applies the NotIn predicate on the "invite_code" field.
 func InviteCodeNotIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -770,7 +706,7 @@ func InviteExpireNEQ(v time.Time) predicate.GroupMember {
 
 // InviteExpireIn applies the In predicate on the "invite_expire" field.
 func InviteExpireIn(vs ...time.Time) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -781,7 +717,7 @@ func InviteExpireIn(vs ...time.Time) predicate.GroupMember {
 
 // InviteExpireNotIn applies the NotIn predicate on the "invite_expire" field.
 func InviteExpireNotIn(vs ...time.Time) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -834,7 +770,7 @@ func ReadIDNEQ(v string) predicate.GroupMember {
 
 // ReadIDIn applies the In predicate on the "read_id" field.
 func ReadIDIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -845,7 +781,7 @@ func ReadIDIn(vs ...string) predicate.GroupMember {
 
 // ReadIDNotIn applies the NotIn predicate on the "read_id" field.
 func ReadIDNotIn(vs ...string) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -947,7 +883,7 @@ func ReadTimeNEQ(v time.Time) predicate.GroupMember {
 
 // ReadTimeIn applies the In predicate on the "read_time" field.
 func ReadTimeIn(vs ...time.Time) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -958,7 +894,7 @@ func ReadTimeIn(vs ...time.Time) predicate.GroupMember {
 
 // ReadTimeNotIn applies the NotIn predicate on the "read_time" field.
 func ReadTimeNotIn(vs ...time.Time) predicate.GroupMember {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1006,6 +942,70 @@ func ReadTimeIsNil() predicate.GroupMember {
 func ReadTimeNotNil() predicate.GroupMember {
 	return predicate.GroupMember(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldReadTime)))
+	})
+}
+
+// LastNodeEQ applies the EQ predicate on the "last_node" field.
+func LastNodeEQ(v int64) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeNEQ applies the NEQ predicate on the "last_node" field.
+func LastNodeNEQ(v int64) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeIn applies the In predicate on the "last_node" field.
+func LastNodeIn(vs ...int64) predicate.GroupMember {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldLastNode), v...))
+	})
+}
+
+// LastNodeNotIn applies the NotIn predicate on the "last_node" field.
+func LastNodeNotIn(vs ...int64) predicate.GroupMember {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldLastNode), v...))
+	})
+}
+
+// LastNodeGT applies the GT predicate on the "last_node" field.
+func LastNodeGT(v int64) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeGTE applies the GTE predicate on the "last_node" field.
+func LastNodeGTE(v int64) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeLT applies the LT predicate on the "last_node" field.
+func LastNodeLT(v int64) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeLTE applies the LTE predicate on the "last_node" field.
+func LastNodeLTE(v int64) predicate.GroupMember {
+	return predicate.GroupMember(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLastNode), v))
 	})
 }
 

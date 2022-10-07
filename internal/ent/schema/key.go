@@ -56,6 +56,7 @@ func (Key) Annotations() []schema.Annotation {
 func (Key) Fields() []ent.Field {
     return []ent.Field{
         field.Text("keys"),
+        field.Int64("last_node"),
     }
 }
 
@@ -75,4 +76,10 @@ func (Key) Mixin() []ent.Mixin {
 
 func (Key) Indexes() []ent.Index {
     return []ent.Index{}
+}
+
+func (Key) Hooks() []ent.Hook {
+    return []ent.Hook{
+        internal.DistributeHook(),
+    }
 }

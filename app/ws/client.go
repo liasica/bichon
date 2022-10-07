@@ -94,7 +94,7 @@ func (c *Client) writePump() {
 func (c *Client) writeChatMessage(message *Message) {
     w, err := c.conn.NextWriter(websocket.BinaryMessage)
     if err != nil {
-        log.Errorf("[WS] message write failed: %s", err)
+        log.Errorf("[WS] message write failed: %v", err)
         return
     }
 
@@ -121,7 +121,7 @@ func (c *Client) writeChatMessage(message *Message) {
 
     _, err = w.Write(b)
     if err != nil {
-        log.Errorf("[WS] message write failed: %s", err)
+        log.Errorf("[WS] message write failed: %v", err)
         return
     }
 

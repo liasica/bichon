@@ -32,12 +32,6 @@ func (gmu *GroupMemberUpdate) Where(ps ...predicate.GroupMember) *GroupMemberUpd
 	return gmu
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (gmu *GroupMemberUpdate) SetUpdatedAt(t time.Time) *GroupMemberUpdate {
-	gmu.mutation.SetUpdatedAt(t)
-	return gmu
-}
-
 // SetMemberID sets the "member_id" field.
 func (gmu *GroupMemberUpdate) SetMemberID(s string) *GroupMemberUpdate {
 	gmu.mutation.SetMemberID(s)
@@ -136,6 +130,19 @@ func (gmu *GroupMemberUpdate) ClearReadTime() *GroupMemberUpdate {
 	return gmu
 }
 
+// SetLastNode sets the "last_node" field.
+func (gmu *GroupMemberUpdate) SetLastNode(i int64) *GroupMemberUpdate {
+	gmu.mutation.ResetLastNode()
+	gmu.mutation.SetLastNode(i)
+	return gmu
+}
+
+// AddLastNode adds i to the "last_node" field.
+func (gmu *GroupMemberUpdate) AddLastNode(i int64) *GroupMemberUpdate {
+	gmu.mutation.AddLastNode(i)
+	return gmu
+}
+
 // SetMember sets the "member" edge to the Member entity.
 func (gmu *GroupMemberUpdate) SetMember(m *Member) *GroupMemberUpdate {
 	return gmu.SetMemberID(m.ID)
@@ -180,9 +187,6 @@ func (gmu *GroupMemberUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
-	if err := gmu.defaults(); err != nil {
-		return 0, err
-	}
 	if len(gmu.hooks) == 0 {
 		if err = gmu.check(); err != nil {
 			return 0, err
@@ -237,18 +241,6 @@ func (gmu *GroupMemberUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (gmu *GroupMemberUpdate) defaults() error {
-	if _, ok := gmu.mutation.UpdatedAt(); !ok {
-		if groupmember.UpdateDefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized groupmember.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := groupmember.UpdateDefaultUpdatedAt()
-		gmu.mutation.SetUpdatedAt(v)
-	}
-	return nil
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (gmu *GroupMemberUpdate) check() error {
 	if _, ok := gmu.mutation.MemberID(); gmu.mutation.MemberCleared() && !ok {
@@ -283,13 +275,6 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := gmu.mutation.UpdatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: groupmember.FieldUpdatedAt,
-		})
 	}
 	if value, ok := gmu.mutation.Permission(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -336,6 +321,20 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: groupmember.FieldReadTime,
+		})
+	}
+	if value, ok := gmu.mutation.LastNode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: groupmember.FieldLastNode,
+		})
+	}
+	if value, ok := gmu.mutation.AddedLastNode(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: groupmember.FieldLastNode,
 		})
 	}
 	if gmu.mutation.MemberCleared() {
@@ -464,12 +463,6 @@ type GroupMemberUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (gmuo *GroupMemberUpdateOne) SetUpdatedAt(t time.Time) *GroupMemberUpdateOne {
-	gmuo.mutation.SetUpdatedAt(t)
-	return gmuo
-}
-
 // SetMemberID sets the "member_id" field.
 func (gmuo *GroupMemberUpdateOne) SetMemberID(s string) *GroupMemberUpdateOne {
 	gmuo.mutation.SetMemberID(s)
@@ -568,6 +561,19 @@ func (gmuo *GroupMemberUpdateOne) ClearReadTime() *GroupMemberUpdateOne {
 	return gmuo
 }
 
+// SetLastNode sets the "last_node" field.
+func (gmuo *GroupMemberUpdateOne) SetLastNode(i int64) *GroupMemberUpdateOne {
+	gmuo.mutation.ResetLastNode()
+	gmuo.mutation.SetLastNode(i)
+	return gmuo
+}
+
+// AddLastNode adds i to the "last_node" field.
+func (gmuo *GroupMemberUpdateOne) AddLastNode(i int64) *GroupMemberUpdateOne {
+	gmuo.mutation.AddLastNode(i)
+	return gmuo
+}
+
 // SetMember sets the "member" edge to the Member entity.
 func (gmuo *GroupMemberUpdateOne) SetMember(m *Member) *GroupMemberUpdateOne {
 	return gmuo.SetMemberID(m.ID)
@@ -619,9 +625,6 @@ func (gmuo *GroupMemberUpdateOne) Save(ctx context.Context) (*GroupMember, error
 		err  error
 		node *GroupMember
 	)
-	if err := gmuo.defaults(); err != nil {
-		return nil, err
-	}
 	if len(gmuo.hooks) == 0 {
 		if err = gmuo.check(); err != nil {
 			return nil, err
@@ -682,18 +685,6 @@ func (gmuo *GroupMemberUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (gmuo *GroupMemberUpdateOne) defaults() error {
-	if _, ok := gmuo.mutation.UpdatedAt(); !ok {
-		if groupmember.UpdateDefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized groupmember.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := groupmember.UpdateDefaultUpdatedAt()
-		gmuo.mutation.SetUpdatedAt(v)
-	}
-	return nil
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (gmuo *GroupMemberUpdateOne) check() error {
 	if _, ok := gmuo.mutation.MemberID(); gmuo.mutation.MemberCleared() && !ok {
@@ -746,13 +737,6 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 			}
 		}
 	}
-	if value, ok := gmuo.mutation.UpdatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: groupmember.FieldUpdatedAt,
-		})
-	}
 	if value, ok := gmuo.mutation.Permission(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeOther,
@@ -798,6 +782,20 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: groupmember.FieldReadTime,
+		})
+	}
+	if value, ok := gmuo.mutation.LastNode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: groupmember.FieldLastNode,
+		})
+	}
+	if value, ok := gmuo.mutation.AddedLastNode(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: groupmember.FieldLastNode,
 		})
 	}
 	if gmuo.mutation.MemberCleared() {

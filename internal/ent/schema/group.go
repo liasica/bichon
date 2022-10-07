@@ -65,6 +65,7 @@ func (Group) Fields() []ent.Field {
         field.String("address").Immutable().Unique(),
         field.String("intro").Optional(),
         field.Text("keys").Comment("group's ethereum keys"),
+        field.Int64("last_node"),
     }
 }
 
@@ -93,5 +94,11 @@ func (Group) Indexes() []ent.Index {
             }),
         ),
         index.Fields("owner_id"),
+    }
+}
+
+func (Group) Hooks() []ent.Hook {
+    return []ent.Hook{
+        internal.DistributeHook(),
     }
 }

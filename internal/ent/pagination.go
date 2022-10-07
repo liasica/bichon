@@ -24,6 +24,8 @@ func (gq *GroupQuery) PaginationItemsX(req model.PaginationReq) any {
 func (gq *GroupQuery) PaginationResult(req model.PaginationReq) model.Pagination {
 	query := gq.Clone()
 	query.order = nil
+	query.limit = nil
+	query.offset = nil
 	var result []struct {
 		Count int `json:"count"`
 	}
@@ -53,6 +55,8 @@ func (gmq *GroupMemberQuery) PaginationItemsX(req model.PaginationReq) any {
 func (gmq *GroupMemberQuery) PaginationResult(req model.PaginationReq) model.Pagination {
 	query := gmq.Clone()
 	query.order = nil
+	query.limit = nil
+	query.offset = nil
 	var result []struct {
 		Count int `json:"count"`
 	}
@@ -82,6 +86,8 @@ func (kq *KeyQuery) PaginationItemsX(req model.PaginationReq) any {
 func (kq *KeyQuery) PaginationResult(req model.PaginationReq) model.Pagination {
 	query := kq.Clone()
 	query.order = nil
+	query.limit = nil
+	query.offset = nil
 	var result []struct {
 		Count int `json:"count"`
 	}
@@ -111,6 +117,8 @@ func (mq *MemberQuery) PaginationItemsX(req model.PaginationReq) any {
 func (mq *MemberQuery) PaginationResult(req model.PaginationReq) model.Pagination {
 	query := mq.Clone()
 	query.order = nil
+	query.limit = nil
+	query.offset = nil
 	var result []struct {
 		Count int `json:"count"`
 	}
@@ -140,6 +148,8 @@ func (mq *MessageQuery) PaginationItemsX(req model.PaginationReq) any {
 func (mq *MessageQuery) PaginationResult(req model.PaginationReq) model.Pagination {
 	query := mq.Clone()
 	query.order = nil
+	query.limit = nil
+	query.offset = nil
 	var result []struct {
 		Count int `json:"count"`
 	}

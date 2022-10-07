@@ -22,6 +22,7 @@ var (
     removeNotable = map[string]FileInfoType{
         "db.go":                 FileInfoTypeFile,
         "connect.go":            FileInfoTypeFile,
+        "distribution.go":       FileInfoTypeFile,
         "groupmember_attach.go": FileInfoTypeFile,
         "internal":              FileInfoTypeDir,
         "schema":                FileInfoTypeDir,

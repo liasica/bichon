@@ -6,16 +6,20 @@ import (
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/key"
+    "github.com/chatpuppy/puppychat/pkg/tea"
+    jsoniter "github.com/json-iterator/go"
     "github.com/liasica/go-encryption/ecdh"
 )
 
 type keyService struct {
     ctx context.Context
+    orm *ent.KeyClient
 }
 
 func NewKey() *keyService {
     return &keyService{
         ctx: context.Background(),
+        orm: ent.Database.Key,
     }
 }
 
@@ -50,7 +54,7 @@ func (s *keyService) GenerateAndShare(spKey string) (keys *model.GroupMemberKeys
 
 // QueryKeys get group key
 func (s *keyService) QueryKeys(id, memberID, groupID string) (keys *model.GroupMemberKeys, err error) {
-    k, _ := ent.Database.Key.Query().Where(
+    k, _ := s.orm.Query().Where(
         key.ID(id),
         key.MemberID(memberID),
         key.GroupID(groupID),
@@ -76,4 +80,22 @@ func (s *keyService) QueryRawKeys(id, memberID, groupID string) (keys *model.Gro
     }
     keys = hexKeys.Raw()
     return
+}
+
+func (s *keyService) SaveSyncData(b []byte, op ent.Op) (err error) {
+    return ent.SaveKeySyncData(b, op, func(data *ent.KeySync) {
+        if data.Keys != nil {
+            keys := new(model.GroupMemberKeys)
+            err = jsoniter.Unmarshal([]byte(*data.Keys), keys)
+            if err != nil {
+                return
+            }
+            var hex string
+            hex, err = keys.Encrypt()
+            if err != nil {
+                return
+            }
+            data.Keys = tea.String(hex)
+        }
+    })
 }

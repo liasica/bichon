@@ -1,0 +1,108 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "sync" }}
+
+{{ template "header" $ }}
+
+{{ template "import" $ }}
+
+import (
+    "context"
+    "github.com/chatpuppy/puppychat/pkg/tea"
+    "github.com/chatpuppy/puppychat/app/model"
+)
+
+{{ range $n := $.Nodes }}
+
+type {{ $n.Name }}Sync struct {
+    {{- if $n.HasOneFieldID }}
+        ID *{{ $n.ID.Type }} {{ with $n.Annotations.Fields.StructTag.id }}`{{ . }}`{{ else }}`{{ $n.ID.StructTag }}`{{ end }}
+    {{- end }}
+    {{- range $f := $n.Fields }}
+        {{- $tag := $f.StructTag }}{{ with $tags := $n.Annotations.Fields.StructTag }}{{ with index $tags $f.Name }}{{ $tag = . }}{{ end }}{{ end }}
+        {{ $f.StructField }} *{{ $f.Type }} {{ if not $f.Sensitive }}`{{ $tag }}`{{ else }}{{ template "model/omittags" $ }}{{ end }}
+    {{- end }}
+}
+
+{{ $mutation := $n.MutationName }}
+func (m *{{ $mutation }}) SyncData() *{{ $n.Name }}Sync {
+    ctx := context.Background()
+    s := new({{ $n.Name }}Sync)
+    changed := false
+
+    for _, name := range m.Fields() {
+        if name == "id" {
+            continue
+        }
+
+        v, _ := m.Field(name)
+        ov, err := m.OldField(ctx, name)
+
+        if err != nil || ov != v {
+            changed = true
+            switch name {
+            {{- range $f := $n.Fields }}
+            {{- $const := print $n.Package "." $f.Constant }}
+            case {{ $const }}:
+                s.{{ $f.StructField }} = m.{{ $f.BuilderField }}
+            {{- end }}
+            }
+        }
+    }
+
+    if changed {
+		id, _ := m.ID()
+        s.ID = tea.String(id)
+        return s
+    }
+    return nil
+}
+
+func (m *{{ $mutation }}) SetSyncData(data *{{ $n.Name }}Sync) {
+    {{- range $f := $n.Fields }}
+    {{- $const := print $n.Package "." $f.Constant }}
+        if data.{{ $f.StructField }} != nil {
+            m.SetField({{ $const }}, *data.{{ $f.StructField }})
+        }
+    {{- end }}
+}
+
+func Save{{ $n.Name }}SyncData (b []byte, op Op, precall func(*{{ $n.Name }}Sync)) (err error) {
+    data := new({{ $n.Name }}Sync)
+    err = jsoniter.Unmarshal(b, data)
+    if err != nil {
+        return
+    }
+
+    if data.ID == nil {
+        err = model.ErrSyncIDNotFound
+        return
+    }
+
+    ctx := context.Background()
+    id := *data.ID
+
+    switch true {
+    case op.Is(OpDelete | OpDeleteOne):
+        err = Database.{{$n.Name}}.DeleteOneID(id).Exec(ctx)
+    case op.Is(OpCreate):
+        creator := Database.{{$n.Name}}.Create().SetID(id)
+        if precall != nil {
+            precall(data)
+        }
+        creator.Mutation().SetSyncData(data)
+        err = creator.OnConflictColumns("id").UpdateNewValues().Exec(ctx)
+    case op.Is(OpUpdate | OpUpdateOne):
+        updater := Database.{{$n.Name}}.UpdateOneID(id)
+        if precall != nil {
+            precall(data)
+        }
+        updater.mutation.SetSyncData(data)
+        err = updater.Exec(ctx)
+    }
+
+    return
+}
+
+{{ end }}
+{{ end }}

@@ -20,14 +20,14 @@ type Key struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// MemberID holds the value of the "member_id" field.
 	MemberID string `json:"member_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
 	GroupID string `json:"group_id,omitempty"`
 	// Keys holds the value of the "keys" field.
 	Keys string `json:"keys,omitempty"`
+	// LastNode holds the value of the "last_node" field.
+	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the KeyQuery when eager-loading is set.
 	Edges KeyEdges `json:"edges"`
@@ -71,13 +71,15 @@ func (e KeyEdges) GroupOrErr() (*Group, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Key) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*Key) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case key.FieldLastNode:
+			values[i] = new(sql.NullInt64)
 		case key.FieldID, key.FieldMemberID, key.FieldGroupID, key.FieldKeys:
 			values[i] = new(sql.NullString)
-		case key.FieldCreatedAt, key.FieldUpdatedAt:
+		case key.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Key", columns[i])
@@ -88,7 +90,7 @@ func (*Key) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Key fields.
-func (k *Key) assignValues(columns []string, values []interface{}) error {
+func (k *Key) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -105,12 +107,6 @@ func (k *Key) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				k.CreatedAt = value.Time
-			}
-		case key.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				k.UpdatedAt = value.Time
 			}
 		case key.FieldMemberID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -129,6 +125,12 @@ func (k *Key) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field keys", values[i])
 			} else if value.Valid {
 				k.Keys = value.String
+			}
+		case key.FieldLastNode:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_node", values[i])
+			} else if value.Valid {
+				k.LastNode = value.Int64
 			}
 		}
 	}
@@ -171,9 +173,6 @@ func (k *Key) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(k.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(k.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
 	builder.WriteString("member_id=")
 	builder.WriteString(k.MemberID)
 	builder.WriteString(", ")
@@ -182,6 +181,9 @@ func (k *Key) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("keys=")
 	builder.WriteString(k.Keys)
+	builder.WriteString(", ")
+	builder.WriteString("last_node=")
+	builder.WriteString(fmt.Sprintf("%v", k.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

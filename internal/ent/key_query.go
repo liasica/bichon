@@ -393,10 +393,10 @@ func (kq *KeyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Key, err
 			kq.withGroup != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Key).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Key{config: kq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -495,11 +495,14 @@ func (kq *KeyQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (kq *KeyQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := kq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := kq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (kq *KeyQuery) querySpec() *sqlgraph.QuerySpec {
@@ -609,7 +612,7 @@ func (kgb *KeyGroupBy) Aggregate(fns ...AggregateFunc) *KeyGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (kgb *KeyGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (kgb *KeyGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := kgb.path(ctx)
 	if err != nil {
 		return err
@@ -618,7 +621,7 @@ func (kgb *KeyGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return kgb.sqlScan(ctx, v)
 }
 
-func (kgb *KeyGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (kgb *KeyGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range kgb.fields {
 		if !key.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -665,7 +668,7 @@ type KeySelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ks *KeySelect) Scan(ctx context.Context, v interface{}) error {
+func (ks *KeySelect) Scan(ctx context.Context, v any) error {
 	if err := ks.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -673,7 +676,7 @@ func (ks *KeySelect) Scan(ctx context.Context, v interface{}) error {
 	return ks.sqlScan(ctx, v)
 }
 
-func (ks *KeySelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ks *KeySelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := ks.sql.Query()
 	if err := ks.driver.Query(ctx, query, args, rows); err != nil {

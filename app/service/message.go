@@ -10,6 +10,7 @@ import (
     "github.com/chatpuppy/puppychat/internal/ent/member"
     "github.com/chatpuppy/puppychat/internal/ent/message"
     "github.com/chatpuppy/puppychat/internal/g"
+    "github.com/chatpuppy/puppychat/pkg/tea"
     "github.com/liasica/go-encryption/aes"
     "github.com/liasica/go-encryption/rsa"
     "time"
@@ -61,7 +62,7 @@ func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (r
 
     // encrypt message by node keys
     var b []byte
-    b, err = rsa.Encrypt(mc.Decrypted, g.RsaPublicKey())
+    b, err = rsa.EncryptUsePublicKey(mc.Decrypted, g.RsaPublicKey())
 
     // get quote message
     var (
@@ -71,14 +72,14 @@ func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (r
     )
     if req.ParentID != nil {
         parent, _ = s.orm.Query().Where(message.ID(*req.ParentID), message.GroupID(req.GroupID)).First(s.ctx)
-        if parent != nil {
+        if parent == nil {
             err = model.ErrQuoteMessageNotFound
             return
         }
 
         // decrypt parent message content
         var pb []byte
-        pb, err = rsa.Decrypt(parent.Content, g.RsaPrivateKey())
+        pb, err = rsa.DecryptUsePrivateKey(parent.Content, g.RsaPrivateKey())
         if err != nil {
             return
         }
@@ -103,6 +104,7 @@ func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (r
     // save message
     var m *ent.Message
     m, err = s.orm.Create().
+        SetLastNode(g.NodeID()).
         SetGroupID(req.GroupID).
         SetMemberID(req.MemberID).
         SetContent(b).
@@ -113,6 +115,7 @@ func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (r
         return
     }
 
+    // TODO broadcast message
     // broadcast message
     model.SendBroadcast(model.MessageBroadcast{
         Message: model.Message{
@@ -141,7 +144,7 @@ func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (r
 // EncryptMessageFromDB decrypt database content and encrypt content by member's share key
 func (s *messageService) EncryptMessageFromDB(keys *model.GroupMemberRawKeys, content []byte) (b64 string, err error) {
     var b []byte
-    b, err = rsa.Decrypt(content, g.RsaPrivateKey())
+    b, err = rsa.DecryptUsePrivateKey(content, g.RsaPrivateKey())
     if err != nil {
         return
     }
@@ -238,6 +241,7 @@ func (s *messageService) Read(mem *ent.Member, req *model.MessageReadReq) error 
 func (s *messageService) UpdateRead(id, memID, groupID string, createdAt time.Time) error {
     return ent.Database.GroupMember.Update().
         Where(groupmember.GroupID(groupID), groupmember.MemberID(memID)).
+        SetLastNode(g.NodeID()).
         SetReadTime(createdAt).
         SetReadID(id).
         Exec(s.ctx)
@@ -293,4 +297,65 @@ func (s *messageService) AutoRead(msg *model.Message) {
         return
     }
     _ = s.UpdateRead(msg.ID, msg.Member.ID, msg.GroupID, msg.CreatedAt)
+}
+
+func (s *messageService) SaveSyncData(b []byte, op ent.Op) (err error) {
+    var id string
+    var decrypted []byte
+    err = ent.SaveMessageSyncData(b, op, func(data *ent.MessageSync) {
+        id = *data.ID
+        if data.Content != nil {
+            decrypted = *data.Content
+            var content []byte
+            content, err = rsa.EncryptUsePublicKey(*data.Content, g.RsaPublicKey())
+            if err != nil {
+                return
+            }
+            data.Content = tea.Pointer(content)
+        }
+    })
+    if err != nil {
+        return
+    }
+
+    if !op.Is(ent.OpDelete | ent.OpDeleteOne) {
+        go func() {
+            m, _ := s.orm.Query().Where(message.ID(id)).WithParent().WithGroup().First(s.ctx)
+
+            gro := m.Edges.Group
+            if gro == nil {
+                return
+            }
+
+            var quote *model.Message
+            parent := m.Edges.Parent
+
+            if parent != nil {
+                pb, _ := rsa.DecryptUsePrivateKey(parent.Content, g.RsaPrivateKey())
+
+                quote = &model.Message{
+                    ID:        parent.ID,
+                    CreatedAt: parent.CreatedAt,
+                    Member:    parent.Owner,
+
+                    MessageContent: &model.MessageContent{Decrypted: pb},
+                }
+            }
+
+            model.SendBroadcast(model.MessageBroadcast{
+                Message: model.Message{
+                    ID:        m.ID,
+                    CreatedAt: m.CreatedAt,
+                    GroupID:   m.GroupID,
+                    Member:    m.Owner,
+                    Quote:     quote,
+
+                    MessageContent: &model.MessageContent{Decrypted: decrypted},
+                },
+                GroupAddress: gro.Address,
+            })
+        }()
+    }
+
+    return
 }

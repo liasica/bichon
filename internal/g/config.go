@@ -1,6 +1,7 @@
 package g
 
 import (
+    "fmt"
     "github.com/chatpuppy/puppychat/assets"
     "github.com/fsnotify/fsnotify"
     log "github.com/sirupsen/logrus"
@@ -10,10 +11,21 @@ import (
 )
 
 type ConfigApp struct {
-    Address    string
-    Mode       string
-    TZ         string
-    PrintStack bool
+    Address      string
+    Mode         string
+    TZ           string
+    PrintStack   bool
+    ApiUrl       string
+    Distribution ConfigDistribution
+}
+
+type ConfigDistribution struct {
+    IP   string
+    Port int
+}
+
+func (d ConfigDistribution) String() string {
+    return fmt.Sprintf("%s:%d", d.IP, d.Port)
 }
 
 type ConfigDB struct {
@@ -87,9 +99,12 @@ func InitializeConfig() {
         log.Fatalf("Config read failed: %v", err)
     }
 
+    // setting apiurl
+    node.ApiUrl = Config.App.ApiUrl
+
     // Config file modify monitor
     viper.OnConfigChange(func(e fsnotify.Event) {
-        log.Infof("%s changed, reloading", e.Name)
+        // log.Infof("%s changed, reloading", e.Name)
     })
 
     viper.WatchConfig()

@@ -429,10 +429,10 @@ func (gmq *GroupMemberQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			gmq.withInviter != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*GroupMember).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &GroupMember{config: gmq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -566,11 +566,14 @@ func (gmq *GroupMemberQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (gmq *GroupMemberQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := gmq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := gmq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (gmq *GroupMemberQuery) querySpec() *sqlgraph.QuerySpec {
@@ -680,7 +683,7 @@ func (gmgb *GroupMemberGroupBy) Aggregate(fns ...AggregateFunc) *GroupMemberGrou
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (gmgb *GroupMemberGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (gmgb *GroupMemberGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := gmgb.path(ctx)
 	if err != nil {
 		return err
@@ -689,7 +692,7 @@ func (gmgb *GroupMemberGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return gmgb.sqlScan(ctx, v)
 }
 
-func (gmgb *GroupMemberGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (gmgb *GroupMemberGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range gmgb.fields {
 		if !groupmember.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -736,7 +739,7 @@ type GroupMemberSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (gms *GroupMemberSelect) Scan(ctx context.Context, v interface{}) error {
+func (gms *GroupMemberSelect) Scan(ctx context.Context, v any) error {
 	if err := gms.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -744,7 +747,7 @@ func (gms *GroupMemberSelect) Scan(ctx context.Context, v interface{}) error {
 	return gms.sqlScan(ctx, v)
 }
 
-func (gms *GroupMemberSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (gms *GroupMemberSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := gms.sql.Query()
 	if err := gms.driver.Query(ctx, query, args, rows); err != nil {

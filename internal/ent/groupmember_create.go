@@ -40,20 +40,6 @@ func (gmc *GroupMemberCreate) SetNillableCreatedAt(t *time.Time) *GroupMemberCre
 	return gmc
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (gmc *GroupMemberCreate) SetUpdatedAt(t time.Time) *GroupMemberCreate {
-	gmc.mutation.SetUpdatedAt(t)
-	return gmc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (gmc *GroupMemberCreate) SetNillableUpdatedAt(t *time.Time) *GroupMemberCreate {
-	if t != nil {
-		gmc.SetUpdatedAt(*t)
-	}
-	return gmc
-}
-
 // SetMemberID sets the "member_id" field.
 func (gmc *GroupMemberCreate) SetMemberID(s string) *GroupMemberCreate {
 	gmc.mutation.SetMemberID(s)
@@ -131,6 +117,12 @@ func (gmc *GroupMemberCreate) SetNillableReadTime(t *time.Time) *GroupMemberCrea
 	if t != nil {
 		gmc.SetReadTime(*t)
 	}
+	return gmc
+}
+
+// SetLastNode sets the "last_node" field.
+func (gmc *GroupMemberCreate) SetLastNode(i int64) *GroupMemberCreate {
+	gmc.mutation.SetLastNode(i)
 	return gmc
 }
 
@@ -241,13 +233,6 @@ func (gmc *GroupMemberCreate) defaults() error {
 		v := groupmember.DefaultCreatedAt()
 		gmc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := gmc.mutation.UpdatedAt(); !ok {
-		if groupmember.DefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized groupmember.DefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := groupmember.DefaultUpdatedAt()
-		gmc.mutation.SetUpdatedAt(v)
-	}
 	if _, ok := gmc.mutation.Permission(); !ok {
 		v := groupmember.DefaultPermission
 		gmc.mutation.SetPermission(v)
@@ -259,9 +244,6 @@ func (gmc *GroupMemberCreate) defaults() error {
 func (gmc *GroupMemberCreate) check() error {
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "GroupMember.created_at"`)}
-	}
-	if _, ok := gmc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "GroupMember.updated_at"`)}
 	}
 	if _, ok := gmc.mutation.MemberID(); !ok {
 		return &ValidationError{Name: "member_id", err: errors.New(`ent: missing required field "GroupMember.member_id"`)}
@@ -277,6 +259,9 @@ func (gmc *GroupMemberCreate) check() error {
 	}
 	if _, ok := gmc.mutation.InviteExpire(); !ok {
 		return &ValidationError{Name: "invite_expire", err: errors.New(`ent: missing required field "GroupMember.invite_expire"`)}
+	}
+	if _, ok := gmc.mutation.LastNode(); !ok {
+		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "GroupMember.last_node"`)}
 	}
 	if v, ok := gmc.mutation.ID(); ok {
 		if err := groupmember.IDValidator(v); err != nil {
@@ -334,14 +319,6 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 		})
 		_node.CreatedAt = value
 	}
-	if value, ok := gmc.mutation.UpdatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: groupmember.FieldUpdatedAt,
-		})
-		_node.UpdatedAt = value
-	}
 	if value, ok := gmc.mutation.Permission(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeOther,
@@ -381,6 +358,14 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 			Column: groupmember.FieldReadTime,
 		})
 		_node.ReadTime = &value
+	}
+	if value, ok := gmc.mutation.LastNode(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: groupmember.FieldLastNode,
+		})
+		_node.LastNode = value
 	}
 	if nodes := gmc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -493,30 +478,6 @@ type (
 		*sql.UpdateSet
 	}
 )
-
-// SetCreatedAt sets the "created_at" field.
-func (u *GroupMemberUpsert) SetCreatedAt(v time.Time) *GroupMemberUpsert {
-	u.Set(groupmember.FieldCreatedAt, v)
-	return u
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *GroupMemberUpsert) UpdateCreatedAt() *GroupMemberUpsert {
-	u.SetExcluded(groupmember.FieldCreatedAt)
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *GroupMemberUpsert) SetUpdatedAt(v time.Time) *GroupMemberUpsert {
-	u.Set(groupmember.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *GroupMemberUpsert) UpdateUpdatedAt() *GroupMemberUpsert {
-	u.SetExcluded(groupmember.FieldUpdatedAt)
-	return u
-}
 
 // SetMemberID sets the "member_id" field.
 func (u *GroupMemberUpsert) SetMemberID(v string) *GroupMemberUpsert {
@@ -632,6 +593,24 @@ func (u *GroupMemberUpsert) ClearReadTime() *GroupMemberUpsert {
 	return u
 }
 
+// SetLastNode sets the "last_node" field.
+func (u *GroupMemberUpsert) SetLastNode(v int64) *GroupMemberUpsert {
+	u.Set(groupmember.FieldLastNode, v)
+	return u
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *GroupMemberUpsert) UpdateLastNode() *GroupMemberUpsert {
+	u.SetExcluded(groupmember.FieldLastNode)
+	return u
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *GroupMemberUpsert) AddLastNode(v int64) *GroupMemberUpsert {
+	u.Add(groupmember.FieldLastNode, v)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -681,34 +660,6 @@ func (u *GroupMemberUpsertOne) Update(set func(*GroupMemberUpsert)) *GroupMember
 		set(&GroupMemberUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *GroupMemberUpsertOne) SetCreatedAt(v time.Time) *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *GroupMemberUpsertOne) UpdateCreatedAt() *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *GroupMemberUpsertOne) SetUpdatedAt(v time.Time) *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *GroupMemberUpsertOne) UpdateUpdatedAt() *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateUpdatedAt()
-	})
 }
 
 // SetMemberID sets the "member_id" field.
@@ -841,6 +792,27 @@ func (u *GroupMemberUpsertOne) UpdateReadTime() *GroupMemberUpsertOne {
 func (u *GroupMemberUpsertOne) ClearReadTime() *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.ClearReadTime()
+	})
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *GroupMemberUpsertOne) SetLastNode(v int64) *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetLastNode(v)
+	})
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *GroupMemberUpsertOne) AddLastNode(v int64) *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.AddLastNode(v)
+	})
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *GroupMemberUpsertOne) UpdateLastNode() *GroupMemberUpsertOne {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateLastNode()
 	})
 }
 
@@ -1022,7 +994,6 @@ func (u *GroupMemberUpsertBulk) UpdateNewValues() *GroupMemberUpsertBulk {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(groupmember.FieldID)
-				return
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(groupmember.FieldCreatedAt)
@@ -1057,34 +1028,6 @@ func (u *GroupMemberUpsertBulk) Update(set func(*GroupMemberUpsert)) *GroupMembe
 		set(&GroupMemberUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *GroupMemberUpsertBulk) SetCreatedAt(v time.Time) *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *GroupMemberUpsertBulk) UpdateCreatedAt() *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *GroupMemberUpsertBulk) SetUpdatedAt(v time.Time) *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *GroupMemberUpsertBulk) UpdateUpdatedAt() *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateUpdatedAt()
-	})
 }
 
 // SetMemberID sets the "member_id" field.
@@ -1217,6 +1160,27 @@ func (u *GroupMemberUpsertBulk) UpdateReadTime() *GroupMemberUpsertBulk {
 func (u *GroupMemberUpsertBulk) ClearReadTime() *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.ClearReadTime()
+	})
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *GroupMemberUpsertBulk) SetLastNode(v int64) *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.SetLastNode(v)
+	})
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *GroupMemberUpsertBulk) AddLastNode(v int64) *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.AddLastNode(v)
+	})
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *GroupMemberUpsertBulk) UpdateLastNode() *GroupMemberUpsertBulk {
+	return u.Update(func(s *GroupMemberUpsert) {
+		s.UpdateLastNode()
 	})
 }
 

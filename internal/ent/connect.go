@@ -57,6 +57,24 @@ func autoMigrate(c *Client) {
         migrate.WithDropIndex(true),
         migrate.WithDropColumn(true),
         migrate.WithForeignKeys(false),
+        // schema.WithDiffHook(func(next schema.Differ) schema.Differ {
+        //     return schema.DiffFunc(func(current, desired *atlas.Schema) ([]atlas.Change, error) {
+        //         changes, err := next.Diff(current, desired)
+        //         if err != nil {
+        //             return nil, err
+        //         }
+        //         changes = append([]atlas.Change{
+        //             &atlas.AddSchema{
+        //                 S: atlas.New("mytestschema").
+        //                     AddAttrs(desired.Attrs...).
+        //                     AddTables(desired.Tables...).
+        //                     SetCharset("utf8"),
+        //                 Extra: []atlas.Clause{&atlas.IfNotExists{}},
+        //             },
+        //         }, changes...)
+        //         return changes, nil
+        //     })
+        // }),
     ); err != nil {
         log.Fatalf("database migrate failed: %v", err)
     }

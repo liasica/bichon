@@ -15,6 +15,7 @@ import (
 
 func Run() {
     r := echo.New()
+    r.HideBanner = true
 
     corsConfig := mw.DefaultCORSConfig
     corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, []string{

@@ -62,6 +62,7 @@ func (Member) Fields() []ent.Field {
         field.Text("public_key").Optional(),
         field.String("nonce"),
         field.Bool("show_nickname").Default(true),
+        field.Int64("last_node"),
     }
 }
 
@@ -84,5 +85,11 @@ func (Member) Mixin() []ent.Mixin {
 func (Member) Indexes() []ent.Index {
     return []ent.Index{
         index.Fields("nonce"),
+    }
+}
+
+func (Member) Hooks() []ent.Hook {
+    return []ent.Hook{
+        internal.DistributeHook(),
     }
 }

@@ -29,6 +29,7 @@ func (SnowflakeIDMixin) Hooks() []ent.Hook {
 
 type IDSetter interface {
     SetID(string)
+    ID() (string, bool)
 }
 
 func IDHook() ent.Hook {
@@ -38,8 +39,11 @@ func IDHook() ent.Hook {
             if !ok {
                 return nil, fmt.Errorf("unexpected mutation %T", m)
             }
-            id := g.SnowflakeNode().Generate()
-            is.SetID(fmt.Sprintf("%d", id))
+            _, ok = is.ID()
+            if !ok {
+                id := g.SnowflakeNode().Generate()
+                is.SetID(fmt.Sprintf("%d", id))
+            }
             return next.Mutate(ctx, m)
         })
     }

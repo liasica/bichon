@@ -7,6 +7,7 @@ import (
     "github.com/spf13/cobra"
     "log"
     "math"
+    "os"
 )
 
 func nodeCommand() *cobra.Command {
@@ -41,6 +42,17 @@ func nodeGenerate() *cobra.Command {
             fmt.Printf("Public key is:\n%s\n\n", public)
             fmt.Printf("Private key is:\n%s\n\n", private)
             fmt.Printf("Node secret is:\n%s\n", str)
+
+            // save file
+            d := "config/nodes"
+            if _, err = os.Stat(d); os.IsNotExist(err) {
+                err = os.MkdirAll(d, 0755)
+                if err != nil {
+                    log.Fatalf("nodes directory create failed: %v", err)
+                }
+            }
+
+            _ = os.WriteFile(fmt.Sprintf("%s/%d.node", d, nodeid), []byte(str), 0755)
         },
     }
 

@@ -13,6 +13,7 @@ import (
 var (
     memberTokenPrefix = "Bearer "
     memberAuthSkipper = map[RequestUrlMethod]struct{}{
+        "GET/nodes":                 {},
         "GET/member/nonce/:address": {},
         "POST/member":               {},
         "GET/member/:address":       {},

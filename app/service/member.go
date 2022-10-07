@@ -7,13 +7,13 @@ import (
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/member"
+    "github.com/chatpuppy/puppychat/internal/g"
     "github.com/ethereum/go-ethereum/accounts"
     "github.com/ethereum/go-ethereum/common/hexutil"
     "github.com/ethereum/go-ethereum/crypto"
     "github.com/golang-jwt/jwt/v4"
     "math/big"
     "strings"
-    "time"
 )
 
 type memberService struct {
@@ -43,7 +43,7 @@ func (s *memberService) Authenticate(address string, token string) (*ent.Member,
     if err != nil {
         return nil, err
     }
-    jws := NewJwt(mem.Nonce, mem.Address, 24*time.Hour)
+    jws := NewJwt(mem.Nonce, mem.Address, model.DefaultTokenDuration)
     var jrc *jwt.RegisteredClaims
     jrc, err = jws.Verify(token)
     if err != nil {
@@ -68,12 +68,12 @@ func (s *memberService) Nonce(req *model.MemberAddressParam) (res *model.MemberN
     // find member, if not exists, create it
     mem, _ := s.orm.Query().Where(member.Address(address)).First(s.ctx)
     if mem == nil {
-        _, err = s.orm.Create().SetAddress(address).SetNonce(res.Nonce).Save(s.ctx)
+        _, err = s.orm.Create().SetAddress(address).SetNonce(res.Nonce).SetLastNode(g.NodeID()).Save(s.ctx)
         if err != nil {
             return
         }
     } else {
-        _, err = mem.Update().SetNonce(res.Nonce).Save(s.ctx)
+        _, err = mem.Update().SetNonce(res.Nonce).SetLastNode(g.NodeID()).Save(s.ctx)
         if err != nil {
             return
         }
@@ -110,12 +110,12 @@ func (s *memberService) Signin(req *model.MemberSigninReq) (res *model.MemberSig
     }
     // generate jwt token
     var token string
-    token, err = NewJwt(req.Nonce, req.Address, 24*time.Hour).CreateStandard(req.Address)
+    token, err = NewJwt(req.Nonce, req.Address, model.DefaultTokenDuration).CreateStandard(req.Address)
     if err != nil {
         return
     }
     // saving member's public key
-    _, _ = mem.Update().SetPublicKey(hexutil.Encode(crypto.FromECDSAPub(pub))).Save(s.ctx)
+    _, _ = mem.Update().SetLastNode(g.NodeID()).SetPublicKey(hexutil.Encode(crypto.FromECDSAPub(pub))).Save(s.ctx)
     res = &model.MemberSigninRes{Token: token, Profile: s.Profile(mem)}
     return
 }
@@ -145,7 +145,7 @@ func (s *memberService) Profile(param any) *model.MemberProfile {
 
 // Update member
 func (s *memberService) Update(mem *ent.Member, req *model.MemberUpdateReq) error {
-    updater := s.orm.UpdateOneID(mem.ID)
+    updater := s.orm.UpdateOneID(mem.ID).SetLastNode(g.NodeID())
     if req.Nickname != "" {
         updater.SetNickname(req.Nickname)
     }
@@ -153,4 +153,8 @@ func (s *memberService) Update(mem *ent.Member, req *model.MemberUpdateReq) erro
         updater.SetIntro(req.Intro)
     }
     return updater.Exec(s.ctx)
+}
+
+func (s *memberService) SaveSyncData(b []byte, op ent.Op) (err error) {
+    return ent.SaveMemberSyncData(b, op, nil)
 }

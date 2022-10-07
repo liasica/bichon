@@ -32,10 +32,10 @@ func CreateHub() {
         clients:    sync.Map{},
     }
 
-    go Hub.Run()
+    go Hub.run()
 }
 
-func (h *hub) Run() {
+func (h *hub) run() {
     for {
         select {
         case client := <-h.register:
@@ -58,14 +58,14 @@ func (h *hub) Run() {
 func (h *hub) broadcast(req model.MessageBroadcast) {
     // get members
     memIDs := cache.Group.Members(req.GroupID)
-    str := fmt.Sprintf("%s has %d online members, ", req.GroupAddress, len(memIDs))
+    str := fmt.Sprintf("%s has %d members, ", req.GroupAddress, len(memIDs))
     n := 0
     for _, memID := range memIDs {
         if exists, ok := h.clients.Load(memID); ok {
             c := exists.(*Client)
-            // TODO skip owner
+            // skip owner
             if req.Member.ID == c.mem.ID {
-                // continue
+                continue
             }
             // send message to client
             c.send <- &Message{

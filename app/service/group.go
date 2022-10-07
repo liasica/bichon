@@ -10,8 +10,11 @@ import (
     "github.com/chatpuppy/puppychat/internal/ent/group"
     "github.com/chatpuppy/puppychat/internal/ent/groupmember"
     "github.com/chatpuppy/puppychat/internal/ent/key"
+    "github.com/chatpuppy/puppychat/internal/g"
+    "github.com/chatpuppy/puppychat/pkg/tea"
     "github.com/chatpuppy/puppychat/utils"
     "github.com/ethereum/go-ethereum/crypto"
+    jsoniter "github.com/json-iterator/go"
     "github.com/liasica/go-encryption/hexutil"
     "sort"
     "strings"
@@ -99,6 +102,7 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *
         PrivateKey: hexutil.Encode(crypto.FromECDSA(priv)),
         PublicKey:  hexutil.Encode(crypto.FromECDSAPub(&pub)),
     }
+    fmt.Println(keys)
 
     var keysHex string
     keysHex, err = keys.Encrypt()
@@ -117,6 +121,7 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *
         // create group
         var gro *ent.Group
         gro, err = tx.Group.Create().
+            SetLastNode(g.NodeID()).
             SetName(req.Name).
             SetMembersMax(req.MaxMembers).
             SetNillableIntro(req.Intro).
@@ -174,7 +179,7 @@ func (s *groupService) shareKey(tx *ent.Tx, mem *ent.Member, gro *ent.Group, spK
 
     // create group member keys
     var k *ent.Key
-    k, err = tx.Key.Create().SetKeys(hex).SetGroupID(gro.ID).SetMemberID(mem.ID).Save(s.ctx)
+    k, err = tx.Key.Create().SetKeys(hex).SetGroupID(gro.ID).SetLastNode(g.NodeID()).SetMemberID(mem.ID).Save(s.ctx)
     if err != nil {
         return
     }
@@ -191,6 +196,7 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
     // create group member set share sn and permission
     ic, it := s.GenerateInviteCode(mem.ID, gro.ID)
     creater := tx.GroupMember.Create().
+        SetLastNode(g.NodeID()).
         SetGroup(gro).
         SetMember(mem).
         SetInviteCode(ic).
@@ -206,7 +212,7 @@ func (s *groupService) joinGroup(tx *ent.Tx, mem *ent.Member, gro *ent.Group, pe
 
     if !isCreate {
         // update group's member count
-        _, err = tx.Group.UpdateOne(gro).AddMembersCount(1).Save(s.ctx)
+        _, err = tx.Group.UpdateOne(gro).AddMembersCount(1).SetLastNode(g.NodeID()).Save(s.ctx)
     }
     return
 }
@@ -273,7 +279,7 @@ func (s *groupService) GenerateInviteCode(memberID, groupID string) (string, tim
 // regenerate group invite code
 func (s *groupService) reGenerateInviteCode(grm *ent.GroupMember) (string, time.Time, error) {
     ic, it := s.GenerateInviteCode(grm.MemberID, grm.GroupID)
-    return ic, it, ent.Database.GroupMember.UpdateOne(grm).SetInviteCode(ic).SetInviteExpire(it).Exec(s.ctx)
+    return ic, it, ent.Database.GroupMember.UpdateOne(grm).SetInviteCode(ic).SetInviteExpire(it).SetLastNode(g.NodeID()).Exec(s.ctx)
 }
 
 // Detail get group's detail
@@ -389,8 +395,8 @@ func (s *groupService) List(mem *ent.Member, req *model.GroupListReq) (res *mode
         Joined       bool      `json:"joined"`
         CreatedAt    time.Time `json:"created_at"`
     }
-    err = q.
-        Limit(req.GetLimit()).
+
+    gs := q.Limit(req.GetLimit()).
         Offset(req.GetOffset()).
         Order(ent.Desc(group.FieldID)).
         Modify(func(sel *sql.Selector) {
@@ -413,8 +419,11 @@ func (s *groupService) List(mem *ent.Member, req *model.GroupListReq) (res *mode
                 )
                 sel.AppendSelectExprAs(sql.Exists(sql.Select().From(t).Where(p)), "joined")
             }
-        }).
-        Scan(s.ctx, &result)
+        })
+
+    pagination := gs.PaginationResult(req.PaginationReq)
+
+    err = gs.Scan(s.ctx, &result)
 
     if err != nil {
         return
@@ -438,7 +447,7 @@ func (s *groupService) List(mem *ent.Member, req *model.GroupListReq) (res *mode
     }
 
     res = &model.PaginationRes{
-        Pagination: q.PaginationResult(req.PaginationReq),
+        Pagination: pagination,
         Items:      items,
     }
 
@@ -511,7 +520,7 @@ func (s *groupService) Leave(mem *ent.Member, req *model.GroupIDReq) error {
         if err != nil {
             return
         }
-        _, err = tx.Group.UpdateOneID(req.GroupID).AddMembersCount(-1).Save(s.ctx)
+        _, err = tx.Group.UpdateOneID(req.GroupID).AddMembersCount(-1).SetLastNode(g.NodeID()).Save(s.ctx)
         return
     })
 }
@@ -524,7 +533,7 @@ func (s *groupService) Update(mem *ent.Member, req *model.GroupUpdateReq) error 
         return model.ErrNotFoundGroup
     }
     // change info
-    updater := s.orm.UpdateOne(gro)
+    updater := s.orm.UpdateOne(gro).SetLastNode(g.NodeID())
     if req.MaxMembers != nil {
         if gro.MembersCount > *req.MaxMembers {
             return model.ErrMaxMemberSetting
@@ -605,5 +614,16 @@ func (s *groupService) SetManager(mem *ent.Member, req *model.GroupMemberReq) er
         return model.ErrAlreadyManager
     }
     // set manager
-    return ent.Database.GroupMember.UpdateOne(tgr).SetPermission(model.GroupMemberPermManager).Exec(s.ctx)
+    return ent.Database.GroupMember.UpdateOne(tgr).SetLastNode(g.NodeID()).SetPermission(model.GroupMemberPermManager).Exec(s.ctx)
+}
+
+func (s *groupService) SaveSyncData(b []byte, op ent.Op) (err error) {
+    return ent.SaveGroupSyncData(b, op, func(data *ent.GroupSync) {
+        if data.Keys != nil {
+            keys := new(model.GroupKeys)
+            _ = jsoniter.Unmarshal([]byte(*data.Keys), keys)
+            v, _ := keys.Encrypt()
+            data.Keys = tea.String(v)
+        }
+    })
 }

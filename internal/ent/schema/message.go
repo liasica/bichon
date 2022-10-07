@@ -61,6 +61,7 @@ func (Message) Fields() []ent.Field {
         field.Bytes("content"),
         field.String("parent_id").Optional().Nillable(),
         field.JSON("owner", &model.Member{}).Comment("message's owner"),
+        field.Int64("last_node"),
     }
 }
 
@@ -85,5 +86,11 @@ func (Message) Indexes() []ent.Index {
         index.Fields("group_id"),
         index.Fields("member_id"),
         index.Fields("parent_id"),
+    }
+}
+
+func (Message) Hooks() []ent.Hook {
+    return []ent.Hook{
+        internal.DistributeHook(),
     }
 }

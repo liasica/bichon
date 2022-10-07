@@ -7,27 +7,23 @@ import (
     "github.com/chatpuppy/puppychat/internal/g"
     "github.com/chatpuppy/puppychat/pkg/logger"
     "github.com/chatpuppy/puppychat/pkg/tea"
+    log "github.com/sirupsen/logrus"
 )
-
-var (
-    rootPath string
-)
-
-func SetRootPath(path string) {
-    rootPath = path
-}
 
 func ApiBootstrap() {
-    // logger
-    logger.LoadWithConfig(logger.Config{
-        Color:    true,
-        Level:    "info",
-        Age:      8192,
-        RootPath: rootPath,
-    })
-
     // load configure from file
     g.InitializeConfig()
+
+    // logger
+    logger.LoadWithConfig(logger.Config{
+        Color:  true,
+        Level:  "info",
+        Age:    8192,
+        Caller: g.Config.App.Mode == "development",
+    })
+
+    // auto sync time
+    go g.AutoSyncTime()
 
     // connect database
     ent.OpenDatabase(g.Config.Database.Dsn, g.Config.Database.Debug)
@@ -38,6 +34,8 @@ func ApiBootstrap() {
 
     // cache all groups
     cacheMembers()
+
+    log.Info("server bootstrap done")
 }
 
 // cache all group's member on start

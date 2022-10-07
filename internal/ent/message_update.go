@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -29,12 +28,6 @@ type MessageUpdate struct {
 // Where appends a list predicates to the MessageUpdate builder.
 func (mu *MessageUpdate) Where(ps ...predicate.Message) *MessageUpdate {
 	mu.mutation.Where(ps...)
-	return mu
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (mu *MessageUpdate) SetUpdatedAt(t time.Time) *MessageUpdate {
-	mu.mutation.SetUpdatedAt(t)
 	return mu
 }
 
@@ -79,6 +72,19 @@ func (mu *MessageUpdate) ClearParentID() *MessageUpdate {
 // SetOwner sets the "owner" field.
 func (mu *MessageUpdate) SetOwner(m *model.Member) *MessageUpdate {
 	mu.mutation.SetOwner(m)
+	return mu
+}
+
+// SetLastNode sets the "last_node" field.
+func (mu *MessageUpdate) SetLastNode(i int64) *MessageUpdate {
+	mu.mutation.ResetLastNode()
+	mu.mutation.SetLastNode(i)
+	return mu
+}
+
+// AddLastNode adds i to the "last_node" field.
+func (mu *MessageUpdate) AddLastNode(i int64) *MessageUpdate {
+	mu.mutation.AddLastNode(i)
 	return mu
 }
 
@@ -162,9 +168,6 @@ func (mu *MessageUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
-	if err := mu.defaults(); err != nil {
-		return 0, err
-	}
 	if len(mu.hooks) == 0 {
 		if err = mu.check(); err != nil {
 			return 0, err
@@ -219,18 +222,6 @@ func (mu *MessageUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (mu *MessageUpdate) defaults() error {
-	if _, ok := mu.mutation.UpdatedAt(); !ok {
-		if message.UpdateDefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized message.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := message.UpdateDefaultUpdatedAt()
-		mu.mutation.SetUpdatedAt(v)
-	}
-	return nil
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (mu *MessageUpdate) check() error {
 	if _, ok := mu.mutation.MemberID(); mu.mutation.MemberCleared() && !ok {
@@ -266,13 +257,6 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := mu.mutation.UpdatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: message.FieldUpdatedAt,
-		})
-	}
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
@@ -285,6 +269,20 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: message.FieldOwner,
+		})
+	}
+	if value, ok := mu.mutation.LastNode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: message.FieldLastNode,
+		})
+	}
+	if value, ok := mu.mutation.AddedLastNode(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: message.FieldLastNode,
 		})
 	}
 	if mu.mutation.MemberCleared() {
@@ -467,12 +465,6 @@ type MessageUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (muo *MessageUpdateOne) SetUpdatedAt(t time.Time) *MessageUpdateOne {
-	muo.mutation.SetUpdatedAt(t)
-	return muo
-}
-
 // SetGroupID sets the "group_id" field.
 func (muo *MessageUpdateOne) SetGroupID(s string) *MessageUpdateOne {
 	muo.mutation.SetGroupID(s)
@@ -514,6 +506,19 @@ func (muo *MessageUpdateOne) ClearParentID() *MessageUpdateOne {
 // SetOwner sets the "owner" field.
 func (muo *MessageUpdateOne) SetOwner(m *model.Member) *MessageUpdateOne {
 	muo.mutation.SetOwner(m)
+	return muo
+}
+
+// SetLastNode sets the "last_node" field.
+func (muo *MessageUpdateOne) SetLastNode(i int64) *MessageUpdateOne {
+	muo.mutation.ResetLastNode()
+	muo.mutation.SetLastNode(i)
+	return muo
+}
+
+// AddLastNode adds i to the "last_node" field.
+func (muo *MessageUpdateOne) AddLastNode(i int64) *MessageUpdateOne {
+	muo.mutation.AddLastNode(i)
 	return muo
 }
 
@@ -604,9 +609,6 @@ func (muo *MessageUpdateOne) Save(ctx context.Context) (*Message, error) {
 		err  error
 		node *Message
 	)
-	if err := muo.defaults(); err != nil {
-		return nil, err
-	}
 	if len(muo.hooks) == 0 {
 		if err = muo.check(); err != nil {
 			return nil, err
@@ -667,18 +669,6 @@ func (muo *MessageUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (muo *MessageUpdateOne) defaults() error {
-	if _, ok := muo.mutation.UpdatedAt(); !ok {
-		if message.UpdateDefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized message.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := message.UpdateDefaultUpdatedAt()
-		muo.mutation.SetUpdatedAt(v)
-	}
-	return nil
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (muo *MessageUpdateOne) check() error {
 	if _, ok := muo.mutation.MemberID(); muo.mutation.MemberCleared() && !ok {
@@ -731,13 +721,6 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			}
 		}
 	}
-	if value, ok := muo.mutation.UpdatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: message.FieldUpdatedAt,
-		})
-	}
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
@@ -750,6 +733,20 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: message.FieldOwner,
+		})
+	}
+	if value, ok := muo.mutation.LastNode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: message.FieldLastNode,
+		})
+	}
+	if value, ok := muo.mutation.AddedLastNode(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: message.FieldLastNode,
 		})
 	}
 	if muo.mutation.MemberCleared() {

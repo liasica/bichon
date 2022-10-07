@@ -13,6 +13,9 @@ func loadAppRoutes(r *echo.Echo) {
         middleware.Member(),
     )
 
+    // nodes
+    g.GET("/nodes", endpoint.Node.Nodes)
+
     // member routes
     g.GET("/member/nonce/:address", endpoint.Member.Nonce)
     g.POST("/member", endpoint.Member.Signin)

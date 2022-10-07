@@ -19,8 +19,6 @@ type Group struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Category holds the value of the "category" field.
@@ -39,6 +37,8 @@ type Group struct {
 	Intro string `json:"intro,omitempty"`
 	// group's ethereum keys
 	Keys string `json:"keys,omitempty"`
+	// LastNode holds the value of the "last_node" field.
+	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GroupQuery when eager-loading is set.
 	Edges GroupEdges `json:"edges"`
@@ -100,17 +100,17 @@ func (e GroupEdges) GroupMembersOrErr() ([]*GroupMember, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Group) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*Group) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case group.FieldPublic:
 			values[i] = new(sql.NullBool)
-		case group.FieldMembersMax, group.FieldMembersCount:
+		case group.FieldMembersMax, group.FieldMembersCount, group.FieldLastNode:
 			values[i] = new(sql.NullInt64)
 		case group.FieldID, group.FieldName, group.FieldCategory, group.FieldOwnerID, group.FieldAddress, group.FieldIntro, group.FieldKeys:
 			values[i] = new(sql.NullString)
-		case group.FieldCreatedAt, group.FieldUpdatedAt:
+		case group.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Group", columns[i])
@@ -121,7 +121,7 @@ func (*Group) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Group fields.
-func (gr *Group) assignValues(columns []string, values []interface{}) error {
+func (gr *Group) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -138,12 +138,6 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				gr.CreatedAt = value.Time
-			}
-		case group.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				gr.UpdatedAt = value.Time
 			}
 		case group.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -199,6 +193,12 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				gr.Keys = value.String
 			}
+		case group.FieldLastNode:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_node", values[i])
+			} else if value.Valid {
+				gr.LastNode = value.Int64
+			}
 		}
 	}
 	return nil
@@ -250,9 +250,6 @@ func (gr *Group) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(gr.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(gr.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(gr.Name)
 	builder.WriteString(", ")
@@ -279,6 +276,9 @@ func (gr *Group) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("keys=")
 	builder.WriteString(gr.Keys)
+	builder.WriteString(", ")
+	builder.WriteString("last_node=")
+	builder.WriteString(fmt.Sprintf("%v", gr.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

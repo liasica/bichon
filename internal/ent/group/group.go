@@ -15,8 +15,6 @@ const (
 	FieldID = "id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldCategory holds the string denoting the category field in the database.
@@ -35,6 +33,8 @@ const (
 	FieldIntro = "intro"
 	// FieldKeys holds the string denoting the keys field in the database.
 	FieldKeys = "keys"
+	// FieldLastNode holds the string denoting the last_node field in the database.
+	FieldLastNode = "last_node"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeMessages holds the string denoting the messages edge name in mutations.
@@ -77,7 +77,6 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
-	FieldUpdatedAt,
 	FieldName,
 	FieldCategory,
 	FieldOwnerID,
@@ -87,6 +86,7 @@ var Columns = []string{
 	FieldAddress,
 	FieldIntro,
 	FieldKeys,
+	FieldLastNode,
 }
 
 var (
@@ -111,13 +111,9 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/chatpuppy/puppychat/internal/ent/runtime"
 var (
-	Hooks [1]ent.Hook
+	Hooks [2]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
-	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
-	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultMembersCount holds the default value on creation for the "members_count" field.
 	DefaultMembersCount int
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.

@@ -40,20 +40,6 @@ func (mc *MemberCreate) SetNillableCreatedAt(t *time.Time) *MemberCreate {
 	return mc
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (mc *MemberCreate) SetUpdatedAt(t time.Time) *MemberCreate {
-	mc.mutation.SetUpdatedAt(t)
-	return mc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (mc *MemberCreate) SetNillableUpdatedAt(t *time.Time) *MemberCreate {
-	if t != nil {
-		mc.SetUpdatedAt(*t)
-	}
-	return mc
-}
-
 // SetAddress sets the "address" field.
 func (mc *MemberCreate) SetAddress(s string) *MemberCreate {
 	mc.mutation.SetAddress(s)
@@ -133,6 +119,12 @@ func (mc *MemberCreate) SetNillableShowNickname(b *bool) *MemberCreate {
 	if b != nil {
 		mc.SetShowNickname(*b)
 	}
+	return mc
+}
+
+// SetLastNode sets the "last_node" field.
+func (mc *MemberCreate) SetLastNode(i int64) *MemberCreate {
+	mc.mutation.SetLastNode(i)
 	return mc
 }
 
@@ -288,13 +280,6 @@ func (mc *MemberCreate) defaults() error {
 		v := member.DefaultCreatedAt()
 		mc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := mc.mutation.UpdatedAt(); !ok {
-		if member.DefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized member.DefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := member.DefaultUpdatedAt()
-		mc.mutation.SetUpdatedAt(v)
-	}
 	if _, ok := mc.mutation.ShowNickname(); !ok {
 		v := member.DefaultShowNickname
 		mc.mutation.SetShowNickname(v)
@@ -307,9 +292,6 @@ func (mc *MemberCreate) check() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Member.created_at"`)}
 	}
-	if _, ok := mc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Member.updated_at"`)}
-	}
 	if _, ok := mc.mutation.Address(); !ok {
 		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "Member.address"`)}
 	}
@@ -318,6 +300,9 @@ func (mc *MemberCreate) check() error {
 	}
 	if _, ok := mc.mutation.ShowNickname(); !ok {
 		return &ValidationError{Name: "show_nickname", err: errors.New(`ent: missing required field "Member.show_nickname"`)}
+	}
+	if _, ok := mc.mutation.LastNode(); !ok {
+		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "Member.last_node"`)}
 	}
 	if v, ok := mc.mutation.ID(); ok {
 		if err := member.IDValidator(v); err != nil {
@@ -368,14 +353,6 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Column: member.FieldCreatedAt,
 		})
 		_node.CreatedAt = value
-	}
-	if value, ok := mc.mutation.UpdatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: member.FieldUpdatedAt,
-		})
-		_node.UpdatedAt = value
 	}
 	if value, ok := mc.mutation.Address(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -432,6 +409,14 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Column: member.FieldShowNickname,
 		})
 		_node.ShowNickname = value
+	}
+	if value, ok := mc.mutation.LastNode(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: member.FieldLastNode,
+		})
+		_node.LastNode = value
 	}
 	if nodes := mc.mutation.OwnGroupsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -565,30 +550,6 @@ type (
 	}
 )
 
-// SetCreatedAt sets the "created_at" field.
-func (u *MemberUpsert) SetCreatedAt(v time.Time) *MemberUpsert {
-	u.Set(member.FieldCreatedAt, v)
-	return u
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *MemberUpsert) UpdateCreatedAt() *MemberUpsert {
-	u.SetExcluded(member.FieldCreatedAt)
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *MemberUpsert) SetUpdatedAt(v time.Time) *MemberUpsert {
-	u.Set(member.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *MemberUpsert) UpdateUpdatedAt() *MemberUpsert {
-	u.SetExcluded(member.FieldUpdatedAt)
-	return u
-}
-
 // SetAddress sets the "address" field.
 func (u *MemberUpsert) SetAddress(v string) *MemberUpsert {
 	u.Set(member.FieldAddress, v)
@@ -697,6 +658,24 @@ func (u *MemberUpsert) UpdateShowNickname() *MemberUpsert {
 	return u
 }
 
+// SetLastNode sets the "last_node" field.
+func (u *MemberUpsert) SetLastNode(v int64) *MemberUpsert {
+	u.Set(member.FieldLastNode, v)
+	return u
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *MemberUpsert) UpdateLastNode() *MemberUpsert {
+	u.SetExcluded(member.FieldLastNode)
+	return u
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *MemberUpsert) AddLastNode(v int64) *MemberUpsert {
+	u.Add(member.FieldLastNode, v)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -746,34 +725,6 @@ func (u *MemberUpsertOne) Update(set func(*MemberUpsert)) *MemberUpsertOne {
 		set(&MemberUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *MemberUpsertOne) SetCreatedAt(v time.Time) *MemberUpsertOne {
-	return u.Update(func(s *MemberUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *MemberUpsertOne) UpdateCreatedAt() *MemberUpsertOne {
-	return u.Update(func(s *MemberUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *MemberUpsertOne) SetUpdatedAt(v time.Time) *MemberUpsertOne {
-	return u.Update(func(s *MemberUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *MemberUpsertOne) UpdateUpdatedAt() *MemberUpsertOne {
-	return u.Update(func(s *MemberUpsert) {
-		s.UpdateUpdatedAt()
-	})
 }
 
 // SetAddress sets the "address" field.
@@ -899,6 +850,27 @@ func (u *MemberUpsertOne) SetShowNickname(v bool) *MemberUpsertOne {
 func (u *MemberUpsertOne) UpdateShowNickname() *MemberUpsertOne {
 	return u.Update(func(s *MemberUpsert) {
 		s.UpdateShowNickname()
+	})
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *MemberUpsertOne) SetLastNode(v int64) *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.SetLastNode(v)
+	})
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *MemberUpsertOne) AddLastNode(v int64) *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.AddLastNode(v)
+	})
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *MemberUpsertOne) UpdateLastNode() *MemberUpsertOne {
+	return u.Update(func(s *MemberUpsert) {
+		s.UpdateLastNode()
 	})
 }
 
@@ -1080,7 +1052,6 @@ func (u *MemberUpsertBulk) UpdateNewValues() *MemberUpsertBulk {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(member.FieldID)
-				return
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(member.FieldCreatedAt)
@@ -1115,34 +1086,6 @@ func (u *MemberUpsertBulk) Update(set func(*MemberUpsert)) *MemberUpsertBulk {
 		set(&MemberUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *MemberUpsertBulk) SetCreatedAt(v time.Time) *MemberUpsertBulk {
-	return u.Update(func(s *MemberUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *MemberUpsertBulk) UpdateCreatedAt() *MemberUpsertBulk {
-	return u.Update(func(s *MemberUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *MemberUpsertBulk) SetUpdatedAt(v time.Time) *MemberUpsertBulk {
-	return u.Update(func(s *MemberUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *MemberUpsertBulk) UpdateUpdatedAt() *MemberUpsertBulk {
-	return u.Update(func(s *MemberUpsert) {
-		s.UpdateUpdatedAt()
-	})
 }
 
 // SetAddress sets the "address" field.
@@ -1268,6 +1211,27 @@ func (u *MemberUpsertBulk) SetShowNickname(v bool) *MemberUpsertBulk {
 func (u *MemberUpsertBulk) UpdateShowNickname() *MemberUpsertBulk {
 	return u.Update(func(s *MemberUpsert) {
 		s.UpdateShowNickname()
+	})
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *MemberUpsertBulk) SetLastNode(v int64) *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.SetLastNode(v)
+	})
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *MemberUpsertBulk) AddLastNode(v int64) *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.AddLastNode(v)
+	})
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *MemberUpsertBulk) UpdateLastNode() *MemberUpsertBulk {
+	return u.Update(func(s *MemberUpsert) {
+		s.UpdateLastNode()
 	})
 }
 

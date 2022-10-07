@@ -17,7 +17,7 @@ func command() *cobra.Command {
     }
 
     cmd.AddCommand(
-        apiCommand(),
+        serverCommand(),
         serialCommand(),
         nodeCommand(),
         toolsCommand(),

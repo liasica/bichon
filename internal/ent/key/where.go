@@ -34,7 +34,7 @@ func IDNEQ(id string) predicate.Key {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -45,7 +45,7 @@ func IDIn(ids ...string) predicate.Key {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -88,13 +88,6 @@ func CreatedAt(v time.Time) predicate.Key {
 	})
 }
 
-// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
-func UpdatedAt(v time.Time) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
-}
-
 // MemberID applies equality check predicate on the "member_id" field. It's identical to MemberIDEQ.
 func MemberID(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
@@ -116,6 +109,13 @@ func Keys(v string) predicate.Key {
 	})
 }
 
+// LastNode applies equality check predicate on the "last_node" field. It's identical to LastNodeEQ.
+func LastNode(v int64) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLastNode), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
@@ -132,7 +132,7 @@ func CreatedAtNEQ(v time.Time) predicate.Key {
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.Key {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -143,7 +143,7 @@ func CreatedAtIn(vs ...time.Time) predicate.Key {
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.Key {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -180,70 +180,6 @@ func CreatedAtLTE(v time.Time) predicate.Key {
 	})
 }
 
-// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
-func UpdatedAtEQ(v time.Time) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
-func UpdatedAtNEQ(v time.Time) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtIn applies the In predicate on the "updated_at" field.
-func UpdatedAtIn(vs ...time.Time) predicate.Key {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUpdatedAt), v...))
-	})
-}
-
-// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
-func UpdatedAtNotIn(vs ...time.Time) predicate.Key {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUpdatedAt), v...))
-	})
-}
-
-// UpdatedAtGT applies the GT predicate on the "updated_at" field.
-func UpdatedAtGT(v time.Time) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
-func UpdatedAtGTE(v time.Time) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtLT applies the LT predicate on the "updated_at" field.
-func UpdatedAtLT(v time.Time) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUpdatedAt), v))
-	})
-}
-
-// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
-func UpdatedAtLTE(v time.Time) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
-	})
-}
-
 // MemberIDEQ applies the EQ predicate on the "member_id" field.
 func MemberIDEQ(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
@@ -260,7 +196,7 @@ func MemberIDNEQ(v string) predicate.Key {
 
 // MemberIDIn applies the In predicate on the "member_id" field.
 func MemberIDIn(vs ...string) predicate.Key {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -271,7 +207,7 @@ func MemberIDIn(vs ...string) predicate.Key {
 
 // MemberIDNotIn applies the NotIn predicate on the "member_id" field.
 func MemberIDNotIn(vs ...string) predicate.Key {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -359,7 +295,7 @@ func GroupIDNEQ(v string) predicate.Key {
 
 // GroupIDIn applies the In predicate on the "group_id" field.
 func GroupIDIn(vs ...string) predicate.Key {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -370,7 +306,7 @@ func GroupIDIn(vs ...string) predicate.Key {
 
 // GroupIDNotIn applies the NotIn predicate on the "group_id" field.
 func GroupIDNotIn(vs ...string) predicate.Key {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -458,7 +394,7 @@ func KeysNEQ(v string) predicate.Key {
 
 // KeysIn applies the In predicate on the "keys" field.
 func KeysIn(vs ...string) predicate.Key {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -469,7 +405,7 @@ func KeysIn(vs ...string) predicate.Key {
 
 // KeysNotIn applies the NotIn predicate on the "keys" field.
 func KeysNotIn(vs ...string) predicate.Key {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -538,6 +474,70 @@ func KeysEqualFold(v string) predicate.Key {
 func KeysContainsFold(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldKeys), v))
+	})
+}
+
+// LastNodeEQ applies the EQ predicate on the "last_node" field.
+func LastNodeEQ(v int64) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeNEQ applies the NEQ predicate on the "last_node" field.
+func LastNodeNEQ(v int64) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeIn applies the In predicate on the "last_node" field.
+func LastNodeIn(vs ...int64) predicate.Key {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldLastNode), v...))
+	})
+}
+
+// LastNodeNotIn applies the NotIn predicate on the "last_node" field.
+func LastNodeNotIn(vs ...int64) predicate.Key {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldLastNode), v...))
+	})
+}
+
+// LastNodeGT applies the GT predicate on the "last_node" field.
+func LastNodeGT(v int64) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeGTE applies the GTE predicate on the "last_node" field.
+func LastNodeGTE(v int64) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeLT applies the LT predicate on the "last_node" field.
+func LastNodeLT(v int64) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLastNode), v))
+	})
+}
+
+// LastNodeLTE applies the LTE predicate on the "last_node" field.
+func LastNodeLTE(v int64) predicate.Key {
+	return predicate.Key(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLastNode), v))
 	})
 }
 

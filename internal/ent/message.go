@@ -22,8 +22,6 @@ type Message struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// GroupID holds the value of the "group_id" field.
 	GroupID string `json:"group_id,omitempty"`
 	// MemberID holds the value of the "member_id" field.
@@ -34,6 +32,8 @@ type Message struct {
 	ParentID *string `json:"parent_id,omitempty"`
 	// message's owner
 	Owner *model.Member `json:"owner,omitempty"`
+	// LastNode holds the value of the "last_node" field.
+	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageQuery when eager-loading is set.
 	Edges MessageEdges `json:"edges"`
@@ -103,15 +103,17 @@ func (e MessageEdges) ChildrenOrErr() ([]*Message, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Message) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*Message) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case message.FieldContent, message.FieldOwner:
 			values[i] = new([]byte)
+		case message.FieldLastNode:
+			values[i] = new(sql.NullInt64)
 		case message.FieldID, message.FieldGroupID, message.FieldMemberID, message.FieldParentID:
 			values[i] = new(sql.NullString)
-		case message.FieldCreatedAt, message.FieldUpdatedAt:
+		case message.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Message", columns[i])
@@ -122,7 +124,7 @@ func (*Message) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Message fields.
-func (m *Message) assignValues(columns []string, values []interface{}) error {
+func (m *Message) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -139,12 +141,6 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				m.CreatedAt = value.Time
-			}
-		case message.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				m.UpdatedAt = value.Time
 			}
 		case message.FieldGroupID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -178,6 +174,12 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 				if err := json.Unmarshal(*value, &m.Owner); err != nil {
 					return fmt.Errorf("unmarshal field owner: %w", err)
 				}
+			}
+		case message.FieldLastNode:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_node", values[i])
+			} else if value.Valid {
+				m.LastNode = value.Int64
 			}
 		}
 	}
@@ -230,9 +232,6 @@ func (m *Message) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
 	builder.WriteString("group_id=")
 	builder.WriteString(m.GroupID)
 	builder.WriteString(", ")
@@ -249,6 +248,9 @@ func (m *Message) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("owner=")
 	builder.WriteString(fmt.Sprintf("%v", m.Owner))
+	builder.WriteString(", ")
+	builder.WriteString("last_node=")
+	builder.WriteString(fmt.Sprintf("%v", m.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

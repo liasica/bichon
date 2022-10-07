@@ -13,7 +13,6 @@ var (
 	GroupColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "category", Type: field.TypeString},
 		{Name: "members_max", Type: field.TypeInt},
@@ -22,6 +21,7 @@ var (
 		{Name: "address", Type: field.TypeString, Unique: true},
 		{Name: "intro", Type: field.TypeString, Nullable: true},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
+		{Name: "last_node", Type: field.TypeInt64},
 		{Name: "owner_id", Type: field.TypeString, Size: 25},
 	}
 	// GroupTable holds the schema information for the "group" table.
@@ -46,7 +46,7 @@ var (
 			{
 				Name:    "group_name",
 				Unique:  false,
-				Columns: []*schema.Column{GroupColumns[3]},
+				Columns: []*schema.Column{GroupColumns[2]},
 				Annotation: &entsql.IndexAnnotation{
 					Types: map[string]string{
 						"postgres": "GIN",
@@ -64,12 +64,12 @@ var (
 	GroupMemberColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "permission", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "smallint"}},
 		{Name: "invite_code", Type: field.TypeString, Unique: true},
 		{Name: "invite_expire", Type: field.TypeTime},
 		{Name: "read_id", Type: field.TypeString, Nullable: true},
 		{Name: "read_time", Type: field.TypeTime, Nullable: true},
+		{Name: "last_node", Type: field.TypeInt64},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
 		{Name: "inviter_id", Type: field.TypeString, Nullable: true, Size: 25},
@@ -123,12 +123,12 @@ var (
 			{
 				Name:    "groupmember_read_id",
 				Unique:  false,
-				Columns: []*schema.Column{GroupMemberColumns[6]},
+				Columns: []*schema.Column{GroupMemberColumns[5]},
 			},
 			{
 				Name:    "groupmember_read_time",
 				Unique:  false,
-				Columns: []*schema.Column{GroupMemberColumns[7]},
+				Columns: []*schema.Column{GroupMemberColumns[6]},
 			},
 		},
 	}
@@ -136,8 +136,8 @@ var (
 	KeyColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
+		{Name: "last_node", Type: field.TypeInt64},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
 	}
@@ -182,7 +182,6 @@ var (
 	MemberColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "address", Type: field.TypeString, Unique: true},
 		{Name: "nickname", Type: field.TypeString, Nullable: true},
 		{Name: "avatar", Type: field.TypeString, Nullable: true},
@@ -190,6 +189,7 @@ var (
 		{Name: "public_key", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "nonce", Type: field.TypeString},
 		{Name: "show_nickname", Type: field.TypeBool, Default: true},
+		{Name: "last_node", Type: field.TypeInt64},
 	}
 	// MemberTable holds the schema information for the "member" table.
 	MemberTable = &schema.Table{
@@ -205,7 +205,7 @@ var (
 			{
 				Name:    "member_nonce",
 				Unique:  false,
-				Columns: []*schema.Column{MemberColumns[8]},
+				Columns: []*schema.Column{MemberColumns[7]},
 			},
 		},
 	}
@@ -213,9 +213,9 @@ var (
 	MessageColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "content", Type: field.TypeBytes},
 		{Name: "owner", Type: field.TypeJSON},
+		{Name: "last_node", Type: field.TypeInt64},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "parent_id", Type: field.TypeString, Nullable: true, Size: 25},

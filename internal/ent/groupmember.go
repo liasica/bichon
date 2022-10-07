@@ -21,8 +21,6 @@ type GroupMember struct {
 	ID string `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// MemberID holds the value of the "member_id" field.
 	MemberID string `json:"member_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
@@ -39,6 +37,8 @@ type GroupMember struct {
 	ReadID *string `json:"read_id,omitempty"`
 	// last read message time
 	ReadTime *time.Time `json:"read_time,omitempty"`
+	// LastNode holds the value of the "last_node" field.
+	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GroupMemberQuery when eager-loading is set.
 	Edges GroupMemberEdges `json:"edges"`
@@ -97,15 +97,17 @@ func (e GroupMemberEdges) InviterOrErr() (*Member, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*GroupMember) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*GroupMember) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case groupmember.FieldPermission:
 			values[i] = new(model.GroupMemberPerm)
+		case groupmember.FieldLastNode:
+			values[i] = new(sql.NullInt64)
 		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldInviterID, groupmember.FieldInviteCode, groupmember.FieldReadID:
 			values[i] = new(sql.NullString)
-		case groupmember.FieldCreatedAt, groupmember.FieldUpdatedAt, groupmember.FieldInviteExpire, groupmember.FieldReadTime:
+		case groupmember.FieldCreatedAt, groupmember.FieldInviteExpire, groupmember.FieldReadTime:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type GroupMember", columns[i])
@@ -116,7 +118,7 @@ func (*GroupMember) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the GroupMember fields.
-func (gm *GroupMember) assignValues(columns []string, values []interface{}) error {
+func (gm *GroupMember) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -133,12 +135,6 @@ func (gm *GroupMember) assignValues(columns []string, values []interface{}) erro
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				gm.CreatedAt = value.Time
-			}
-		case groupmember.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				gm.UpdatedAt = value.Time
 			}
 		case groupmember.FieldMemberID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -191,6 +187,12 @@ func (gm *GroupMember) assignValues(columns []string, values []interface{}) erro
 				gm.ReadTime = new(time.Time)
 				*gm.ReadTime = value.Time
 			}
+		case groupmember.FieldLastNode:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_node", values[i])
+			} else if value.Valid {
+				gm.LastNode = value.Int64
+			}
 		}
 	}
 	return nil
@@ -237,9 +239,6 @@ func (gm *GroupMember) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(gm.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(gm.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
 	builder.WriteString("member_id=")
 	builder.WriteString(gm.MemberID)
 	builder.WriteString(", ")
@@ -269,6 +268,9 @@ func (gm *GroupMember) String() string {
 		builder.WriteString("read_time=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("last_node=")
+	builder.WriteString(fmt.Sprintf("%v", gm.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

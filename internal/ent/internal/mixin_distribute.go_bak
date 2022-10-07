@@ -1,0 +1,40 @@
+package internal
+
+import (
+    "context"
+    "entgo.io/ent"
+    "entgo.io/ent/entc/integration/ent/hook"
+    "entgo.io/ent/schema/mixin"
+    "github.com/chatpuppy/puppychat/app/model"
+)
+
+type DistributeMutator interface {
+    Parse(isDelete bool) *model.SyncData
+    Columns() []string
+}
+
+type DistributeMixin struct {
+    mixin.Schema
+}
+
+func (d DistributeMixin) Hooks() []ent.Hook {
+    return []ent.Hook{
+        hook.On(
+            func(next ent.Mutator) ent.Mutator {
+                return ent.MutateFunc(func(ctx context.Context, mutation ent.Mutation) (v ent.Value, err error) {
+                    m, ok := mutation.(DistributeMutator)
+                    if ok {
+                        isDelete := mutation.Op().Is(ent.OpDelete | ent.OpDeleteOne)
+                        data := m.Parse(isDelete)
+                        if data != nil {
+                            model.DistributionBroadcastChan <- data
+                        }
+                    }
+
+                    return next.Mutate(ctx, mutation)
+                })
+            },
+            ent.OpCreate|ent.OpUpdate|ent.OpUpdateOne|ent.OpDelete|ent.OpDeleteOne,
+        ),
+    }
+}

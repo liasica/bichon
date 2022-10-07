@@ -30,6 +30,9 @@ var (
     ErrGroupPrivate           = errors.New("group is private")
     ErrInsufficientPermission = errors.New("insufficient permissions")
     ErrAlreadyManager         = errors.New("member is already the manager")
+    ErrNotFoundNode           = errors.New("not found node")
+    ErrSignature              = errors.New("signature is invalid")
+    ErrSyncIDNotFound         = errors.New("sync data id not found")
 )
 
 func ErrStatus(err error) int {

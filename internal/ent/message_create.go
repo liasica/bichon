@@ -40,20 +40,6 @@ func (mc *MessageCreate) SetNillableCreatedAt(t *time.Time) *MessageCreate {
 	return mc
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (mc *MessageCreate) SetUpdatedAt(t time.Time) *MessageCreate {
-	mc.mutation.SetUpdatedAt(t)
-	return mc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (mc *MessageCreate) SetNillableUpdatedAt(t *time.Time) *MessageCreate {
-	if t != nil {
-		mc.SetUpdatedAt(*t)
-	}
-	return mc
-}
-
 // SetGroupID sets the "group_id" field.
 func (mc *MessageCreate) SetGroupID(s string) *MessageCreate {
 	mc.mutation.SetGroupID(s)
@@ -89,6 +75,12 @@ func (mc *MessageCreate) SetNillableParentID(s *string) *MessageCreate {
 // SetOwner sets the "owner" field.
 func (mc *MessageCreate) SetOwner(m *model.Member) *MessageCreate {
 	mc.mutation.SetOwner(m)
+	return mc
+}
+
+// SetLastNode sets the "last_node" field.
+func (mc *MessageCreate) SetLastNode(i int64) *MessageCreate {
+	mc.mutation.SetLastNode(i)
 	return mc
 }
 
@@ -214,13 +206,6 @@ func (mc *MessageCreate) defaults() error {
 		v := message.DefaultCreatedAt()
 		mc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := mc.mutation.UpdatedAt(); !ok {
-		if message.DefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized message.DefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := message.DefaultUpdatedAt()
-		mc.mutation.SetUpdatedAt(v)
-	}
 	return nil
 }
 
@@ -228,9 +213,6 @@ func (mc *MessageCreate) defaults() error {
 func (mc *MessageCreate) check() error {
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Message.created_at"`)}
-	}
-	if _, ok := mc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Message.updated_at"`)}
 	}
 	if _, ok := mc.mutation.GroupID(); !ok {
 		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "Message.group_id"`)}
@@ -243,6 +225,9 @@ func (mc *MessageCreate) check() error {
 	}
 	if _, ok := mc.mutation.Owner(); !ok {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required field "Message.owner"`)}
+	}
+	if _, ok := mc.mutation.LastNode(); !ok {
+		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "Message.last_node"`)}
 	}
 	if v, ok := mc.mutation.ID(); ok {
 		if err := message.IDValidator(v); err != nil {
@@ -300,14 +285,6 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		})
 		_node.CreatedAt = value
 	}
-	if value, ok := mc.mutation.UpdatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: message.FieldUpdatedAt,
-		})
-		_node.UpdatedAt = value
-	}
 	if value, ok := mc.mutation.Content(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
@@ -323,6 +300,14 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Column: message.FieldOwner,
 		})
 		_node.Owner = value
+	}
+	if value, ok := mc.mutation.LastNode(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: message.FieldLastNode,
+		})
+		_node.LastNode = value
 	}
 	if nodes := mc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -455,30 +440,6 @@ type (
 	}
 )
 
-// SetCreatedAt sets the "created_at" field.
-func (u *MessageUpsert) SetCreatedAt(v time.Time) *MessageUpsert {
-	u.Set(message.FieldCreatedAt, v)
-	return u
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *MessageUpsert) UpdateCreatedAt() *MessageUpsert {
-	u.SetExcluded(message.FieldCreatedAt)
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *MessageUpsert) SetUpdatedAt(v time.Time) *MessageUpsert {
-	u.Set(message.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *MessageUpsert) UpdateUpdatedAt() *MessageUpsert {
-	u.SetExcluded(message.FieldUpdatedAt)
-	return u
-}
-
 // SetGroupID sets the "group_id" field.
 func (u *MessageUpsert) SetGroupID(v string) *MessageUpsert {
 	u.Set(message.FieldGroupID, v)
@@ -545,6 +506,24 @@ func (u *MessageUpsert) UpdateOwner() *MessageUpsert {
 	return u
 }
 
+// SetLastNode sets the "last_node" field.
+func (u *MessageUpsert) SetLastNode(v int64) *MessageUpsert {
+	u.Set(message.FieldLastNode, v)
+	return u
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateLastNode() *MessageUpsert {
+	u.SetExcluded(message.FieldLastNode)
+	return u
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *MessageUpsert) AddLastNode(v int64) *MessageUpsert {
+	u.Add(message.FieldLastNode, v)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -594,34 +573,6 @@ func (u *MessageUpsertOne) Update(set func(*MessageUpsert)) *MessageUpsertOne {
 		set(&MessageUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *MessageUpsertOne) SetCreatedAt(v time.Time) *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *MessageUpsertOne) UpdateCreatedAt() *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *MessageUpsertOne) SetUpdatedAt(v time.Time) *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *MessageUpsertOne) UpdateUpdatedAt() *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.UpdateUpdatedAt()
-	})
 }
 
 // SetGroupID sets the "group_id" field.
@@ -698,6 +649,27 @@ func (u *MessageUpsertOne) SetOwner(v *model.Member) *MessageUpsertOne {
 func (u *MessageUpsertOne) UpdateOwner() *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateOwner()
+	})
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *MessageUpsertOne) SetLastNode(v int64) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetLastNode(v)
+	})
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *MessageUpsertOne) AddLastNode(v int64) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.AddLastNode(v)
+	})
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateLastNode() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateLastNode()
 	})
 }
 
@@ -879,7 +851,6 @@ func (u *MessageUpsertBulk) UpdateNewValues() *MessageUpsertBulk {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(message.FieldID)
-				return
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(message.FieldCreatedAt)
@@ -914,34 +885,6 @@ func (u *MessageUpsertBulk) Update(set func(*MessageUpsert)) *MessageUpsertBulk 
 		set(&MessageUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *MessageUpsertBulk) SetCreatedAt(v time.Time) *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *MessageUpsertBulk) UpdateCreatedAt() *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *MessageUpsertBulk) SetUpdatedAt(v time.Time) *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *MessageUpsertBulk) UpdateUpdatedAt() *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.UpdateUpdatedAt()
-	})
 }
 
 // SetGroupID sets the "group_id" field.
@@ -1018,6 +961,27 @@ func (u *MessageUpsertBulk) SetOwner(v *model.Member) *MessageUpsertBulk {
 func (u *MessageUpsertBulk) UpdateOwner() *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateOwner()
+	})
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *MessageUpsertBulk) SetLastNode(v int64) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetLastNode(v)
+	})
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *MessageUpsertBulk) AddLastNode(v int64) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.AddLastNode(v)
+	})
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateLastNode() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateLastNode()
 	})
 }
 

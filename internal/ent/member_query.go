@@ -467,10 +467,10 @@ func (mq *MemberQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Membe
 			mq.withGroupMembers != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Member).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Member{config: mq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -599,14 +599,14 @@ func (mq *MemberQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes 
 	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
 		assign := spec.Assign
 		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]interface{}, error) {
+		spec.ScanValues = func(columns []string) ([]any, error) {
 			values, err := values(columns[1:])
 			if err != nil {
 				return nil, err
 			}
-			return append([]interface{}{new(sql.NullString)}, values...), nil
+			return append([]any{new(sql.NullString)}, values...), nil
 		}
-		spec.Assign = func(columns []string, values []interface{}) error {
+		spec.Assign = func(columns []string, values []any) error {
 			outValue := values[0].(*sql.NullString).String
 			inValue := values[1].(*sql.NullString).String
 			if nids[inValue] == nil {
@@ -672,11 +672,14 @@ func (mq *MemberQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mq *MemberQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := mq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := mq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (mq *MemberQuery) querySpec() *sqlgraph.QuerySpec {
@@ -786,7 +789,7 @@ func (mgb *MemberGroupBy) Aggregate(fns ...AggregateFunc) *MemberGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (mgb *MemberGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (mgb *MemberGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := mgb.path(ctx)
 	if err != nil {
 		return err
@@ -795,7 +798,7 @@ func (mgb *MemberGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return mgb.sqlScan(ctx, v)
 }
 
-func (mgb *MemberGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (mgb *MemberGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range mgb.fields {
 		if !member.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -842,7 +845,7 @@ type MemberSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ms *MemberSelect) Scan(ctx context.Context, v interface{}) error {
+func (ms *MemberSelect) Scan(ctx context.Context, v any) error {
 	if err := ms.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -850,7 +853,7 @@ func (ms *MemberSelect) Scan(ctx context.Context, v interface{}) error {
 	return ms.sqlScan(ctx, v)
 }
 
-func (ms *MemberSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ms *MemberSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := ms.sql.Query()
 	if err := ms.driver.Query(ctx, query, args, rows); err != nil {

@@ -23,12 +23,13 @@ type GroupMemberMutation struct {
 	typ            string
 	id             *string
 	created_at     *time.Time
-	updated_at     *time.Time
 	permission     *model.GroupMemberPerm
 	invite_code    *string
 	invite_expire  *time.Time
 	read_id        *string
 	read_time      *time.Time
+	last_node      *int64
+	addlast_node   *int64
 	clearedFields  map[string]struct{}
 	member         *string
 	clearedmember  bool
@@ -179,42 +180,6 @@ func (m *GroupMemberMutation) OldCreatedAt(ctx context.Context) (v time.Time, er
 // ResetCreatedAt resets all changes to the "created_at" field.
 func (m *GroupMemberMutation) ResetCreatedAt() {
 	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *GroupMemberMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *GroupMemberMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the GroupMember entity.
-// If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMemberMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *GroupMemberMutation) ResetUpdatedAt() {
-	m.updated_at = nil
 }
 
 // SetMemberID sets the "member_id" field.
@@ -544,6 +509,62 @@ func (m *GroupMemberMutation) ResetReadTime() {
 	delete(m.clearedFields, groupmember.FieldReadTime)
 }
 
+// SetLastNode sets the "last_node" field.
+func (m *GroupMemberMutation) SetLastNode(i int64) {
+	m.last_node = &i
+	m.addlast_node = nil
+}
+
+// LastNode returns the value of the "last_node" field in the mutation.
+func (m *GroupMemberMutation) LastNode() (r int64, exists bool) {
+	v := m.last_node
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastNode returns the old "last_node" field's value of the GroupMember entity.
+// If the GroupMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMemberMutation) OldLastNode(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastNode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastNode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastNode: %w", err)
+	}
+	return oldValue.LastNode, nil
+}
+
+// AddLastNode adds i to the "last_node" field.
+func (m *GroupMemberMutation) AddLastNode(i int64) {
+	if m.addlast_node != nil {
+		*m.addlast_node += i
+	} else {
+		m.addlast_node = &i
+	}
+}
+
+// AddedLastNode returns the value that was added to the "last_node" field in this mutation.
+func (m *GroupMemberMutation) AddedLastNode() (r int64, exists bool) {
+	v := m.addlast_node
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLastNode resets all changes to the "last_node" field.
+func (m *GroupMemberMutation) ResetLastNode() {
+	m.last_node = nil
+	m.addlast_node = nil
+}
+
 // ClearMember clears the "member" edge to the Member entity.
 func (m *GroupMemberMutation) ClearMember() {
 	m.clearedmember = true
@@ -645,9 +666,6 @@ func (m *GroupMemberMutation) Fields() []string {
 	if m.created_at != nil {
 		fields = append(fields, groupmember.FieldCreatedAt)
 	}
-	if m.updated_at != nil {
-		fields = append(fields, groupmember.FieldUpdatedAt)
-	}
 	if m.member != nil {
 		fields = append(fields, groupmember.FieldMemberID)
 	}
@@ -672,6 +690,9 @@ func (m *GroupMemberMutation) Fields() []string {
 	if m.read_time != nil {
 		fields = append(fields, groupmember.FieldReadTime)
 	}
+	if m.last_node != nil {
+		fields = append(fields, groupmember.FieldLastNode)
+	}
 	return fields
 }
 
@@ -682,8 +703,6 @@ func (m *GroupMemberMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case groupmember.FieldCreatedAt:
 		return m.CreatedAt()
-	case groupmember.FieldUpdatedAt:
-		return m.UpdatedAt()
 	case groupmember.FieldMemberID:
 		return m.MemberID()
 	case groupmember.FieldGroupID:
@@ -700,6 +719,8 @@ func (m *GroupMemberMutation) Field(name string) (ent.Value, bool) {
 		return m.ReadID()
 	case groupmember.FieldReadTime:
 		return m.ReadTime()
+	case groupmember.FieldLastNode:
+		return m.LastNode()
 	}
 	return nil, false
 }
@@ -711,8 +732,6 @@ func (m *GroupMemberMutation) OldField(ctx context.Context, name string) (ent.Va
 	switch name {
 	case groupmember.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case groupmember.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
 	case groupmember.FieldMemberID:
 		return m.OldMemberID(ctx)
 	case groupmember.FieldGroupID:
@@ -729,6 +748,8 @@ func (m *GroupMemberMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldReadID(ctx)
 	case groupmember.FieldReadTime:
 		return m.OldReadTime(ctx)
+	case groupmember.FieldLastNode:
+		return m.OldLastNode(ctx)
 	}
 	return nil, fmt.Errorf("unknown GroupMember field %s", name)
 }
@@ -744,13 +765,6 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
-		return nil
-	case groupmember.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
 		return nil
 	case groupmember.FieldMemberID:
 		v, ok := value.(string)
@@ -808,6 +822,13 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetReadTime(v)
 		return nil
+	case groupmember.FieldLastNode:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastNode(v)
+		return nil
 	}
 	return fmt.Errorf("unknown GroupMember field %s", name)
 }
@@ -815,13 +836,21 @@ func (m *GroupMemberMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *GroupMemberMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addlast_node != nil {
+		fields = append(fields, groupmember.FieldLastNode)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *GroupMemberMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case groupmember.FieldLastNode:
+		return m.AddedLastNode()
+	}
 	return nil, false
 }
 
@@ -830,6 +859,13 @@ func (m *GroupMemberMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GroupMemberMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case groupmember.FieldLastNode:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLastNode(v)
+		return nil
 	}
 	return fmt.Errorf("unknown GroupMember numeric field %s", name)
 }
@@ -881,9 +917,6 @@ func (m *GroupMemberMutation) ResetField(name string) error {
 	case groupmember.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case groupmember.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
 	case groupmember.FieldMemberID:
 		m.ResetMemberID()
 		return nil
@@ -907,6 +940,9 @@ func (m *GroupMemberMutation) ResetField(name string) error {
 		return nil
 	case groupmember.FieldReadTime:
 		m.ResetReadTime()
+		return nil
+	case groupmember.FieldLastNode:
+		m.ResetLastNode()
 		return nil
 	}
 	return fmt.Errorf("unknown GroupMember field %s", name)

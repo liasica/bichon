@@ -19,7 +19,7 @@ func KeysEncrypt[T any](pointer *T) (hex string, err error) {
         return
     }
     var b []byte
-    b, err = rsa.Encrypt(data, g.RsaPublicKey())
+    b, err = rsa.EncryptUsePublicKey(data, g.RsaPublicKey())
     if err != nil {
         return
     }
@@ -35,7 +35,7 @@ func KeysDecrypt[T any](hex string) (pointer *T, err error) {
         return
     }
     var data []byte
-    data, err = rsa.Decrypt(b, g.RsaPrivateKey())
+    data, err = rsa.DecryptUsePrivateKey(b, g.RsaPrivateKey())
     if err != nil {
         return
     }

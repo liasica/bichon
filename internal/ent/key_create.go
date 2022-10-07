@@ -39,20 +39,6 @@ func (kc *KeyCreate) SetNillableCreatedAt(t *time.Time) *KeyCreate {
 	return kc
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (kc *KeyCreate) SetUpdatedAt(t time.Time) *KeyCreate {
-	kc.mutation.SetUpdatedAt(t)
-	return kc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (kc *KeyCreate) SetNillableUpdatedAt(t *time.Time) *KeyCreate {
-	if t != nil {
-		kc.SetUpdatedAt(*t)
-	}
-	return kc
-}
-
 // SetMemberID sets the "member_id" field.
 func (kc *KeyCreate) SetMemberID(s string) *KeyCreate {
 	kc.mutation.SetMemberID(s)
@@ -68,6 +54,12 @@ func (kc *KeyCreate) SetGroupID(s string) *KeyCreate {
 // SetKeys sets the "keys" field.
 func (kc *KeyCreate) SetKeys(s string) *KeyCreate {
 	kc.mutation.SetKeys(s)
+	return kc
+}
+
+// SetLastNode sets the "last_node" field.
+func (kc *KeyCreate) SetLastNode(i int64) *KeyCreate {
+	kc.mutation.SetLastNode(i)
 	return kc
 }
 
@@ -173,13 +165,6 @@ func (kc *KeyCreate) defaults() error {
 		v := key.DefaultCreatedAt()
 		kc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := kc.mutation.UpdatedAt(); !ok {
-		if key.DefaultUpdatedAt == nil {
-			return fmt.Errorf("ent: uninitialized key.DefaultUpdatedAt (forgotten import ent/runtime?)")
-		}
-		v := key.DefaultUpdatedAt()
-		kc.mutation.SetUpdatedAt(v)
-	}
 	return nil
 }
 
@@ -187,9 +172,6 @@ func (kc *KeyCreate) defaults() error {
 func (kc *KeyCreate) check() error {
 	if _, ok := kc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Key.created_at"`)}
-	}
-	if _, ok := kc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Key.updated_at"`)}
 	}
 	if _, ok := kc.mutation.MemberID(); !ok {
 		return &ValidationError{Name: "member_id", err: errors.New(`ent: missing required field "Key.member_id"`)}
@@ -199,6 +181,9 @@ func (kc *KeyCreate) check() error {
 	}
 	if _, ok := kc.mutation.Keys(); !ok {
 		return &ValidationError{Name: "keys", err: errors.New(`ent: missing required field "Key.keys"`)}
+	}
+	if _, ok := kc.mutation.LastNode(); !ok {
+		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "Key.last_node"`)}
 	}
 	if v, ok := kc.mutation.ID(); ok {
 		if err := key.IDValidator(v); err != nil {
@@ -256,14 +241,6 @@ func (kc *KeyCreate) createSpec() (*Key, *sqlgraph.CreateSpec) {
 		})
 		_node.CreatedAt = value
 	}
-	if value, ok := kc.mutation.UpdatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: key.FieldUpdatedAt,
-		})
-		_node.UpdatedAt = value
-	}
 	if value, ok := kc.mutation.Keys(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -271,6 +248,14 @@ func (kc *KeyCreate) createSpec() (*Key, *sqlgraph.CreateSpec) {
 			Column: key.FieldKeys,
 		})
 		_node.Keys = value
+	}
+	if value, ok := kc.mutation.LastNode(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: key.FieldLastNode,
+		})
+		_node.LastNode = value
 	}
 	if nodes := kc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -364,30 +349,6 @@ type (
 	}
 )
 
-// SetCreatedAt sets the "created_at" field.
-func (u *KeyUpsert) SetCreatedAt(v time.Time) *KeyUpsert {
-	u.Set(key.FieldCreatedAt, v)
-	return u
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *KeyUpsert) UpdateCreatedAt() *KeyUpsert {
-	u.SetExcluded(key.FieldCreatedAt)
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *KeyUpsert) SetUpdatedAt(v time.Time) *KeyUpsert {
-	u.Set(key.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *KeyUpsert) UpdateUpdatedAt() *KeyUpsert {
-	u.SetExcluded(key.FieldUpdatedAt)
-	return u
-}
-
 // SetMemberID sets the "member_id" field.
 func (u *KeyUpsert) SetMemberID(v string) *KeyUpsert {
 	u.Set(key.FieldMemberID, v)
@@ -421,6 +382,24 @@ func (u *KeyUpsert) SetKeys(v string) *KeyUpsert {
 // UpdateKeys sets the "keys" field to the value that was provided on create.
 func (u *KeyUpsert) UpdateKeys() *KeyUpsert {
 	u.SetExcluded(key.FieldKeys)
+	return u
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *KeyUpsert) SetLastNode(v int64) *KeyUpsert {
+	u.Set(key.FieldLastNode, v)
+	return u
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *KeyUpsert) UpdateLastNode() *KeyUpsert {
+	u.SetExcluded(key.FieldLastNode)
+	return u
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *KeyUpsert) AddLastNode(v int64) *KeyUpsert {
+	u.Add(key.FieldLastNode, v)
 	return u
 }
 
@@ -475,34 +454,6 @@ func (u *KeyUpsertOne) Update(set func(*KeyUpsert)) *KeyUpsertOne {
 	return u
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (u *KeyUpsertOne) SetCreatedAt(v time.Time) *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *KeyUpsertOne) UpdateCreatedAt() *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *KeyUpsertOne) SetUpdatedAt(v time.Time) *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *KeyUpsertOne) UpdateUpdatedAt() *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateUpdatedAt()
-	})
-}
-
 // SetMemberID sets the "member_id" field.
 func (u *KeyUpsertOne) SetMemberID(v string) *KeyUpsertOne {
 	return u.Update(func(s *KeyUpsert) {
@@ -542,6 +493,27 @@ func (u *KeyUpsertOne) SetKeys(v string) *KeyUpsertOne {
 func (u *KeyUpsertOne) UpdateKeys() *KeyUpsertOne {
 	return u.Update(func(s *KeyUpsert) {
 		s.UpdateKeys()
+	})
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *KeyUpsertOne) SetLastNode(v int64) *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.SetLastNode(v)
+	})
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *KeyUpsertOne) AddLastNode(v int64) *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.AddLastNode(v)
+	})
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *KeyUpsertOne) UpdateLastNode() *KeyUpsertOne {
+	return u.Update(func(s *KeyUpsert) {
+		s.UpdateLastNode()
 	})
 }
 
@@ -723,7 +695,6 @@ func (u *KeyUpsertBulk) UpdateNewValues() *KeyUpsertBulk {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(key.FieldID)
-				return
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(key.FieldCreatedAt)
@@ -758,34 +729,6 @@ func (u *KeyUpsertBulk) Update(set func(*KeyUpsert)) *KeyUpsertBulk {
 		set(&KeyUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *KeyUpsertBulk) SetCreatedAt(v time.Time) *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *KeyUpsertBulk) UpdateCreatedAt() *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *KeyUpsertBulk) SetUpdatedAt(v time.Time) *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *KeyUpsertBulk) UpdateUpdatedAt() *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateUpdatedAt()
-	})
 }
 
 // SetMemberID sets the "member_id" field.
@@ -827,6 +770,27 @@ func (u *KeyUpsertBulk) SetKeys(v string) *KeyUpsertBulk {
 func (u *KeyUpsertBulk) UpdateKeys() *KeyUpsertBulk {
 	return u.Update(func(s *KeyUpsert) {
 		s.UpdateKeys()
+	})
+}
+
+// SetLastNode sets the "last_node" field.
+func (u *KeyUpsertBulk) SetLastNode(v int64) *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.SetLastNode(v)
+	})
+}
+
+// AddLastNode adds v to the "last_node" field.
+func (u *KeyUpsertBulk) AddLastNode(v int64) *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.AddLastNode(v)
+	})
+}
+
+// UpdateLastNode sets the "last_node" field to the value that was provided on create.
+func (u *KeyUpsertBulk) UpdateLastNode() *KeyUpsertBulk {
+	return u.Update(func(s *KeyUpsert) {
+		s.UpdateLastNode()
 	})
 }
 
