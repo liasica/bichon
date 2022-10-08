@@ -130,7 +130,7 @@ func (h *hub) disconnect(c gnet.Conn) (id int64) {
 
 func CreateHub() {
     Hub = &hub{
-        addr: fmt.Sprintf(":%d", g.Config.App.Distribution.Port),
+        addr: fmt.Sprintf("tcp4://0.0.0.0:%d", g.Config.App.Distribution.Port),
     }
 
     go Hub.run()
@@ -139,9 +139,22 @@ func CreateHub() {
     go Hub.watchNodes()
 }
 
+func (h *hub) stop() {
+    log.Info("[D] stopping distribution server")
+    h.clients.Range(func(_, v any) bool {
+        if v != nil {
+            _ = v.(gnet.Conn).Close()
+        }
+        return true
+    })
+
+    _ = gnet.Stop(context.Background(), h.addr)
+}
+
 func (h *hub) run() {
-    addr := fmt.Sprintf("tcp://%s", h.addr)
-    log.Fatal(gnet.Run(h, addr, gnet.WithMulticore(true)))
+    defer h.stop()
+
+    log.Fatal(gnet.Run(h, h.addr, gnet.WithMulticore(true)))
 }
 
 func (h *hub) signal() {
@@ -150,7 +163,7 @@ func (h *hub) signal() {
     for s := range c {
         switch s {
         case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, os.Kill, os.Interrupt, syscall.SIGKILL:
-            _ = gnet.Stop(context.Background(), fmt.Sprintf("tcp://%s", h.addr))
+            h.stop()
         }
     }
 }
