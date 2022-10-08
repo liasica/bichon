@@ -239,8 +239,11 @@ func (s *messageService) Read(mem *ent.Member, req *model.MessageReadReq) error 
 
 // UpdateRead update read message attributes
 func (s *messageService) UpdateRead(id, memID, groupID string, createdAt time.Time) error {
-    return ent.Database.GroupMember.Update().
-        Where(groupmember.GroupID(groupID), groupmember.MemberID(memID)).
+    gm, err := NewGroupMember().Query(memID, groupID)
+    if err != nil {
+        return err
+    }
+    return gm.Update().
         SetLastNode(g.NodeID()).
         SetReadTime(createdAt).
         SetReadID(id).
@@ -257,10 +260,12 @@ func (s *messageService) UnreadList(memberID string) (items map[string]model.Mes
     }
     _ = s.orm.Query().Modify(func(sel *sql.Selector) {
         t := sql.Table(groupmember.Table)
-        sel.LeftJoin(t).On(t.C(groupmember.FieldGroupID), sel.C(message.FieldGroupID)).
+        sel.LeftJoin(t).
+            On(t.C(groupmember.FieldGroupID), sel.C(message.FieldGroupID)).
             Where(
                 sql.And(
                     sql.EQ(sel.C(message.FieldMemberID), memberID),
+                    sql.EQ(t.C(groupmember.FieldMemberID), memberID),
                     sql.Or(
                         sql.ColumnsGT(sel.C(message.FieldCreatedAt), t.C(groupmember.FieldReadTime)),
                         sql.IsNull(t.C(groupmember.FieldReadTime)),
