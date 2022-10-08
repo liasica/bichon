@@ -48,19 +48,6 @@ func (ku *KeyUpdate) SetKeys(s string) *KeyUpdate {
 	return ku
 }
 
-// SetLastNode sets the "last_node" field.
-func (ku *KeyUpdate) SetLastNode(i int64) *KeyUpdate {
-	ku.mutation.ResetLastNode()
-	ku.mutation.SetLastNode(i)
-	return ku
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (ku *KeyUpdate) AddLastNode(i int64) *KeyUpdate {
-	ku.mutation.AddLastNode(i)
-	return ku
-}
-
 // SetMember sets the "member" edge to the Member entity.
 func (ku *KeyUpdate) SetMember(m *Member) *KeyUpdate {
 	return ku.SetMemberID(m.ID)
@@ -190,20 +177,6 @@ func (ku *KeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: key.FieldKeys,
 		})
 	}
-	if value, ok := ku.mutation.LastNode(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: key.FieldLastNode,
-		})
-	}
-	if value, ok := ku.mutation.AddedLastNode(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: key.FieldLastNode,
-		})
-	}
 	if ku.mutation.MemberCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -310,19 +283,6 @@ func (kuo *KeyUpdateOne) SetGroupID(s string) *KeyUpdateOne {
 // SetKeys sets the "keys" field.
 func (kuo *KeyUpdateOne) SetKeys(s string) *KeyUpdateOne {
 	kuo.mutation.SetKeys(s)
-	return kuo
-}
-
-// SetLastNode sets the "last_node" field.
-func (kuo *KeyUpdateOne) SetLastNode(i int64) *KeyUpdateOne {
-	kuo.mutation.ResetLastNode()
-	kuo.mutation.SetLastNode(i)
-	return kuo
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (kuo *KeyUpdateOne) AddLastNode(i int64) *KeyUpdateOne {
-	kuo.mutation.AddLastNode(i)
 	return kuo
 }
 
@@ -483,20 +443,6 @@ func (kuo *KeyUpdateOne) sqlSave(ctx context.Context) (_node *Key, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: key.FieldKeys,
-		})
-	}
-	if value, ok := kuo.mutation.LastNode(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: key.FieldLastNode,
-		})
-	}
-	if value, ok := kuo.mutation.AddedLastNode(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: key.FieldLastNode,
 		})
 	}
 	if kuo.mutation.MemberCleared() {

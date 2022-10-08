@@ -130,19 +130,6 @@ func (gmu *GroupMemberUpdate) ClearReadTime() *GroupMemberUpdate {
 	return gmu
 }
 
-// SetLastNode sets the "last_node" field.
-func (gmu *GroupMemberUpdate) SetLastNode(i int64) *GroupMemberUpdate {
-	gmu.mutation.ResetLastNode()
-	gmu.mutation.SetLastNode(i)
-	return gmu
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (gmu *GroupMemberUpdate) AddLastNode(i int64) *GroupMemberUpdate {
-	gmu.mutation.AddLastNode(i)
-	return gmu
-}
-
 // SetMember sets the "member" edge to the Member entity.
 func (gmu *GroupMemberUpdate) SetMember(m *Member) *GroupMemberUpdate {
 	return gmu.SetMemberID(m.ID)
@@ -321,20 +308,6 @@ func (gmu *GroupMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: groupmember.FieldReadTime,
-		})
-	}
-	if value, ok := gmu.mutation.LastNode(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: groupmember.FieldLastNode,
-		})
-	}
-	if value, ok := gmu.mutation.AddedLastNode(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: groupmember.FieldLastNode,
 		})
 	}
 	if gmu.mutation.MemberCleared() {
@@ -561,19 +534,6 @@ func (gmuo *GroupMemberUpdateOne) ClearReadTime() *GroupMemberUpdateOne {
 	return gmuo
 }
 
-// SetLastNode sets the "last_node" field.
-func (gmuo *GroupMemberUpdateOne) SetLastNode(i int64) *GroupMemberUpdateOne {
-	gmuo.mutation.ResetLastNode()
-	gmuo.mutation.SetLastNode(i)
-	return gmuo
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (gmuo *GroupMemberUpdateOne) AddLastNode(i int64) *GroupMemberUpdateOne {
-	gmuo.mutation.AddLastNode(i)
-	return gmuo
-}
-
 // SetMember sets the "member" edge to the Member entity.
 func (gmuo *GroupMemberUpdateOne) SetMember(m *Member) *GroupMemberUpdateOne {
 	return gmuo.SetMemberID(m.ID)
@@ -782,20 +742,6 @@ func (gmuo *GroupMemberUpdateOne) sqlSave(ctx context.Context) (_node *GroupMemb
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: groupmember.FieldReadTime,
-		})
-	}
-	if value, ok := gmuo.mutation.LastNode(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: groupmember.FieldLastNode,
-		})
-	}
-	if value, ok := gmuo.mutation.AddedLastNode(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: groupmember.FieldLastNode,
 		})
 	}
 	if gmuo.mutation.MemberCleared() {

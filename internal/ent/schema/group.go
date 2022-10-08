@@ -65,7 +65,6 @@ func (Group) Fields() []ent.Field {
         field.String("address").Immutable().Unique(),
         field.String("intro").Optional(),
         field.Text("keys").Comment("group's ethereum keys"),
-        field.Int64("last_node"),
     }
 }
 

@@ -33,8 +33,6 @@ const (
 	FieldIntro = "intro"
 	// FieldKeys holds the string denoting the keys field in the database.
 	FieldKeys = "keys"
-	// FieldLastNode holds the string denoting the last_node field in the database.
-	FieldLastNode = "last_node"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeMessages holds the string denoting the messages edge name in mutations.
@@ -86,7 +84,6 @@ var Columns = []string{
 	FieldAddress,
 	FieldIntro,
 	FieldKeys,
-	FieldLastNode,
 }
 
 var (

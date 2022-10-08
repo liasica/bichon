@@ -120,12 +120,6 @@ func (gmc *GroupMemberCreate) SetNillableReadTime(t *time.Time) *GroupMemberCrea
 	return gmc
 }
 
-// SetLastNode sets the "last_node" field.
-func (gmc *GroupMemberCreate) SetLastNode(i int64) *GroupMemberCreate {
-	gmc.mutation.SetLastNode(i)
-	return gmc
-}
-
 // SetID sets the "id" field.
 func (gmc *GroupMemberCreate) SetID(s string) *GroupMemberCreate {
 	gmc.mutation.SetID(s)
@@ -260,9 +254,6 @@ func (gmc *GroupMemberCreate) check() error {
 	if _, ok := gmc.mutation.InviteExpire(); !ok {
 		return &ValidationError{Name: "invite_expire", err: errors.New(`ent: missing required field "GroupMember.invite_expire"`)}
 	}
-	if _, ok := gmc.mutation.LastNode(); !ok {
-		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "GroupMember.last_node"`)}
-	}
 	if v, ok := gmc.mutation.ID(); ok {
 		if err := groupmember.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "GroupMember.id": %w`, err)}
@@ -358,14 +349,6 @@ func (gmc *GroupMemberCreate) createSpec() (*GroupMember, *sqlgraph.CreateSpec) 
 			Column: groupmember.FieldReadTime,
 		})
 		_node.ReadTime = &value
-	}
-	if value, ok := gmc.mutation.LastNode(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: groupmember.FieldLastNode,
-		})
-		_node.LastNode = value
 	}
 	if nodes := gmc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -593,24 +576,6 @@ func (u *GroupMemberUpsert) ClearReadTime() *GroupMemberUpsert {
 	return u
 }
 
-// SetLastNode sets the "last_node" field.
-func (u *GroupMemberUpsert) SetLastNode(v int64) *GroupMemberUpsert {
-	u.Set(groupmember.FieldLastNode, v)
-	return u
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *GroupMemberUpsert) UpdateLastNode() *GroupMemberUpsert {
-	u.SetExcluded(groupmember.FieldLastNode)
-	return u
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *GroupMemberUpsert) AddLastNode(v int64) *GroupMemberUpsert {
-	u.Add(groupmember.FieldLastNode, v)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -792,27 +757,6 @@ func (u *GroupMemberUpsertOne) UpdateReadTime() *GroupMemberUpsertOne {
 func (u *GroupMemberUpsertOne) ClearReadTime() *GroupMemberUpsertOne {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.ClearReadTime()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *GroupMemberUpsertOne) SetLastNode(v int64) *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *GroupMemberUpsertOne) AddLastNode(v int64) *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *GroupMemberUpsertOne) UpdateLastNode() *GroupMemberUpsertOne {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateLastNode()
 	})
 }
 
@@ -1160,27 +1104,6 @@ func (u *GroupMemberUpsertBulk) UpdateReadTime() *GroupMemberUpsertBulk {
 func (u *GroupMemberUpsertBulk) ClearReadTime() *GroupMemberUpsertBulk {
 	return u.Update(func(s *GroupMemberUpsert) {
 		s.ClearReadTime()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *GroupMemberUpsertBulk) SetLastNode(v int64) *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *GroupMemberUpsertBulk) AddLastNode(v int64) *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *GroupMemberUpsertBulk) UpdateLastNode() *GroupMemberUpsertBulk {
-	return u.Update(func(s *GroupMemberUpsert) {
-		s.UpdateLastNode()
 	})
 }
 

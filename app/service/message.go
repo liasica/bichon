@@ -10,7 +10,6 @@ import (
     "github.com/chatpuppy/puppychat/internal/ent/member"
     "github.com/chatpuppy/puppychat/internal/ent/message"
     "github.com/chatpuppy/puppychat/internal/g"
-    "github.com/chatpuppy/puppychat/pkg/tea"
     "github.com/liasica/go-encryption/aes"
     "github.com/liasica/go-encryption/rsa"
     "time"
@@ -104,7 +103,6 @@ func (s *messageService) Create(mem *ent.Member, req *model.MessageCreateReq) (r
     // save message
     var m *ent.Message
     m, err = s.orm.Create().
-        SetLastNode(g.NodeID()).
         SetGroupID(req.GroupID).
         SetMemberID(req.MemberID).
         SetContent(b).
@@ -244,7 +242,6 @@ func (s *messageService) UpdateRead(id, memID, groupID string, createdAt time.Ti
         return err
     }
     return gm.Update().
-        SetLastNode(g.NodeID()).
         SetReadTime(createdAt).
         SetReadID(id).
         Exec(s.ctx)
@@ -304,19 +301,19 @@ func (s *messageService) AutoRead(msg *model.Message) {
     _ = s.UpdateRead(msg.ID, msg.Member.ID, msg.GroupID, msg.CreatedAt)
 }
 
-func (s *messageService) SaveSyncData(b []byte, op ent.Op) (err error) {
+func (s *messageService) SaveSyncData(ctx context.Context, b []byte, op ent.Op) (err error) {
     var id string
     var decrypted []byte
-    err = ent.SaveMessageSyncData(b, op, func(data *ent.MessageSync) {
-        id = *data.ID
+    err = ent.SaveMessageSyncData(ctx, b, op, func(data *ent.MessageSync) {
+        id = data.ID
         if data.Content != nil {
-            decrypted = *data.Content
+            decrypted = data.Content
             var content []byte
-            content, err = rsa.EncryptUsePublicKey(*data.Content, g.RsaPublicKey())
+            content, err = rsa.EncryptUsePublicKey(data.Content, g.RsaPublicKey())
             if err != nil {
                 return
             }
-            data.Content = tea.Pointer(content)
+            data.Content = content
         }
     })
     if err != nil {

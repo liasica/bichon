@@ -37,8 +37,6 @@ type GroupMember struct {
 	ReadID *string `json:"read_id,omitempty"`
 	// last read message time
 	ReadTime *time.Time `json:"read_time,omitempty"`
-	// LastNode holds the value of the "last_node" field.
-	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GroupMemberQuery when eager-loading is set.
 	Edges GroupMemberEdges `json:"edges"`
@@ -103,8 +101,6 @@ func (*GroupMember) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case groupmember.FieldPermission:
 			values[i] = new(model.GroupMemberPerm)
-		case groupmember.FieldLastNode:
-			values[i] = new(sql.NullInt64)
 		case groupmember.FieldID, groupmember.FieldMemberID, groupmember.FieldGroupID, groupmember.FieldInviterID, groupmember.FieldInviteCode, groupmember.FieldReadID:
 			values[i] = new(sql.NullString)
 		case groupmember.FieldCreatedAt, groupmember.FieldInviteExpire, groupmember.FieldReadTime:
@@ -187,12 +183,6 @@ func (gm *GroupMember) assignValues(columns []string, values []any) error {
 				gm.ReadTime = new(time.Time)
 				*gm.ReadTime = value.Time
 			}
-		case groupmember.FieldLastNode:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field last_node", values[i])
-			} else if value.Valid {
-				gm.LastNode = value.Int64
-			}
 		}
 	}
 	return nil
@@ -268,9 +258,6 @@ func (gm *GroupMember) String() string {
 		builder.WriteString("read_time=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("last_node=")
-	builder.WriteString(fmt.Sprintf("%v", gm.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

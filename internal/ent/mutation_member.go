@@ -29,8 +29,6 @@ type MemberMutation struct {
 	public_key           *string
 	nonce                *string
 	show_nickname        *bool
-	last_node            *int64
-	addlast_node         *int64
 	clearedFields        map[string]struct{}
 	own_groups           map[string]struct{}
 	removedown_groups    map[string]struct{}
@@ -493,62 +491,6 @@ func (m *MemberMutation) ResetShowNickname() {
 	m.show_nickname = nil
 }
 
-// SetLastNode sets the "last_node" field.
-func (m *MemberMutation) SetLastNode(i int64) {
-	m.last_node = &i
-	m.addlast_node = nil
-}
-
-// LastNode returns the value of the "last_node" field in the mutation.
-func (m *MemberMutation) LastNode() (r int64, exists bool) {
-	v := m.last_node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLastNode returns the old "last_node" field's value of the Member entity.
-// If the Member object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MemberMutation) OldLastNode(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastNode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastNode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastNode: %w", err)
-	}
-	return oldValue.LastNode, nil
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (m *MemberMutation) AddLastNode(i int64) {
-	if m.addlast_node != nil {
-		*m.addlast_node += i
-	} else {
-		m.addlast_node = &i
-	}
-}
-
-// AddedLastNode returns the value that was added to the "last_node" field in this mutation.
-func (m *MemberMutation) AddedLastNode() (r int64, exists bool) {
-	v := m.addlast_node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetLastNode resets all changes to the "last_node" field.
-func (m *MemberMutation) ResetLastNode() {
-	m.last_node = nil
-	m.addlast_node = nil
-}
-
 // AddOwnGroupIDs adds the "own_groups" edge to the Group entity by ids.
 func (m *MemberMutation) AddOwnGroupIDs(ids ...string) {
 	if m.own_groups == nil {
@@ -784,7 +726,7 @@ func (m *MemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemberMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, member.FieldCreatedAt)
 	}
@@ -808,9 +750,6 @@ func (m *MemberMutation) Fields() []string {
 	}
 	if m.show_nickname != nil {
 		fields = append(fields, member.FieldShowNickname)
-	}
-	if m.last_node != nil {
-		fields = append(fields, member.FieldLastNode)
 	}
 	return fields
 }
@@ -836,8 +775,6 @@ func (m *MemberMutation) Field(name string) (ent.Value, bool) {
 		return m.Nonce()
 	case member.FieldShowNickname:
 		return m.ShowNickname()
-	case member.FieldLastNode:
-		return m.LastNode()
 	}
 	return nil, false
 }
@@ -863,8 +800,6 @@ func (m *MemberMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldNonce(ctx)
 	case member.FieldShowNickname:
 		return m.OldShowNickname(ctx)
-	case member.FieldLastNode:
-		return m.OldLastNode(ctx)
 	}
 	return nil, fmt.Errorf("unknown Member field %s", name)
 }
@@ -930,13 +865,6 @@ func (m *MemberMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetShowNickname(v)
 		return nil
-	case member.FieldLastNode:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLastNode(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Member field %s", name)
 }
@@ -944,21 +872,13 @@ func (m *MemberMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *MemberMutation) AddedFields() []string {
-	var fields []string
-	if m.addlast_node != nil {
-		fields = append(fields, member.FieldLastNode)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *MemberMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case member.FieldLastNode:
-		return m.AddedLastNode()
-	}
 	return nil, false
 }
 
@@ -967,13 +887,6 @@ func (m *MemberMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *MemberMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case member.FieldLastNode:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddLastNode(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Member numeric field %s", name)
 }
@@ -1051,9 +964,6 @@ func (m *MemberMutation) ResetField(name string) error {
 		return nil
 	case member.FieldShowNickname:
 		m.ResetShowNickname()
-		return nil
-	case member.FieldLastNode:
-		m.ResetLastNode()
 		return nil
 	}
 	return fmt.Errorf("unknown Member field %s", name)

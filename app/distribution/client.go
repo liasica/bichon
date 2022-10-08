@@ -116,7 +116,8 @@ func (c *client) readBump() {
 }
 
 func (c *client) readResponse(b []byte) {
-    fmt.Println("readResponse", string(b))
+    // TODO DELETE DEBUG LOG
+    log.Infof("readResponse: %s", string(b))
     var res model.SyncResponse
     err := jsoniter.Unmarshal(b, &res)
     if err != nil {
@@ -142,7 +143,7 @@ func (c *client) readResponse(b []byte) {
 
     // saving sync data
     if res.Data.Value != nil {
-        service.NewSync().SaveSyncData(res.Data, g.RsaPrivateKey())
+        service.NewSync().SaveSyncData(res.Data, g.RsaPrivateKey(), true)
     }
 
     // updating index

@@ -23,8 +23,6 @@ type KeyMutation struct {
 	id            *string
 	created_at    *time.Time
 	keys          *string
-	last_node     *int64
-	addlast_node  *int64
 	clearedFields map[string]struct{}
 	member        *string
 	clearedmember bool
@@ -283,62 +281,6 @@ func (m *KeyMutation) ResetKeys() {
 	m.keys = nil
 }
 
-// SetLastNode sets the "last_node" field.
-func (m *KeyMutation) SetLastNode(i int64) {
-	m.last_node = &i
-	m.addlast_node = nil
-}
-
-// LastNode returns the value of the "last_node" field in the mutation.
-func (m *KeyMutation) LastNode() (r int64, exists bool) {
-	v := m.last_node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLastNode returns the old "last_node" field's value of the Key entity.
-// If the Key object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *KeyMutation) OldLastNode(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastNode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastNode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastNode: %w", err)
-	}
-	return oldValue.LastNode, nil
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (m *KeyMutation) AddLastNode(i int64) {
-	if m.addlast_node != nil {
-		*m.addlast_node += i
-	} else {
-		m.addlast_node = &i
-	}
-}
-
-// AddedLastNode returns the value that was added to the "last_node" field in this mutation.
-func (m *KeyMutation) AddedLastNode() (r int64, exists bool) {
-	v := m.addlast_node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetLastNode resets all changes to the "last_node" field.
-func (m *KeyMutation) ResetLastNode() {
-	m.last_node = nil
-	m.addlast_node = nil
-}
-
 // ClearMember clears the "member" edge to the Member entity.
 func (m *KeyMutation) ClearMember() {
 	m.clearedmember = true
@@ -410,7 +352,7 @@ func (m *KeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *KeyMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 4)
 	if m.created_at != nil {
 		fields = append(fields, key.FieldCreatedAt)
 	}
@@ -422,9 +364,6 @@ func (m *KeyMutation) Fields() []string {
 	}
 	if m.keys != nil {
 		fields = append(fields, key.FieldKeys)
-	}
-	if m.last_node != nil {
-		fields = append(fields, key.FieldLastNode)
 	}
 	return fields
 }
@@ -442,8 +381,6 @@ func (m *KeyMutation) Field(name string) (ent.Value, bool) {
 		return m.GroupID()
 	case key.FieldKeys:
 		return m.Keys()
-	case key.FieldLastNode:
-		return m.LastNode()
 	}
 	return nil, false
 }
@@ -461,8 +398,6 @@ func (m *KeyMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldGroupID(ctx)
 	case key.FieldKeys:
 		return m.OldKeys(ctx)
-	case key.FieldLastNode:
-		return m.OldLastNode(ctx)
 	}
 	return nil, fmt.Errorf("unknown Key field %s", name)
 }
@@ -500,13 +435,6 @@ func (m *KeyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetKeys(v)
 		return nil
-	case key.FieldLastNode:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLastNode(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Key field %s", name)
 }
@@ -514,21 +442,13 @@ func (m *KeyMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *KeyMutation) AddedFields() []string {
-	var fields []string
-	if m.addlast_node != nil {
-		fields = append(fields, key.FieldLastNode)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *KeyMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case key.FieldLastNode:
-		return m.AddedLastNode()
-	}
 	return nil, false
 }
 
@@ -537,13 +457,6 @@ func (m *KeyMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *KeyMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case key.FieldLastNode:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddLastNode(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Key numeric field %s", name)
 }
@@ -582,9 +495,6 @@ func (m *KeyMutation) ResetField(name string) error {
 		return nil
 	case key.FieldKeys:
 		m.ResetKeys()
-		return nil
-	case key.FieldLastNode:
-		m.ResetLastNode()
 		return nil
 	}
 	return fmt.Errorf("unknown Key field %s", name)

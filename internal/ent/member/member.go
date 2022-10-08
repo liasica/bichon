@@ -29,8 +29,6 @@ const (
 	FieldNonce = "nonce"
 	// FieldShowNickname holds the string denoting the show_nickname field in the database.
 	FieldShowNickname = "show_nickname"
-	// FieldLastNode holds the string denoting the last_node field in the database.
-	FieldLastNode = "last_node"
 	// EdgeOwnGroups holds the string denoting the own_groups edge name in mutations.
 	EdgeOwnGroups = "own_groups"
 	// EdgeMessages holds the string denoting the messages edge name in mutations.
@@ -80,7 +78,6 @@ var Columns = []string{
 	FieldPublicKey,
 	FieldNonce,
 	FieldShowNickname,
-	FieldLastNode,
 }
 
 var (

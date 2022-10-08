@@ -18,8 +18,8 @@ func NewGroupMember() *groupMemberService {
     }
 }
 
-func (s *groupMemberService) SaveSyncData(b []byte, op ent.Op) (err error) {
-    return ent.SaveGroupMemberSyncData(b, op, nil)
+func (s *groupMemberService) SaveSyncData(ctx context.Context, b []byte, op ent.Op) (err error) {
+    return ent.SaveGroupMemberSyncData(ctx, b, op, nil)
 }
 
 func (s *groupMemberService) Query(memID, groupID string) (*ent.GroupMember, error) {

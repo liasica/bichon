@@ -24,7 +24,7 @@ func NewSync() *syncService {
     }
 }
 
-func (s *syncService) SaveSyncData(req *model.SyncData, priv *rsa.PrivateKey) {
+func (s *syncService) SaveSyncData(req *model.SyncData, priv *rsa.PrivateKey, doNotDistribute bool) {
     // saving data
     data, err := rsaTools.DecryptUsePrivateKey(req.Value, priv)
     if err != nil {
@@ -32,17 +32,19 @@ func (s *syncService) SaveSyncData(req *model.SyncData, priv *rsa.PrivateKey) {
         return
     }
 
+    ctx := context.WithValue(context.Background(), "doNotDistribute", doNotDistribute)
+
     switch req.Table {
     case group.Table:
-        err = NewGroup().SaveSyncData(data, ent.Op(req.Op))
+        err = NewGroup().SaveSyncData(ctx, data, ent.Op(req.Op))
     case groupmember.Table:
-        err = NewGroupMember().SaveSyncData(data, ent.Op(req.Op))
+        err = NewGroupMember().SaveSyncData(ctx, data, ent.Op(req.Op))
     case key.Table:
-        err = NewKey().SaveSyncData(data, ent.Op(req.Op))
+        err = NewKey().SaveSyncData(ctx, data, ent.Op(req.Op))
     case member.Table:
-        err = NewMember().SaveSyncData(data, ent.Op(req.Op))
+        err = NewMember().SaveSyncData(ctx, data, ent.Op(req.Op))
     case message.Table:
-        err = NewMessage().SaveSyncData(data, ent.Op(req.Op))
+        err = NewMessage().SaveSyncData(ctx, data, ent.Op(req.Op))
     }
     if err != nil {
         log.Errorf("[D] sync %s data failed: %v", req.Table, err)

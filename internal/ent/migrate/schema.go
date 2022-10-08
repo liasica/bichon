@@ -21,7 +21,6 @@ var (
 		{Name: "address", Type: field.TypeString, Unique: true},
 		{Name: "intro", Type: field.TypeString, Nullable: true},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
-		{Name: "last_node", Type: field.TypeInt64},
 		{Name: "owner_id", Type: field.TypeString, Size: 25},
 	}
 	// GroupTable holds the schema information for the "group" table.
@@ -32,7 +31,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "group_member_own_groups",
-				Columns:    []*schema.Column{GroupColumns[11]},
+				Columns:    []*schema.Column{GroupColumns[10]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -56,7 +55,7 @@ var (
 			{
 				Name:    "group_owner_id",
 				Unique:  false,
-				Columns: []*schema.Column{GroupColumns[11]},
+				Columns: []*schema.Column{GroupColumns[10]},
 			},
 		},
 	}
@@ -69,7 +68,6 @@ var (
 		{Name: "invite_expire", Type: field.TypeTime},
 		{Name: "read_id", Type: field.TypeString, Nullable: true},
 		{Name: "read_time", Type: field.TypeTime, Nullable: true},
-		{Name: "last_node", Type: field.TypeInt64},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
 		{Name: "inviter_id", Type: field.TypeString, Nullable: true, Size: 25},
@@ -82,19 +80,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "group_member_member_member",
-				Columns:    []*schema.Column{GroupMemberColumns[8]},
+				Columns:    []*schema.Column{GroupMemberColumns[7]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "group_member_group_group",
-				Columns:    []*schema.Column{GroupMemberColumns[9]},
+				Columns:    []*schema.Column{GroupMemberColumns[8]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "group_member_member_inviter",
-				Columns:    []*schema.Column{GroupMemberColumns[10]},
+				Columns:    []*schema.Column{GroupMemberColumns[9]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -103,7 +101,7 @@ var (
 			{
 				Name:    "groupmember_group_id_member_id",
 				Unique:  true,
-				Columns: []*schema.Column{GroupMemberColumns[9], GroupMemberColumns[8]},
+				Columns: []*schema.Column{GroupMemberColumns[8], GroupMemberColumns[7]},
 			},
 			{
 				Name:    "groupmember_created_at",
@@ -113,12 +111,12 @@ var (
 			{
 				Name:    "groupmember_member_id",
 				Unique:  false,
-				Columns: []*schema.Column{GroupMemberColumns[8]},
+				Columns: []*schema.Column{GroupMemberColumns[7]},
 			},
 			{
 				Name:    "groupmember_group_id",
 				Unique:  false,
-				Columns: []*schema.Column{GroupMemberColumns[9]},
+				Columns: []*schema.Column{GroupMemberColumns[8]},
 			},
 			{
 				Name:    "groupmember_read_id",
@@ -137,7 +135,6 @@ var (
 		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "keys", Type: field.TypeString, Size: 2147483647},
-		{Name: "last_node", Type: field.TypeInt64},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
 	}
@@ -149,13 +146,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "key_member_member",
-				Columns:    []*schema.Column{KeyColumns[4]},
+				Columns:    []*schema.Column{KeyColumns[3]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "key_group_group",
-				Columns:    []*schema.Column{KeyColumns[5]},
+				Columns:    []*schema.Column{KeyColumns[4]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -169,12 +166,12 @@ var (
 			{
 				Name:    "key_member_id",
 				Unique:  false,
-				Columns: []*schema.Column{KeyColumns[4]},
+				Columns: []*schema.Column{KeyColumns[3]},
 			},
 			{
 				Name:    "key_group_id",
 				Unique:  false,
-				Columns: []*schema.Column{KeyColumns[5]},
+				Columns: []*schema.Column{KeyColumns[4]},
 			},
 		},
 	}
@@ -189,7 +186,6 @@ var (
 		{Name: "public_key", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "nonce", Type: field.TypeString},
 		{Name: "show_nickname", Type: field.TypeBool, Default: true},
-		{Name: "last_node", Type: field.TypeInt64},
 	}
 	// MemberTable holds the schema information for the "member" table.
 	MemberTable = &schema.Table{
@@ -215,7 +211,6 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "content", Type: field.TypeBytes},
 		{Name: "owner", Type: field.TypeJSON},
-		{Name: "last_node", Type: field.TypeInt64},
 		{Name: "group_id", Type: field.TypeString, Size: 25},
 		{Name: "member_id", Type: field.TypeString, Size: 25},
 		{Name: "parent_id", Type: field.TypeString, Nullable: true, Size: 25},
@@ -228,19 +223,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "message_group_messages",
-				Columns:    []*schema.Column{MessageColumns[5]},
+				Columns:    []*schema.Column{MessageColumns[4]},
 				RefColumns: []*schema.Column{GroupColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "message_member_messages",
-				Columns:    []*schema.Column{MessageColumns[6]},
+				Columns:    []*schema.Column{MessageColumns[5]},
 				RefColumns: []*schema.Column{MemberColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "message_message_children",
-				Columns:    []*schema.Column{MessageColumns[7]},
+				Columns:    []*schema.Column{MessageColumns[6]},
 				RefColumns: []*schema.Column{MessageColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -254,17 +249,17 @@ var (
 			{
 				Name:    "message_group_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[5]},
+				Columns: []*schema.Column{MessageColumns[4]},
 			},
 			{
 				Name:    "message_member_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[6]},
+				Columns: []*schema.Column{MessageColumns[5]},
 			},
 			{
 				Name:    "message_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessageColumns[7]},
+				Columns: []*schema.Column{MessageColumns[6]},
 			},
 		},
 	}

@@ -122,12 +122,6 @@ func (mc *MemberCreate) SetNillableShowNickname(b *bool) *MemberCreate {
 	return mc
 }
 
-// SetLastNode sets the "last_node" field.
-func (mc *MemberCreate) SetLastNode(i int64) *MemberCreate {
-	mc.mutation.SetLastNode(i)
-	return mc
-}
-
 // SetID sets the "id" field.
 func (mc *MemberCreate) SetID(s string) *MemberCreate {
 	mc.mutation.SetID(s)
@@ -301,9 +295,6 @@ func (mc *MemberCreate) check() error {
 	if _, ok := mc.mutation.ShowNickname(); !ok {
 		return &ValidationError{Name: "show_nickname", err: errors.New(`ent: missing required field "Member.show_nickname"`)}
 	}
-	if _, ok := mc.mutation.LastNode(); !ok {
-		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "Member.last_node"`)}
-	}
 	if v, ok := mc.mutation.ID(); ok {
 		if err := member.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Member.id": %w`, err)}
@@ -409,14 +400,6 @@ func (mc *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Column: member.FieldShowNickname,
 		})
 		_node.ShowNickname = value
-	}
-	if value, ok := mc.mutation.LastNode(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: member.FieldLastNode,
-		})
-		_node.LastNode = value
 	}
 	if nodes := mc.mutation.OwnGroupsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -658,24 +641,6 @@ func (u *MemberUpsert) UpdateShowNickname() *MemberUpsert {
 	return u
 }
 
-// SetLastNode sets the "last_node" field.
-func (u *MemberUpsert) SetLastNode(v int64) *MemberUpsert {
-	u.Set(member.FieldLastNode, v)
-	return u
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *MemberUpsert) UpdateLastNode() *MemberUpsert {
-	u.SetExcluded(member.FieldLastNode)
-	return u
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *MemberUpsert) AddLastNode(v int64) *MemberUpsert {
-	u.Add(member.FieldLastNode, v)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -850,27 +815,6 @@ func (u *MemberUpsertOne) SetShowNickname(v bool) *MemberUpsertOne {
 func (u *MemberUpsertOne) UpdateShowNickname() *MemberUpsertOne {
 	return u.Update(func(s *MemberUpsert) {
 		s.UpdateShowNickname()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *MemberUpsertOne) SetLastNode(v int64) *MemberUpsertOne {
-	return u.Update(func(s *MemberUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *MemberUpsertOne) AddLastNode(v int64) *MemberUpsertOne {
-	return u.Update(func(s *MemberUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *MemberUpsertOne) UpdateLastNode() *MemberUpsertOne {
-	return u.Update(func(s *MemberUpsert) {
-		s.UpdateLastNode()
 	})
 }
 
@@ -1211,27 +1155,6 @@ func (u *MemberUpsertBulk) SetShowNickname(v bool) *MemberUpsertBulk {
 func (u *MemberUpsertBulk) UpdateShowNickname() *MemberUpsertBulk {
 	return u.Update(func(s *MemberUpsert) {
 		s.UpdateShowNickname()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *MemberUpsertBulk) SetLastNode(v int64) *MemberUpsertBulk {
-	return u.Update(func(s *MemberUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *MemberUpsertBulk) AddLastNode(v int64) *MemberUpsertBulk {
-	return u.Update(func(s *MemberUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *MemberUpsertBulk) UpdateLastNode() *MemberUpsertBulk {
-	return u.Update(func(s *MemberUpsert) {
-		s.UpdateLastNode()
 	})
 }
 

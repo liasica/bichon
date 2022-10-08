@@ -62,7 +62,6 @@ func (Member) Fields() []ent.Field {
         field.Text("public_key").Optional(),
         field.String("nonce"),
         field.Bool("show_nickname").Default(true),
-        field.Int64("last_node"),
     }
 }
 

@@ -7,7 +7,6 @@ import (
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/member"
-    "github.com/chatpuppy/puppychat/internal/g"
     "github.com/ethereum/go-ethereum/accounts"
     "github.com/ethereum/go-ethereum/common/hexutil"
     "github.com/ethereum/go-ethereum/crypto"
@@ -68,12 +67,12 @@ func (s *memberService) Nonce(req *model.MemberAddressParam) (res *model.MemberN
     // find member, if not exists, create it
     mem, _ := s.orm.Query().Where(member.Address(address)).First(s.ctx)
     if mem == nil {
-        _, err = s.orm.Create().SetAddress(address).SetNonce(res.Nonce).SetLastNode(g.NodeID()).Save(s.ctx)
+        _, err = s.orm.Create().SetAddress(address).SetNonce(res.Nonce).Save(s.ctx)
         if err != nil {
             return
         }
     } else {
-        _, err = mem.Update().SetNonce(res.Nonce).SetLastNode(g.NodeID()).Save(s.ctx)
+        _, err = mem.Update().SetNonce(res.Nonce).Save(s.ctx)
         if err != nil {
             return
         }
@@ -115,7 +114,7 @@ func (s *memberService) Signin(req *model.MemberSigninReq) (res *model.MemberSig
         return
     }
     // saving member's public key
-    _, _ = mem.Update().SetLastNode(g.NodeID()).SetPublicKey(hexutil.Encode(crypto.FromECDSAPub(pub))).Save(s.ctx)
+    _, _ = mem.Update().SetPublicKey(hexutil.Encode(crypto.FromECDSAPub(pub))).Save(s.ctx)
     res = &model.MemberSigninRes{Token: token, Profile: s.Profile(mem)}
     return
 }
@@ -145,7 +144,7 @@ func (s *memberService) Profile(param any) *model.MemberProfile {
 
 // Update member
 func (s *memberService) Update(mem *ent.Member, req *model.MemberUpdateReq) error {
-    updater := s.orm.UpdateOneID(mem.ID).SetLastNode(g.NodeID())
+    updater := s.orm.UpdateOneID(mem.ID)
     if req.Nickname != "" {
         updater.SetNickname(req.Nickname)
     }
@@ -155,6 +154,6 @@ func (s *memberService) Update(mem *ent.Member, req *model.MemberUpdateReq) erro
     return updater.Exec(s.ctx)
 }
 
-func (s *memberService) SaveSyncData(b []byte, op ent.Op) (err error) {
-    return ent.SaveMemberSyncData(b, op, nil)
+func (s *memberService) SaveSyncData(ctx context.Context, b []byte, op ent.Op) (err error) {
+    return ent.SaveMemberSyncData(ctx, b, op, nil)
 }

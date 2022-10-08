@@ -37,8 +37,6 @@ type Group struct {
 	Intro string `json:"intro,omitempty"`
 	// group's ethereum keys
 	Keys string `json:"keys,omitempty"`
-	// LastNode holds the value of the "last_node" field.
-	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GroupQuery when eager-loading is set.
 	Edges GroupEdges `json:"edges"`
@@ -106,7 +104,7 @@ func (*Group) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case group.FieldPublic:
 			values[i] = new(sql.NullBool)
-		case group.FieldMembersMax, group.FieldMembersCount, group.FieldLastNode:
+		case group.FieldMembersMax, group.FieldMembersCount:
 			values[i] = new(sql.NullInt64)
 		case group.FieldID, group.FieldName, group.FieldCategory, group.FieldOwnerID, group.FieldAddress, group.FieldIntro, group.FieldKeys:
 			values[i] = new(sql.NullString)
@@ -193,12 +191,6 @@ func (gr *Group) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				gr.Keys = value.String
 			}
-		case group.FieldLastNode:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field last_node", values[i])
-			} else if value.Valid {
-				gr.LastNode = value.Int64
-			}
 		}
 	}
 	return nil
@@ -276,9 +268,6 @@ func (gr *Group) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("keys=")
 	builder.WriteString(gr.Keys)
-	builder.WriteString(", ")
-	builder.WriteString("last_node=")
-	builder.WriteString(fmt.Sprintf("%v", gr.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

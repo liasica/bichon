@@ -109,13 +109,6 @@ func Keys(v string) predicate.Key {
 	})
 }
 
-// LastNode applies equality check predicate on the "last_node" field. It's identical to LastNodeEQ.
-func LastNode(v int64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLastNode), v))
-	})
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
@@ -474,70 +467,6 @@ func KeysEqualFold(v string) predicate.Key {
 func KeysContainsFold(v string) predicate.Key {
 	return predicate.Key(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldKeys), v))
-	})
-}
-
-// LastNodeEQ applies the EQ predicate on the "last_node" field.
-func LastNodeEQ(v int64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLastNode), v))
-	})
-}
-
-// LastNodeNEQ applies the NEQ predicate on the "last_node" field.
-func LastNodeNEQ(v int64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldLastNode), v))
-	})
-}
-
-// LastNodeIn applies the In predicate on the "last_node" field.
-func LastNodeIn(vs ...int64) predicate.Key {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldLastNode), v...))
-	})
-}
-
-// LastNodeNotIn applies the NotIn predicate on the "last_node" field.
-func LastNodeNotIn(vs ...int64) predicate.Key {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldLastNode), v...))
-	})
-}
-
-// LastNodeGT applies the GT predicate on the "last_node" field.
-func LastNodeGT(v int64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldLastNode), v))
-	})
-}
-
-// LastNodeGTE applies the GTE predicate on the "last_node" field.
-func LastNodeGTE(v int64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldLastNode), v))
-	})
-}
-
-// LastNodeLT applies the LT predicate on the "last_node" field.
-func LastNodeLT(v int64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldLastNode), v))
-	})
-}
-
-// LastNodeLTE applies the LTE predicate on the "last_node" field.
-func LastNodeLTE(v int64) predicate.Key {
-	return predicate.Key(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldLastNode), v))
 	})
 }
 

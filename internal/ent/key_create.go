@@ -57,12 +57,6 @@ func (kc *KeyCreate) SetKeys(s string) *KeyCreate {
 	return kc
 }
 
-// SetLastNode sets the "last_node" field.
-func (kc *KeyCreate) SetLastNode(i int64) *KeyCreate {
-	kc.mutation.SetLastNode(i)
-	return kc
-}
-
 // SetID sets the "id" field.
 func (kc *KeyCreate) SetID(s string) *KeyCreate {
 	kc.mutation.SetID(s)
@@ -182,9 +176,6 @@ func (kc *KeyCreate) check() error {
 	if _, ok := kc.mutation.Keys(); !ok {
 		return &ValidationError{Name: "keys", err: errors.New(`ent: missing required field "Key.keys"`)}
 	}
-	if _, ok := kc.mutation.LastNode(); !ok {
-		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "Key.last_node"`)}
-	}
 	if v, ok := kc.mutation.ID(); ok {
 		if err := key.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Key.id": %w`, err)}
@@ -248,14 +239,6 @@ func (kc *KeyCreate) createSpec() (*Key, *sqlgraph.CreateSpec) {
 			Column: key.FieldKeys,
 		})
 		_node.Keys = value
-	}
-	if value, ok := kc.mutation.LastNode(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: key.FieldLastNode,
-		})
-		_node.LastNode = value
 	}
 	if nodes := kc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -385,24 +368,6 @@ func (u *KeyUpsert) UpdateKeys() *KeyUpsert {
 	return u
 }
 
-// SetLastNode sets the "last_node" field.
-func (u *KeyUpsert) SetLastNode(v int64) *KeyUpsert {
-	u.Set(key.FieldLastNode, v)
-	return u
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *KeyUpsert) UpdateLastNode() *KeyUpsert {
-	u.SetExcluded(key.FieldLastNode)
-	return u
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *KeyUpsert) AddLastNode(v int64) *KeyUpsert {
-	u.Add(key.FieldLastNode, v)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -493,27 +458,6 @@ func (u *KeyUpsertOne) SetKeys(v string) *KeyUpsertOne {
 func (u *KeyUpsertOne) UpdateKeys() *KeyUpsertOne {
 	return u.Update(func(s *KeyUpsert) {
 		s.UpdateKeys()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *KeyUpsertOne) SetLastNode(v int64) *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *KeyUpsertOne) AddLastNode(v int64) *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *KeyUpsertOne) UpdateLastNode() *KeyUpsertOne {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateLastNode()
 	})
 }
 
@@ -770,27 +714,6 @@ func (u *KeyUpsertBulk) SetKeys(v string) *KeyUpsertBulk {
 func (u *KeyUpsertBulk) UpdateKeys() *KeyUpsertBulk {
 	return u.Update(func(s *KeyUpsert) {
 		s.UpdateKeys()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *KeyUpsertBulk) SetLastNode(v int64) *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *KeyUpsertBulk) AddLastNode(v int64) *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *KeyUpsertBulk) UpdateLastNode() *KeyUpsertBulk {
-	return u.Update(func(s *KeyUpsert) {
-		s.UpdateLastNode()
 	})
 }
 

@@ -78,12 +78,6 @@ func (mc *MessageCreate) SetOwner(m *model.Member) *MessageCreate {
 	return mc
 }
 
-// SetLastNode sets the "last_node" field.
-func (mc *MessageCreate) SetLastNode(i int64) *MessageCreate {
-	mc.mutation.SetLastNode(i)
-	return mc
-}
-
 // SetID sets the "id" field.
 func (mc *MessageCreate) SetID(s string) *MessageCreate {
 	mc.mutation.SetID(s)
@@ -226,9 +220,6 @@ func (mc *MessageCreate) check() error {
 	if _, ok := mc.mutation.Owner(); !ok {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required field "Message.owner"`)}
 	}
-	if _, ok := mc.mutation.LastNode(); !ok {
-		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "Message.last_node"`)}
-	}
 	if v, ok := mc.mutation.ID(); ok {
 		if err := message.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Message.id": %w`, err)}
@@ -300,14 +291,6 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			Column: message.FieldOwner,
 		})
 		_node.Owner = value
-	}
-	if value, ok := mc.mutation.LastNode(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: message.FieldLastNode,
-		})
-		_node.LastNode = value
 	}
 	if nodes := mc.mutation.MemberIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -506,24 +489,6 @@ func (u *MessageUpsert) UpdateOwner() *MessageUpsert {
 	return u
 }
 
-// SetLastNode sets the "last_node" field.
-func (u *MessageUpsert) SetLastNode(v int64) *MessageUpsert {
-	u.Set(message.FieldLastNode, v)
-	return u
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *MessageUpsert) UpdateLastNode() *MessageUpsert {
-	u.SetExcluded(message.FieldLastNode)
-	return u
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *MessageUpsert) AddLastNode(v int64) *MessageUpsert {
-	u.Add(message.FieldLastNode, v)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -649,27 +614,6 @@ func (u *MessageUpsertOne) SetOwner(v *model.Member) *MessageUpsertOne {
 func (u *MessageUpsertOne) UpdateOwner() *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateOwner()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *MessageUpsertOne) SetLastNode(v int64) *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *MessageUpsertOne) AddLastNode(v int64) *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *MessageUpsertOne) UpdateLastNode() *MessageUpsertOne {
-	return u.Update(func(s *MessageUpsert) {
-		s.UpdateLastNode()
 	})
 }
 
@@ -961,27 +905,6 @@ func (u *MessageUpsertBulk) SetOwner(v *model.Member) *MessageUpsertBulk {
 func (u *MessageUpsertBulk) UpdateOwner() *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.UpdateOwner()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *MessageUpsertBulk) SetLastNode(v int64) *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *MessageUpsertBulk) AddLastNode(v int64) *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *MessageUpsertBulk) UpdateLastNode() *MessageUpsertBulk {
-	return u.Update(func(s *MessageUpsert) {
-		s.UpdateLastNode()
 	})
 }
 

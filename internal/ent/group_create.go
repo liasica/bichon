@@ -110,12 +110,6 @@ func (gc *GroupCreate) SetKeys(s string) *GroupCreate {
 	return gc
 }
 
-// SetLastNode sets the "last_node" field.
-func (gc *GroupCreate) SetLastNode(i int64) *GroupCreate {
-	gc.mutation.SetLastNode(i)
-	return gc
-}
-
 // SetID sets the "id" field.
 func (gc *GroupCreate) SetID(s string) *GroupCreate {
 	gc.mutation.SetID(s)
@@ -294,9 +288,6 @@ func (gc *GroupCreate) check() error {
 	if _, ok := gc.mutation.Keys(); !ok {
 		return &ValidationError{Name: "keys", err: errors.New(`ent: missing required field "Group.keys"`)}
 	}
-	if _, ok := gc.mutation.LastNode(); !ok {
-		return &ValidationError{Name: "last_node", err: errors.New(`ent: missing required field "Group.last_node"`)}
-	}
 	if v, ok := gc.mutation.ID(); ok {
 		if err := group.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Group.id": %w`, err)}
@@ -413,14 +404,6 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 			Column: group.FieldKeys,
 		})
 		_node.Keys = value
-	}
-	if value, ok := gc.mutation.LastNode(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: group.FieldLastNode,
-		})
-		_node.LastNode = value
 	}
 	if nodes := gc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -669,24 +652,6 @@ func (u *GroupUpsert) UpdateKeys() *GroupUpsert {
 	return u
 }
 
-// SetLastNode sets the "last_node" field.
-func (u *GroupUpsert) SetLastNode(v int64) *GroupUpsert {
-	u.Set(group.FieldLastNode, v)
-	return u
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *GroupUpsert) UpdateLastNode() *GroupUpsert {
-	u.SetExcluded(group.FieldLastNode)
-	return u
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *GroupUpsert) AddLastNode(v int64) *GroupUpsert {
-	u.Add(group.FieldLastNode, v)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -871,27 +836,6 @@ func (u *GroupUpsertOne) SetKeys(v string) *GroupUpsertOne {
 func (u *GroupUpsertOne) UpdateKeys() *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateKeys()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *GroupUpsertOne) SetLastNode(v int64) *GroupUpsertOne {
-	return u.Update(func(s *GroupUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *GroupUpsertOne) AddLastNode(v int64) *GroupUpsertOne {
-	return u.Update(func(s *GroupUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *GroupUpsertOne) UpdateLastNode() *GroupUpsertOne {
-	return u.Update(func(s *GroupUpsert) {
-		s.UpdateLastNode()
 	})
 }
 
@@ -1242,27 +1186,6 @@ func (u *GroupUpsertBulk) SetKeys(v string) *GroupUpsertBulk {
 func (u *GroupUpsertBulk) UpdateKeys() *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateKeys()
-	})
-}
-
-// SetLastNode sets the "last_node" field.
-func (u *GroupUpsertBulk) SetLastNode(v int64) *GroupUpsertBulk {
-	return u.Update(func(s *GroupUpsert) {
-		s.SetLastNode(v)
-	})
-}
-
-// AddLastNode adds v to the "last_node" field.
-func (u *GroupUpsertBulk) AddLastNode(v int64) *GroupUpsertBulk {
-	return u.Update(func(s *GroupUpsert) {
-		s.AddLastNode(v)
-	})
-}
-
-// UpdateLastNode sets the "last_node" field to the value that was provided on create.
-func (u *GroupUpsertBulk) UpdateLastNode() *GroupUpsertBulk {
-	return u.Update(func(s *GroupUpsert) {
-		s.UpdateLastNode()
 	})
 }
 

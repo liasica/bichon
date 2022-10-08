@@ -56,7 +56,6 @@ func (Key) Annotations() []schema.Annotation {
 func (Key) Fields() []ent.Field {
     return []ent.Field{
         field.Text("keys"),
-        field.Int64("last_node"),
     }
 }
 

@@ -5,13 +5,11 @@ import (
     "entgo.io/ent"
     "entgo.io/ent/entc/integration/ent/hook"
     "github.com/chatpuppy/puppychat/app/model"
-    "github.com/chatpuppy/puppychat/internal/g"
 )
 
 type DistributeMutator interface {
-    Parse(op ent.Op) *model.SyncData
+    Parse() *model.SyncData
     Columns() []string
-    LastNode() (int64, bool)
 }
 
 func DistributeHook() ent.Hook {
@@ -21,10 +19,9 @@ func DistributeHook() ent.Hook {
             if err == nil {
                 m, ok := mutation.(DistributeMutator)
                 if ok {
-                    data := m.Parse(mutation.Op())
-                    lastNode, _ := m.LastNode()
-                    if data != nil && (g.IsDistributionNode() || !g.IsDistributionNodeID(lastNode)) {
-                        data.NodeID, _ = m.LastNode()
+                    data := m.Parse()
+                    nd, _ := ctx.Value("doNotDistribute").(bool)
+                    if data != nil && !nd {
                         model.DistributionBroadcastChan <- data
                     }
                 }

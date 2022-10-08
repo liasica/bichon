@@ -115,19 +115,6 @@ func (gu *GroupUpdate) SetKeys(s string) *GroupUpdate {
 	return gu
 }
 
-// SetLastNode sets the "last_node" field.
-func (gu *GroupUpdate) SetLastNode(i int64) *GroupUpdate {
-	gu.mutation.ResetLastNode()
-	gu.mutation.SetLastNode(i)
-	return gu
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (gu *GroupUpdate) AddLastNode(i int64) *GroupUpdate {
-	gu.mutation.AddLastNode(i)
-	return gu
-}
-
 // SetOwner sets the "owner" edge to the Member entity.
 func (gu *GroupUpdate) SetOwner(m *Member) *GroupUpdate {
 	return gu.SetOwnerID(m.ID)
@@ -411,20 +398,6 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: group.FieldKeys,
-		})
-	}
-	if value, ok := gu.mutation.LastNode(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: group.FieldLastNode,
-		})
-	}
-	if value, ok := gu.mutation.AddedLastNode(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: group.FieldLastNode,
 		})
 	}
 	if gu.mutation.OwnerCleared() {
@@ -741,19 +714,6 @@ func (guo *GroupUpdateOne) SetKeys(s string) *GroupUpdateOne {
 	return guo
 }
 
-// SetLastNode sets the "last_node" field.
-func (guo *GroupUpdateOne) SetLastNode(i int64) *GroupUpdateOne {
-	guo.mutation.ResetLastNode()
-	guo.mutation.SetLastNode(i)
-	return guo
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (guo *GroupUpdateOne) AddLastNode(i int64) *GroupUpdateOne {
-	guo.mutation.AddLastNode(i)
-	return guo
-}
-
 // SetOwner sets the "owner" edge to the Member entity.
 func (guo *GroupUpdateOne) SetOwner(m *Member) *GroupUpdateOne {
 	return guo.SetOwnerID(m.ID)
@@ -1067,20 +1027,6 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 			Type:   field.TypeString,
 			Value:  value,
 			Column: group.FieldKeys,
-		})
-	}
-	if value, ok := guo.mutation.LastNode(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: group.FieldLastNode,
-		})
-	}
-	if value, ok := guo.mutation.AddedLastNode(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: group.FieldLastNode,
 		})
 	}
 	if guo.mutation.OwnerCleared() {

@@ -32,8 +32,6 @@ type Member struct {
 	Nonce string `json:"nonce,omitempty"`
 	// ShowNickname holds the value of the "show_nickname" field.
 	ShowNickname bool `json:"show_nickname,omitempty"`
-	// LastNode holds the value of the "last_node" field.
-	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MemberQuery when eager-loading is set.
 	Edges MemberEdges `json:"edges"`
@@ -97,8 +95,6 @@ func (*Member) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case member.FieldShowNickname:
 			values[i] = new(sql.NullBool)
-		case member.FieldLastNode:
-			values[i] = new(sql.NullInt64)
 		case member.FieldID, member.FieldAddress, member.FieldNickname, member.FieldAvatar, member.FieldIntro, member.FieldPublicKey, member.FieldNonce:
 			values[i] = new(sql.NullString)
 		case member.FieldCreatedAt:
@@ -172,12 +168,6 @@ func (m *Member) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.ShowNickname = value.Bool
 			}
-		case member.FieldLastNode:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field last_node", values[i])
-			} else if value.Valid {
-				m.LastNode = value.Int64
-			}
 		}
 	}
 	return nil
@@ -249,9 +239,6 @@ func (m *Member) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("show_nickname=")
 	builder.WriteString(fmt.Sprintf("%v", m.ShowNickname))
-	builder.WriteString(", ")
-	builder.WriteString("last_node=")
-	builder.WriteString(fmt.Sprintf("%v", m.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

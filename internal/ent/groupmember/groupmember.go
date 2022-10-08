@@ -32,8 +32,6 @@ const (
 	FieldReadID = "read_id"
 	// FieldReadTime holds the string denoting the read_time field in the database.
 	FieldReadTime = "read_time"
-	// FieldLastNode holds the string denoting the last_node field in the database.
-	FieldLastNode = "last_node"
 	// EdgeMember holds the string denoting the member edge name in mutations.
 	EdgeMember = "member"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
@@ -77,7 +75,6 @@ var Columns = []string{
 	FieldInviteExpire,
 	FieldReadID,
 	FieldReadTime,
-	FieldLastNode,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

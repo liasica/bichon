@@ -180,9 +180,6 @@ func (h *hub) broadcast() {
             h.clients.Range(func(key, value any) bool {
                 node := key.(*Node)
                 if c, ok := value.(gnet.Conn); ok && node.Synced {
-                    if data.NodeID == node.NodeID {
-                        data.Value = nil
-                    }
                     go h.sendSyncResToNode(data, node, c, nil, nil)
                 }
                 return true
@@ -209,6 +206,8 @@ func (h *hub) sendSyncResToNode(data *model.SyncData, node *Node, c gnet.Conn, c
 }
 
 func (h *hub) readRequest(c gnet.Conn, b []byte) {
+    // TODO DELETE DEBUG LOG
+    fmt.Printf("[%d] received request: %s", c.Fd(), string(b))
     // getting data
     var req model.SyncRequest
     err := jsoniter.Unmarshal(b, &req)
@@ -225,6 +224,8 @@ func (h *hub) readRequest(c gnet.Conn, b []byte) {
         h.Close(c, err)
         return
     }
+    // TODO DELETE DEBUG LOG
+    log.Infof("[%d] nodeid = %d", c.Fd(), node.NodeID)
 
     // verify nonce signature
     hash := sha256.New()
@@ -252,7 +253,7 @@ func (h *hub) readRequest(c gnet.Conn, b []byte) {
 
     if req.Data != nil {
         // saving sync data
-        go service.NewSync().SaveSyncData(req.Data, node.PrivateKey)
+        go service.NewSync().SaveSyncData(req.Data, node.PrivateKey, false)
     }
 }
 

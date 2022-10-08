@@ -51,11 +51,10 @@ func SyncResError(err error) []byte {
 }
 
 type SyncData struct {
-    Table  string `json:"table"`
-    Value  []byte `json:"value"`
-    Op     uint   `json:"op"`
-    Index  uint64 `json:"index"`
-    NodeID int64  `json:"nodeId"`
+    Table string `json:"table"`
+    Value []byte `json:"value"`
+    Op    uint   `json:"op"`
+    Index uint64 `json:"index"`
 }
 
 func (d *SyncData) MarshalBinary() (data []byte, err error) {

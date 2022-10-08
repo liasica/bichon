@@ -32,8 +32,6 @@ type Message struct {
 	ParentID *string `json:"parent_id,omitempty"`
 	// message's owner
 	Owner *model.Member `json:"owner,omitempty"`
-	// LastNode holds the value of the "last_node" field.
-	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageQuery when eager-loading is set.
 	Edges MessageEdges `json:"edges"`
@@ -109,8 +107,6 @@ func (*Message) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case message.FieldContent, message.FieldOwner:
 			values[i] = new([]byte)
-		case message.FieldLastNode:
-			values[i] = new(sql.NullInt64)
 		case message.FieldID, message.FieldGroupID, message.FieldMemberID, message.FieldParentID:
 			values[i] = new(sql.NullString)
 		case message.FieldCreatedAt:
@@ -174,12 +170,6 @@ func (m *Message) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &m.Owner); err != nil {
 					return fmt.Errorf("unmarshal field owner: %w", err)
 				}
-			}
-		case message.FieldLastNode:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field last_node", values[i])
-			} else if value.Valid {
-				m.LastNode = value.Int64
 			}
 		}
 	}
@@ -248,9 +238,6 @@ func (m *Message) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("owner=")
 	builder.WriteString(fmt.Sprintf("%v", m.Owner))
-	builder.WriteString(", ")
-	builder.WriteString("last_node=")
-	builder.WriteString(fmt.Sprintf("%v", m.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -26,8 +26,6 @@ type Key struct {
 	GroupID string `json:"group_id,omitempty"`
 	// Keys holds the value of the "keys" field.
 	Keys string `json:"keys,omitempty"`
-	// LastNode holds the value of the "last_node" field.
-	LastNode int64 `json:"last_node,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the KeyQuery when eager-loading is set.
 	Edges KeyEdges `json:"edges"`
@@ -75,8 +73,6 @@ func (*Key) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case key.FieldLastNode:
-			values[i] = new(sql.NullInt64)
 		case key.FieldID, key.FieldMemberID, key.FieldGroupID, key.FieldKeys:
 			values[i] = new(sql.NullString)
 		case key.FieldCreatedAt:
@@ -125,12 +121,6 @@ func (k *Key) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field keys", values[i])
 			} else if value.Valid {
 				k.Keys = value.String
-			}
-		case key.FieldLastNode:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field last_node", values[i])
-			} else if value.Valid {
-				k.LastNode = value.Int64
 			}
 		}
 	}
@@ -181,9 +171,6 @@ func (k *Key) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("keys=")
 	builder.WriteString(k.Keys)
-	builder.WriteString(", ")
-	builder.WriteString("last_node=")
-	builder.WriteString(fmt.Sprintf("%v", k.LastNode))
 	builder.WriteByte(')')
 	return builder.String()
 }

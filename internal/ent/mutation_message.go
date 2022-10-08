@@ -25,8 +25,6 @@ type MessageMutation struct {
 	created_at      *time.Time
 	content         *[]byte
 	owner           **model.Member
-	last_node       *int64
-	addlast_node    *int64
 	clearedFields   map[string]struct{}
 	member          *string
 	clearedmember   bool
@@ -375,62 +373,6 @@ func (m *MessageMutation) ResetOwner() {
 	m.owner = nil
 }
 
-// SetLastNode sets the "last_node" field.
-func (m *MessageMutation) SetLastNode(i int64) {
-	m.last_node = &i
-	m.addlast_node = nil
-}
-
-// LastNode returns the value of the "last_node" field in the mutation.
-func (m *MessageMutation) LastNode() (r int64, exists bool) {
-	v := m.last_node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLastNode returns the old "last_node" field's value of the Message entity.
-// If the Message object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageMutation) OldLastNode(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastNode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastNode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastNode: %w", err)
-	}
-	return oldValue.LastNode, nil
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (m *MessageMutation) AddLastNode(i int64) {
-	if m.addlast_node != nil {
-		*m.addlast_node += i
-	} else {
-		m.addlast_node = &i
-	}
-}
-
-// AddedLastNode returns the value that was added to the "last_node" field in this mutation.
-func (m *MessageMutation) AddedLastNode() (r int64, exists bool) {
-	v := m.addlast_node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetLastNode resets all changes to the "last_node" field.
-func (m *MessageMutation) ResetLastNode() {
-	m.last_node = nil
-	m.addlast_node = nil
-}
-
 // ClearMember clears the "member" edge to the Member entity.
 func (m *MessageMutation) ClearMember() {
 	m.clearedmember = true
@@ -582,7 +524,7 @@ func (m *MessageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.created_at != nil {
 		fields = append(fields, message.FieldCreatedAt)
 	}
@@ -600,9 +542,6 @@ func (m *MessageMutation) Fields() []string {
 	}
 	if m.owner != nil {
 		fields = append(fields, message.FieldOwner)
-	}
-	if m.last_node != nil {
-		fields = append(fields, message.FieldLastNode)
 	}
 	return fields
 }
@@ -624,8 +563,6 @@ func (m *MessageMutation) Field(name string) (ent.Value, bool) {
 		return m.ParentID()
 	case message.FieldOwner:
 		return m.Owner()
-	case message.FieldLastNode:
-		return m.LastNode()
 	}
 	return nil, false
 }
@@ -647,8 +584,6 @@ func (m *MessageMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldParentID(ctx)
 	case message.FieldOwner:
 		return m.OldOwner(ctx)
-	case message.FieldLastNode:
-		return m.OldLastNode(ctx)
 	}
 	return nil, fmt.Errorf("unknown Message field %s", name)
 }
@@ -700,13 +635,6 @@ func (m *MessageMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOwner(v)
 		return nil
-	case message.FieldLastNode:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLastNode(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Message field %s", name)
 }
@@ -714,21 +642,13 @@ func (m *MessageMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *MessageMutation) AddedFields() []string {
-	var fields []string
-	if m.addlast_node != nil {
-		fields = append(fields, message.FieldLastNode)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *MessageMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case message.FieldLastNode:
-		return m.AddedLastNode()
-	}
 	return nil, false
 }
 
@@ -737,13 +657,6 @@ func (m *MessageMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *MessageMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case message.FieldLastNode:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddLastNode(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Message numeric field %s", name)
 }
@@ -797,9 +710,6 @@ func (m *MessageMutation) ResetField(name string) error {
 		return nil
 	case message.FieldOwner:
 		m.ResetOwner()
-		return nil
-	case message.FieldLastNode:
-		m.ResetLastNode()
 		return nil
 	}
 	return fmt.Errorf("unknown Message field %s", name)

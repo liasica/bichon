@@ -12,617 +12,430 @@ import (
 	"github.com/chatpuppy/puppychat/internal/ent/key"
 	"github.com/chatpuppy/puppychat/internal/ent/member"
 	"github.com/chatpuppy/puppychat/internal/ent/message"
-	"github.com/chatpuppy/puppychat/pkg/tea"
 	jsoniter "github.com/json-iterator/go"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type GroupSync struct {
-	ID           *string    `json:"id,omitempty"`
-	CreatedAt    *time.Time `json:"created_at,omitempty"`
-	Name         *string    `json:"name,omitempty"`
-	Category     *string    `json:"category,omitempty"`
-	OwnerID      *string    `json:"owner_id,omitempty"`
-	MembersMax   *int       `json:"members_max,omitempty"`
-	MembersCount *int       `json:"members_count,omitempty"`
-	Public       *bool      `json:"public,omitempty"`
-	Address      *string    `json:"address,omitempty"`
-	Intro        *string    `json:"intro,omitempty"`
-	Keys         *string    `json:"keys,omitempty"`
-	LastNode     *int64     `json:"last_node,omitempty"`
+	ID           string    `json:"id,omitempty"`
+	CreatedAt    time.Time `json:"created_at,omitempty"`
+	Name         string    `json:"name,omitempty"`
+	Category     string    `json:"category,omitempty"`
+	OwnerID      string    `json:"owner_id,omitempty"`
+	MembersMax   int       `json:"members_max,omitempty"`
+	MembersCount int       `json:"members_count,omitempty"`
+	Public       bool      `json:"public,omitempty"`
+	Address      string    `json:"address,omitempty"`
+	Intro        string    `json:"intro,omitempty"`
+	Keys         string    `json:"keys,omitempty"`
 }
 
-func (m *GroupMutation) SyncData() *GroupSync {
+func (m *GroupMutation) SyncData() (data *GroupSync) {
 	ctx := context.Background()
-	s := new(GroupSync)
-	changed := false
 
-	for _, name := range m.Fields() {
-		if name == "id" {
-			continue
+	id, ok := m.ID()
+	if !ok {
+		log.Error("get Group sync data failed: id missing")
+		return
+	}
+
+	if m.op.Is(OpDelete | OpDeleteOne) {
+		data = &GroupSync{ID: id}
+	} else {
+		result, err := m.Client().Group.Get(ctx, id)
+		if err != nil {
+			log.Errorf("get Group sync data failed: %v", err)
+			return
 		}
-
-		v, _ := m.Field(name)
-		ov, err := m.OldField(ctx, name)
-
-		if err != nil || ov != v {
-			changed = true
-			switch name {
-			case group.FieldCreatedAt:
-				s.CreatedAt = m.created_at
-			case group.FieldName:
-				s.Name = m.name
-			case group.FieldCategory:
-				s.Category = m.category
-			case group.FieldOwnerID:
-				s.OwnerID = m.owner
-			case group.FieldMembersMax:
-				s.MembersMax = m.members_max
-			case group.FieldMembersCount:
-				s.MembersCount = m.members_count
-			case group.FieldPublic:
-				s.Public = m.public
-			case group.FieldAddress:
-				s.Address = m.address
-			case group.FieldIntro:
-				s.Intro = m.intro
-			case group.FieldKeys:
-				s.Keys = m.keys
-			case group.FieldLastNode:
-				s.LastNode = m.last_node
-			}
+		data = &GroupSync{
+			ID:           id,
+			CreatedAt:    result.CreatedAt,
+			Name:         result.Name,
+			Category:     result.Category,
+			OwnerID:      result.OwnerID,
+			MembersMax:   result.MembersMax,
+			MembersCount: result.MembersCount,
+			Public:       result.Public,
+			Address:      result.Address,
+			Intro:        result.Intro,
+			Keys:         result.Keys,
 		}
 	}
 
-	if changed {
-		id, _ := m.ID()
-		s.ID = tea.String(id)
-		return s
-	}
-	return nil
+	return data
 }
 
 func (m *GroupMutation) SetSyncData(data *GroupSync) {
-	if data.CreatedAt != nil {
-		m.SetField(group.FieldCreatedAt, *data.CreatedAt)
-	}
-	if data.Name != nil {
-		m.SetField(group.FieldName, *data.Name)
-	}
-	if data.Category != nil {
-		m.SetField(group.FieldCategory, *data.Category)
-	}
-	if data.OwnerID != nil {
-		m.SetField(group.FieldOwnerID, *data.OwnerID)
-	}
-	if data.MembersMax != nil {
-		m.SetField(group.FieldMembersMax, *data.MembersMax)
-	}
-	if data.MembersCount != nil {
-		m.SetField(group.FieldMembersCount, *data.MembersCount)
-	}
-	if data.Public != nil {
-		m.SetField(group.FieldPublic, *data.Public)
-	}
-	if data.Address != nil {
-		m.SetField(group.FieldAddress, *data.Address)
-	}
-	if data.Intro != nil {
-		m.SetField(group.FieldIntro, *data.Intro)
-	}
-	if data.Keys != nil {
-		m.SetField(group.FieldKeys, *data.Keys)
-	}
-	if data.LastNode != nil {
-		m.SetField(group.FieldLastNode, *data.LastNode)
-	}
+	m.SetField(group.FieldCreatedAt, data.CreatedAt)
+	m.SetField(group.FieldName, data.Name)
+	m.SetField(group.FieldCategory, data.Category)
+	m.SetField(group.FieldOwnerID, data.OwnerID)
+	m.SetField(group.FieldMembersMax, data.MembersMax)
+	m.SetField(group.FieldMembersCount, data.MembersCount)
+	m.SetField(group.FieldPublic, data.Public)
+	m.SetField(group.FieldAddress, data.Address)
+	m.SetField(group.FieldIntro, data.Intro)
+	m.SetField(group.FieldKeys, data.Keys)
 }
 
-func SaveGroupSyncData(b []byte, op Op, precall func(*GroupSync)) (err error) {
+func SaveGroupSyncData(ctx context.Context, b []byte, op Op, precall func(*GroupSync)) (err error) {
 	data := new(GroupSync)
 	err = jsoniter.Unmarshal(b, data)
 	if err != nil {
 		return
 	}
 
-	if data.ID == nil {
+	id := data.ID
+	if id == "" {
 		err = model.ErrSyncIDNotFound
 		return
 	}
 
-	ctx := context.Background()
-	id := *data.ID
-
-	switch true {
-	case op.Is(OpDelete | OpDeleteOne):
+	if op.Is(OpDelete | OpDeleteOne) {
 		err = Database.Group.DeleteOneID(id).Exec(ctx)
-	case op.Is(OpCreate):
+	} else {
 		creator := Database.Group.Create().SetID(id)
 		if precall != nil {
 			precall(data)
 		}
 		creator.Mutation().SetSyncData(data)
-		err = creator.OnConflictColumns("id").UpdateNewValues().Exec(ctx)
-	case op.Is(OpUpdate | OpUpdateOne):
-		updater := Database.Group.UpdateOneID(id)
-		if precall != nil {
-			precall(data)
+		columns := []string{
+			"id",
+			// group.FieldAddress,
 		}
-		updater.mutation.SetSyncData(data)
-		err = updater.Exec(ctx)
+		err = creator.OnConflictColumns(columns...).UpdateNewValues().Exec(ctx)
 	}
 
 	return
 }
 
 type GroupMemberSync struct {
-	ID           *string                `json:"id,omitempty"`
-	CreatedAt    *time.Time             `json:"created_at,omitempty"`
-	MemberID     *string                `json:"member_id,omitempty"`
-	GroupID      *string                `json:"group_id,omitempty"`
-	Permission   *model.GroupMemberPerm `json:"permission,omitempty"`
-	InviterID    *string                `json:"inviter_id,omitempty"`
-	InviteCode   *string                `json:"invite_code,omitempty"`
-	InviteExpire *time.Time             `json:"invite_expire,omitempty"`
-	ReadID       *string                `json:"read_id,omitempty"`
-	ReadTime     *time.Time             `json:"read_time,omitempty"`
-	LastNode     *int64                 `json:"last_node,omitempty"`
+	ID           string                `json:"id,omitempty"`
+	CreatedAt    time.Time             `json:"created_at,omitempty"`
+	MemberID     string                `json:"member_id,omitempty"`
+	GroupID      string                `json:"group_id,omitempty"`
+	Permission   model.GroupMemberPerm `json:"permission,omitempty"`
+	InviterID    *string               `json:"inviter_id,omitempty"`
+	InviteCode   string                `json:"invite_code,omitempty"`
+	InviteExpire time.Time             `json:"invite_expire,omitempty"`
+	ReadID       *string               `json:"read_id,omitempty"`
+	ReadTime     *time.Time            `json:"read_time,omitempty"`
 }
 
-func (m *GroupMemberMutation) SyncData() *GroupMemberSync {
+func (m *GroupMemberMutation) SyncData() (data *GroupMemberSync) {
 	ctx := context.Background()
-	s := new(GroupMemberSync)
-	changed := false
 
-	for _, name := range m.Fields() {
-		if name == "id" {
-			continue
+	id, ok := m.ID()
+	if !ok {
+		log.Error("get GroupMember sync data failed: id missing")
+		return
+	}
+
+	if m.op.Is(OpDelete | OpDeleteOne) {
+		data = &GroupMemberSync{ID: id}
+	} else {
+		result, err := m.Client().GroupMember.Get(ctx, id)
+		if err != nil {
+			log.Errorf("get GroupMember sync data failed: %v", err)
+			return
 		}
-
-		v, _ := m.Field(name)
-		ov, err := m.OldField(ctx, name)
-
-		if err != nil || ov != v {
-			changed = true
-			switch name {
-			case groupmember.FieldCreatedAt:
-				s.CreatedAt = m.created_at
-			case groupmember.FieldMemberID:
-				s.MemberID = m.member
-			case groupmember.FieldGroupID:
-				s.GroupID = m.group
-			case groupmember.FieldPermission:
-				s.Permission = m.permission
-			case groupmember.FieldInviterID:
-				s.InviterID = m.inviter
-			case groupmember.FieldInviteCode:
-				s.InviteCode = m.invite_code
-			case groupmember.FieldInviteExpire:
-				s.InviteExpire = m.invite_expire
-			case groupmember.FieldReadID:
-				s.ReadID = m.read_id
-			case groupmember.FieldReadTime:
-				s.ReadTime = m.read_time
-			case groupmember.FieldLastNode:
-				s.LastNode = m.last_node
-			}
+		data = &GroupMemberSync{
+			ID:           id,
+			CreatedAt:    result.CreatedAt,
+			MemberID:     result.MemberID,
+			GroupID:      result.GroupID,
+			Permission:   result.Permission,
+			InviterID:    result.InviterID,
+			InviteCode:   result.InviteCode,
+			InviteExpire: result.InviteExpire,
+			ReadID:       result.ReadID,
+			ReadTime:     result.ReadTime,
 		}
 	}
 
-	if changed {
-		id, _ := m.ID()
-		s.ID = tea.String(id)
-		return s
-	}
-	return nil
+	return data
 }
 
 func (m *GroupMemberMutation) SetSyncData(data *GroupMemberSync) {
-	if data.CreatedAt != nil {
-		m.SetField(groupmember.FieldCreatedAt, *data.CreatedAt)
-	}
-	if data.MemberID != nil {
-		m.SetField(groupmember.FieldMemberID, *data.MemberID)
-	}
-	if data.GroupID != nil {
-		m.SetField(groupmember.FieldGroupID, *data.GroupID)
-	}
-	if data.Permission != nil {
-		m.SetField(groupmember.FieldPermission, *data.Permission)
-	}
-	if data.InviterID != nil {
-		m.SetField(groupmember.FieldInviterID, *data.InviterID)
-	}
-	if data.InviteCode != nil {
-		m.SetField(groupmember.FieldInviteCode, *data.InviteCode)
-	}
-	if data.InviteExpire != nil {
-		m.SetField(groupmember.FieldInviteExpire, *data.InviteExpire)
-	}
-	if data.ReadID != nil {
-		m.SetField(groupmember.FieldReadID, *data.ReadID)
-	}
-	if data.ReadTime != nil {
-		m.SetField(groupmember.FieldReadTime, *data.ReadTime)
-	}
-	if data.LastNode != nil {
-		m.SetField(groupmember.FieldLastNode, *data.LastNode)
-	}
+	m.SetField(groupmember.FieldCreatedAt, data.CreatedAt)
+	m.SetField(groupmember.FieldMemberID, data.MemberID)
+	m.SetField(groupmember.FieldGroupID, data.GroupID)
+	m.SetField(groupmember.FieldPermission, data.Permission)
+	m.SetField(groupmember.FieldInviterID, data.InviterID)
+	m.SetField(groupmember.FieldInviteCode, data.InviteCode)
+	m.SetField(groupmember.FieldInviteExpire, data.InviteExpire)
+	m.SetField(groupmember.FieldReadID, data.ReadID)
+	m.SetField(groupmember.FieldReadTime, data.ReadTime)
 }
 
-func SaveGroupMemberSyncData(b []byte, op Op, precall func(*GroupMemberSync)) (err error) {
+func SaveGroupMemberSyncData(ctx context.Context, b []byte, op Op, precall func(*GroupMemberSync)) (err error) {
 	data := new(GroupMemberSync)
 	err = jsoniter.Unmarshal(b, data)
 	if err != nil {
 		return
 	}
 
-	if data.ID == nil {
+	id := data.ID
+	if id == "" {
 		err = model.ErrSyncIDNotFound
 		return
 	}
 
-	ctx := context.Background()
-	id := *data.ID
-
-	switch true {
-	case op.Is(OpDelete | OpDeleteOne):
+	if op.Is(OpDelete | OpDeleteOne) {
 		err = Database.GroupMember.DeleteOneID(id).Exec(ctx)
-	case op.Is(OpCreate):
+	} else {
 		creator := Database.GroupMember.Create().SetID(id)
 		if precall != nil {
 			precall(data)
 		}
 		creator.Mutation().SetSyncData(data)
-		err = creator.OnConflictColumns("id").UpdateNewValues().Exec(ctx)
-	case op.Is(OpUpdate | OpUpdateOne):
-		updater := Database.GroupMember.UpdateOneID(id)
-		if precall != nil {
-			precall(data)
+		columns := []string{
+			"id",
+			// groupmember.FieldInviteCode,
 		}
-		updater.mutation.SetSyncData(data)
-		err = updater.Exec(ctx)
+		err = creator.OnConflictColumns(columns...).UpdateNewValues().Exec(ctx)
 	}
 
 	return
 }
 
 type KeySync struct {
-	ID        *string    `json:"id,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	MemberID  *string    `json:"member_id,omitempty"`
-	GroupID   *string    `json:"group_id,omitempty"`
-	Keys      *string    `json:"keys,omitempty"`
-	LastNode  *int64     `json:"last_node,omitempty"`
+	ID        string    `json:"id,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	MemberID  string    `json:"member_id,omitempty"`
+	GroupID   string    `json:"group_id,omitempty"`
+	Keys      string    `json:"keys,omitempty"`
 }
 
-func (m *KeyMutation) SyncData() *KeySync {
+func (m *KeyMutation) SyncData() (data *KeySync) {
 	ctx := context.Background()
-	s := new(KeySync)
-	changed := false
 
-	for _, name := range m.Fields() {
-		if name == "id" {
-			continue
+	id, ok := m.ID()
+	if !ok {
+		log.Error("get Key sync data failed: id missing")
+		return
+	}
+
+	if m.op.Is(OpDelete | OpDeleteOne) {
+		data = &KeySync{ID: id}
+	} else {
+		result, err := m.Client().Key.Get(ctx, id)
+		if err != nil {
+			log.Errorf("get Key sync data failed: %v", err)
+			return
 		}
-
-		v, _ := m.Field(name)
-		ov, err := m.OldField(ctx, name)
-
-		if err != nil || ov != v {
-			changed = true
-			switch name {
-			case key.FieldCreatedAt:
-				s.CreatedAt = m.created_at
-			case key.FieldMemberID:
-				s.MemberID = m.member
-			case key.FieldGroupID:
-				s.GroupID = m.group
-			case key.FieldKeys:
-				s.Keys = m.keys
-			case key.FieldLastNode:
-				s.LastNode = m.last_node
-			}
+		data = &KeySync{
+			ID:        id,
+			CreatedAt: result.CreatedAt,
+			MemberID:  result.MemberID,
+			GroupID:   result.GroupID,
+			Keys:      result.Keys,
 		}
 	}
 
-	if changed {
-		id, _ := m.ID()
-		s.ID = tea.String(id)
-		return s
-	}
-	return nil
+	return data
 }
 
 func (m *KeyMutation) SetSyncData(data *KeySync) {
-	if data.CreatedAt != nil {
-		m.SetField(key.FieldCreatedAt, *data.CreatedAt)
-	}
-	if data.MemberID != nil {
-		m.SetField(key.FieldMemberID, *data.MemberID)
-	}
-	if data.GroupID != nil {
-		m.SetField(key.FieldGroupID, *data.GroupID)
-	}
-	if data.Keys != nil {
-		m.SetField(key.FieldKeys, *data.Keys)
-	}
-	if data.LastNode != nil {
-		m.SetField(key.FieldLastNode, *data.LastNode)
-	}
+	m.SetField(key.FieldCreatedAt, data.CreatedAt)
+	m.SetField(key.FieldMemberID, data.MemberID)
+	m.SetField(key.FieldGroupID, data.GroupID)
+	m.SetField(key.FieldKeys, data.Keys)
 }
 
-func SaveKeySyncData(b []byte, op Op, precall func(*KeySync)) (err error) {
+func SaveKeySyncData(ctx context.Context, b []byte, op Op, precall func(*KeySync)) (err error) {
 	data := new(KeySync)
 	err = jsoniter.Unmarshal(b, data)
 	if err != nil {
 		return
 	}
 
-	if data.ID == nil {
+	id := data.ID
+	if id == "" {
 		err = model.ErrSyncIDNotFound
 		return
 	}
 
-	ctx := context.Background()
-	id := *data.ID
-
-	switch true {
-	case op.Is(OpDelete | OpDeleteOne):
+	if op.Is(OpDelete | OpDeleteOne) {
 		err = Database.Key.DeleteOneID(id).Exec(ctx)
-	case op.Is(OpCreate):
+	} else {
 		creator := Database.Key.Create().SetID(id)
 		if precall != nil {
 			precall(data)
 		}
 		creator.Mutation().SetSyncData(data)
-		err = creator.OnConflictColumns("id").UpdateNewValues().Exec(ctx)
-	case op.Is(OpUpdate | OpUpdateOne):
-		updater := Database.Key.UpdateOneID(id)
-		if precall != nil {
-			precall(data)
+		columns := []string{
+			"id",
 		}
-		updater.mutation.SetSyncData(data)
-		err = updater.Exec(ctx)
+		err = creator.OnConflictColumns(columns...).UpdateNewValues().Exec(ctx)
 	}
 
 	return
 }
 
 type MemberSync struct {
-	ID           *string    `json:"id,omitempty"`
-	CreatedAt    *time.Time `json:"created_at,omitempty"`
-	Address      *string    `json:"address,omitempty"`
-	Nickname     *string    `json:"nickname,omitempty"`
-	Avatar       *string    `json:"avatar,omitempty"`
-	Intro        *string    `json:"intro,omitempty"`
-	PublicKey    *string    `json:"public_key,omitempty"`
-	Nonce        *string    `json:"nonce,omitempty"`
-	ShowNickname *bool      `json:"show_nickname,omitempty"`
-	LastNode     *int64     `json:"last_node,omitempty"`
+	ID           string    `json:"id,omitempty"`
+	CreatedAt    time.Time `json:"created_at,omitempty"`
+	Address      string    `json:"address,omitempty"`
+	Nickname     string    `json:"nickname,omitempty"`
+	Avatar       string    `json:"avatar,omitempty"`
+	Intro        string    `json:"intro,omitempty"`
+	PublicKey    string    `json:"public_key,omitempty"`
+	Nonce        string    `json:"nonce,omitempty"`
+	ShowNickname bool      `json:"show_nickname,omitempty"`
 }
 
-func (m *MemberMutation) SyncData() *MemberSync {
+func (m *MemberMutation) SyncData() (data *MemberSync) {
 	ctx := context.Background()
-	s := new(MemberSync)
-	changed := false
 
-	for _, name := range m.Fields() {
-		if name == "id" {
-			continue
+	id, ok := m.ID()
+	if !ok {
+		log.Error("get Member sync data failed: id missing")
+		return
+	}
+
+	if m.op.Is(OpDelete | OpDeleteOne) {
+		data = &MemberSync{ID: id}
+	} else {
+		result, err := m.Client().Member.Get(ctx, id)
+		if err != nil {
+			log.Errorf("get Member sync data failed: %v", err)
+			return
 		}
-
-		v, _ := m.Field(name)
-		ov, err := m.OldField(ctx, name)
-
-		if err != nil || ov != v {
-			changed = true
-			switch name {
-			case member.FieldCreatedAt:
-				s.CreatedAt = m.created_at
-			case member.FieldAddress:
-				s.Address = m.address
-			case member.FieldNickname:
-				s.Nickname = m.nickname
-			case member.FieldAvatar:
-				s.Avatar = m.avatar
-			case member.FieldIntro:
-				s.Intro = m.intro
-			case member.FieldPublicKey:
-				s.PublicKey = m.public_key
-			case member.FieldNonce:
-				s.Nonce = m.nonce
-			case member.FieldShowNickname:
-				s.ShowNickname = m.show_nickname
-			case member.FieldLastNode:
-				s.LastNode = m.last_node
-			}
+		data = &MemberSync{
+			ID:           id,
+			CreatedAt:    result.CreatedAt,
+			Address:      result.Address,
+			Nickname:     result.Nickname,
+			Avatar:       result.Avatar,
+			Intro:        result.Intro,
+			PublicKey:    result.PublicKey,
+			Nonce:        result.Nonce,
+			ShowNickname: result.ShowNickname,
 		}
 	}
 
-	if changed {
-		id, _ := m.ID()
-		s.ID = tea.String(id)
-		return s
-	}
-	return nil
+	return data
 }
 
 func (m *MemberMutation) SetSyncData(data *MemberSync) {
-	if data.CreatedAt != nil {
-		m.SetField(member.FieldCreatedAt, *data.CreatedAt)
-	}
-	if data.Address != nil {
-		m.SetField(member.FieldAddress, *data.Address)
-	}
-	if data.Nickname != nil {
-		m.SetField(member.FieldNickname, *data.Nickname)
-	}
-	if data.Avatar != nil {
-		m.SetField(member.FieldAvatar, *data.Avatar)
-	}
-	if data.Intro != nil {
-		m.SetField(member.FieldIntro, *data.Intro)
-	}
-	if data.PublicKey != nil {
-		m.SetField(member.FieldPublicKey, *data.PublicKey)
-	}
-	if data.Nonce != nil {
-		m.SetField(member.FieldNonce, *data.Nonce)
-	}
-	if data.ShowNickname != nil {
-		m.SetField(member.FieldShowNickname, *data.ShowNickname)
-	}
-	if data.LastNode != nil {
-		m.SetField(member.FieldLastNode, *data.LastNode)
-	}
+	m.SetField(member.FieldCreatedAt, data.CreatedAt)
+	m.SetField(member.FieldAddress, data.Address)
+	m.SetField(member.FieldNickname, data.Nickname)
+	m.SetField(member.FieldAvatar, data.Avatar)
+	m.SetField(member.FieldIntro, data.Intro)
+	m.SetField(member.FieldPublicKey, data.PublicKey)
+	m.SetField(member.FieldNonce, data.Nonce)
+	m.SetField(member.FieldShowNickname, data.ShowNickname)
 }
 
-func SaveMemberSyncData(b []byte, op Op, precall func(*MemberSync)) (err error) {
+func SaveMemberSyncData(ctx context.Context, b []byte, op Op, precall func(*MemberSync)) (err error) {
 	data := new(MemberSync)
 	err = jsoniter.Unmarshal(b, data)
 	if err != nil {
 		return
 	}
 
-	if data.ID == nil {
+	id := data.ID
+	if id == "" {
 		err = model.ErrSyncIDNotFound
 		return
 	}
 
-	ctx := context.Background()
-	id := *data.ID
-
-	switch true {
-	case op.Is(OpDelete | OpDeleteOne):
+	if op.Is(OpDelete | OpDeleteOne) {
 		err = Database.Member.DeleteOneID(id).Exec(ctx)
-	case op.Is(OpCreate):
+	} else {
 		creator := Database.Member.Create().SetID(id)
 		if precall != nil {
 			precall(data)
 		}
 		creator.Mutation().SetSyncData(data)
-		err = creator.OnConflictColumns("id").UpdateNewValues().Exec(ctx)
-	case op.Is(OpUpdate | OpUpdateOne):
-		updater := Database.Member.UpdateOneID(id)
-		if precall != nil {
-			precall(data)
+		columns := []string{
+			"id",
+			// member.FieldAddress,
 		}
-		updater.mutation.SetSyncData(data)
-		err = updater.Exec(ctx)
+		err = creator.OnConflictColumns(columns...).UpdateNewValues().Exec(ctx)
 	}
 
 	return
 }
 
 type MessageSync struct {
-	ID        *string        `json:"id,omitempty"`
-	CreatedAt *time.Time     `json:"created_at,omitempty"`
-	GroupID   *string        `json:"group_id,omitempty"`
-	MemberID  *string        `json:"member_id,omitempty"`
-	Content   *[]byte        `json:"content,omitempty"`
-	ParentID  *string        `json:"parent_id,omitempty"`
-	Owner     **model.Member `json:"owner,omitempty"`
-	LastNode  *int64         `json:"last_node,omitempty"`
+	ID        string        `json:"id,omitempty"`
+	CreatedAt time.Time     `json:"created_at,omitempty"`
+	GroupID   string        `json:"group_id,omitempty"`
+	MemberID  string        `json:"member_id,omitempty"`
+	Content   []byte        `json:"content,omitempty"`
+	ParentID  *string       `json:"parent_id,omitempty"`
+	Owner     *model.Member `json:"owner,omitempty"`
 }
 
-func (m *MessageMutation) SyncData() *MessageSync {
+func (m *MessageMutation) SyncData() (data *MessageSync) {
 	ctx := context.Background()
-	s := new(MessageSync)
-	changed := false
 
-	for _, name := range m.Fields() {
-		if name == "id" {
-			continue
+	id, ok := m.ID()
+	if !ok {
+		log.Error("get Message sync data failed: id missing")
+		return
+	}
+
+	if m.op.Is(OpDelete | OpDeleteOne) {
+		data = &MessageSync{ID: id}
+	} else {
+		result, err := m.Client().Message.Get(ctx, id)
+		if err != nil {
+			log.Errorf("get Message sync data failed: %v", err)
+			return
 		}
-
-		v, _ := m.Field(name)
-		ov, err := m.OldField(ctx, name)
-
-		if err != nil || ov != v {
-			changed = true
-			switch name {
-			case message.FieldCreatedAt:
-				s.CreatedAt = m.created_at
-			case message.FieldGroupID:
-				s.GroupID = m.group
-			case message.FieldMemberID:
-				s.MemberID = m.member
-			case message.FieldContent:
-				s.Content = m.content
-			case message.FieldParentID:
-				s.ParentID = m.parent
-			case message.FieldOwner:
-				s.Owner = m.owner
-			case message.FieldLastNode:
-				s.LastNode = m.last_node
-			}
+		data = &MessageSync{
+			ID:        id,
+			CreatedAt: result.CreatedAt,
+			GroupID:   result.GroupID,
+			MemberID:  result.MemberID,
+			Content:   result.Content,
+			ParentID:  result.ParentID,
+			Owner:     result.Owner,
 		}
 	}
 
-	if changed {
-		id, _ := m.ID()
-		s.ID = tea.String(id)
-		return s
-	}
-	return nil
+	return data
 }
 
 func (m *MessageMutation) SetSyncData(data *MessageSync) {
-	if data.CreatedAt != nil {
-		m.SetField(message.FieldCreatedAt, *data.CreatedAt)
-	}
-	if data.GroupID != nil {
-		m.SetField(message.FieldGroupID, *data.GroupID)
-	}
-	if data.MemberID != nil {
-		m.SetField(message.FieldMemberID, *data.MemberID)
-	}
-	if data.Content != nil {
-		m.SetField(message.FieldContent, *data.Content)
-	}
-	if data.ParentID != nil {
-		m.SetField(message.FieldParentID, *data.ParentID)
-	}
-	if data.Owner != nil {
-		m.SetField(message.FieldOwner, *data.Owner)
-	}
-	if data.LastNode != nil {
-		m.SetField(message.FieldLastNode, *data.LastNode)
-	}
+	m.SetField(message.FieldCreatedAt, data.CreatedAt)
+	m.SetField(message.FieldGroupID, data.GroupID)
+	m.SetField(message.FieldMemberID, data.MemberID)
+	m.SetField(message.FieldContent, data.Content)
+	m.SetField(message.FieldParentID, data.ParentID)
+	m.SetField(message.FieldOwner, data.Owner)
 }
 
-func SaveMessageSyncData(b []byte, op Op, precall func(*MessageSync)) (err error) {
+func SaveMessageSyncData(ctx context.Context, b []byte, op Op, precall func(*MessageSync)) (err error) {
 	data := new(MessageSync)
 	err = jsoniter.Unmarshal(b, data)
 	if err != nil {
 		return
 	}
 
-	if data.ID == nil {
+	id := data.ID
+	if id == "" {
 		err = model.ErrSyncIDNotFound
 		return
 	}
 
-	ctx := context.Background()
-	id := *data.ID
-
-	switch true {
-	case op.Is(OpDelete | OpDeleteOne):
+	if op.Is(OpDelete | OpDeleteOne) {
 		err = Database.Message.DeleteOneID(id).Exec(ctx)
-	case op.Is(OpCreate):
+	} else {
 		creator := Database.Message.Create().SetID(id)
 		if precall != nil {
 			precall(data)
 		}
 		creator.Mutation().SetSyncData(data)
-		err = creator.OnConflictColumns("id").UpdateNewValues().Exec(ctx)
-	case op.Is(OpUpdate | OpUpdateOne):
-		updater := Database.Message.UpdateOneID(id)
-		if precall != nil {
-			precall(data)
+		columns := []string{
+			"id",
 		}
-		updater.mutation.SetSyncData(data)
-		err = updater.Exec(ctx)
+		err = creator.OnConflictColumns(columns...).UpdateNewValues().Exec(ctx)
 	}
 
 	return

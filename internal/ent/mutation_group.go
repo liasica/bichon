@@ -32,8 +32,6 @@ type GroupMutation struct {
 	address              *string
 	intro                *string
 	keys                 *string
-	last_node            *int64
-	addlast_node         *int64
 	clearedFields        map[string]struct{}
 	owner                *string
 	clearedowner         bool
@@ -568,62 +566,6 @@ func (m *GroupMutation) ResetKeys() {
 	m.keys = nil
 }
 
-// SetLastNode sets the "last_node" field.
-func (m *GroupMutation) SetLastNode(i int64) {
-	m.last_node = &i
-	m.addlast_node = nil
-}
-
-// LastNode returns the value of the "last_node" field in the mutation.
-func (m *GroupMutation) LastNode() (r int64, exists bool) {
-	v := m.last_node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLastNode returns the old "last_node" field's value of the Group entity.
-// If the Group object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldLastNode(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastNode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastNode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastNode: %w", err)
-	}
-	return oldValue.LastNode, nil
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (m *GroupMutation) AddLastNode(i int64) {
-	if m.addlast_node != nil {
-		*m.addlast_node += i
-	} else {
-		m.addlast_node = &i
-	}
-}
-
-// AddedLastNode returns the value that was added to the "last_node" field in this mutation.
-func (m *GroupMutation) AddedLastNode() (r int64, exists bool) {
-	v := m.addlast_node
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetLastNode resets all changes to the "last_node" field.
-func (m *GroupMutation) ResetLastNode() {
-	m.last_node = nil
-	m.addlast_node = nil
-}
-
 // ClearOwner clears the "owner" edge to the Member entity.
 func (m *GroupMutation) ClearOwner() {
 	m.clearedowner = true
@@ -831,7 +773,7 @@ func (m *GroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, group.FieldCreatedAt)
 	}
@@ -862,9 +804,6 @@ func (m *GroupMutation) Fields() []string {
 	if m.keys != nil {
 		fields = append(fields, group.FieldKeys)
 	}
-	if m.last_node != nil {
-		fields = append(fields, group.FieldLastNode)
-	}
 	return fields
 }
 
@@ -893,8 +832,6 @@ func (m *GroupMutation) Field(name string) (ent.Value, bool) {
 		return m.Intro()
 	case group.FieldKeys:
 		return m.Keys()
-	case group.FieldLastNode:
-		return m.LastNode()
 	}
 	return nil, false
 }
@@ -924,8 +861,6 @@ func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldIntro(ctx)
 	case group.FieldKeys:
 		return m.OldKeys(ctx)
-	case group.FieldLastNode:
-		return m.OldLastNode(ctx)
 	}
 	return nil, fmt.Errorf("unknown Group field %s", name)
 }
@@ -1005,13 +940,6 @@ func (m *GroupMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetKeys(v)
 		return nil
-	case group.FieldLastNode:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLastNode(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Group field %s", name)
 }
@@ -1026,9 +954,6 @@ func (m *GroupMutation) AddedFields() []string {
 	if m.addmembers_count != nil {
 		fields = append(fields, group.FieldMembersCount)
 	}
-	if m.addlast_node != nil {
-		fields = append(fields, group.FieldLastNode)
-	}
 	return fields
 }
 
@@ -1041,8 +966,6 @@ func (m *GroupMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedMembersMax()
 	case group.FieldMembersCount:
 		return m.AddedMembersCount()
-	case group.FieldLastNode:
-		return m.AddedLastNode()
 	}
 	return nil, false
 }
@@ -1065,13 +988,6 @@ func (m *GroupMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddMembersCount(v)
-		return nil
-	case group.FieldLastNode:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddLastNode(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Group numeric field %s", name)
@@ -1138,9 +1054,6 @@ func (m *GroupMutation) ResetField(name string) error {
 		return nil
 	case group.FieldKeys:
 		m.ResetKeys()
-		return nil
-	case group.FieldLastNode:
-		m.ResetLastNode()
 		return nil
 	}
 	return fmt.Errorf("unknown Group field %s", name)

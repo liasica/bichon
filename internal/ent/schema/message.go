@@ -61,7 +61,6 @@ func (Message) Fields() []ent.Field {
         field.Bytes("content"),
         field.String("parent_id").Optional().Nillable(),
         field.JSON("owner", &model.Member{}).Comment("message's owner"),
-        field.Int64("last_node"),
     }
 }
 

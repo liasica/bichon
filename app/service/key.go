@@ -6,7 +6,6 @@ import (
     "github.com/chatpuppy/puppychat/app/model"
     "github.com/chatpuppy/puppychat/internal/ent"
     "github.com/chatpuppy/puppychat/internal/ent/key"
-    "github.com/chatpuppy/puppychat/pkg/tea"
     jsoniter "github.com/json-iterator/go"
     "github.com/liasica/go-encryption/ecdh"
 )
@@ -82,11 +81,11 @@ func (s *keyService) QueryRawKeys(id, memberID, groupID string) (keys *model.Gro
     return
 }
 
-func (s *keyService) SaveSyncData(b []byte, op ent.Op) (err error) {
-    return ent.SaveKeySyncData(b, op, func(data *ent.KeySync) {
-        if data.Keys != nil {
+func (s *keyService) SaveSyncData(ctx context.Context, b []byte, op ent.Op) (err error) {
+    return ent.SaveKeySyncData(ctx, b, op, func(data *ent.KeySync) {
+        if data.Keys != "" {
             keys := new(model.GroupMemberKeys)
-            err = jsoniter.Unmarshal([]byte(*data.Keys), keys)
+            err = jsoniter.Unmarshal([]byte(data.Keys), keys)
             if err != nil {
                 return
             }
@@ -95,7 +94,7 @@ func (s *keyService) SaveSyncData(b []byte, op ent.Op) (err error) {
             if err != nil {
                 return
             }
-            data.Keys = tea.String(hex)
+            data.Keys = hex
         }
     })
 }

@@ -137,19 +137,6 @@ func (mu *MemberUpdate) SetNillableShowNickname(b *bool) *MemberUpdate {
 	return mu
 }
 
-// SetLastNode sets the "last_node" field.
-func (mu *MemberUpdate) SetLastNode(i int64) *MemberUpdate {
-	mu.mutation.ResetLastNode()
-	mu.mutation.SetLastNode(i)
-	return mu
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (mu *MemberUpdate) AddLastNode(i int64) *MemberUpdate {
-	mu.mutation.AddLastNode(i)
-	return mu
-}
-
 // AddOwnGroupIDs adds the "own_groups" edge to the Group entity by IDs.
 func (mu *MemberUpdate) AddOwnGroupIDs(ids ...string) *MemberUpdate {
 	mu.mutation.AddOwnGroupIDs(ids...)
@@ -448,20 +435,6 @@ func (mu *MemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: member.FieldShowNickname,
-		})
-	}
-	if value, ok := mu.mutation.LastNode(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: member.FieldLastNode,
-		})
-	}
-	if value, ok := mu.mutation.AddedLastNode(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: member.FieldLastNode,
 		})
 	}
 	if mu.mutation.OwnGroupsCleared() {
@@ -819,19 +792,6 @@ func (muo *MemberUpdateOne) SetNillableShowNickname(b *bool) *MemberUpdateOne {
 	return muo
 }
 
-// SetLastNode sets the "last_node" field.
-func (muo *MemberUpdateOne) SetLastNode(i int64) *MemberUpdateOne {
-	muo.mutation.ResetLastNode()
-	muo.mutation.SetLastNode(i)
-	return muo
-}
-
-// AddLastNode adds i to the "last_node" field.
-func (muo *MemberUpdateOne) AddLastNode(i int64) *MemberUpdateOne {
-	muo.mutation.AddLastNode(i)
-	return muo
-}
-
 // AddOwnGroupIDs adds the "own_groups" edge to the Group entity by IDs.
 func (muo *MemberUpdateOne) AddOwnGroupIDs(ids ...string) *MemberUpdateOne {
 	muo.mutation.AddOwnGroupIDs(ids...)
@@ -1160,20 +1120,6 @@ func (muo *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err err
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: member.FieldShowNickname,
-		})
-	}
-	if value, ok := muo.mutation.LastNode(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: member.FieldLastNode,
-		})
-	}
-	if value, ok := muo.mutation.AddedLastNode(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: member.FieldLastNode,
 		})
 	}
 	if muo.mutation.OwnGroupsCleared() {

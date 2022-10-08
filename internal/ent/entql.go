@@ -40,7 +40,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 			group.FieldAddress:      {Type: field.TypeString, Column: group.FieldAddress},
 			group.FieldIntro:        {Type: field.TypeString, Column: group.FieldIntro},
 			group.FieldKeys:         {Type: field.TypeString, Column: group.FieldKeys},
-			group.FieldLastNode:     {Type: field.TypeInt64, Column: group.FieldLastNode},
 		},
 	}
 	graph.Nodes[1] = &sqlgraph.Node{
@@ -63,7 +62,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 			groupmember.FieldInviteExpire: {Type: field.TypeTime, Column: groupmember.FieldInviteExpire},
 			groupmember.FieldReadID:       {Type: field.TypeString, Column: groupmember.FieldReadID},
 			groupmember.FieldReadTime:     {Type: field.TypeTime, Column: groupmember.FieldReadTime},
-			groupmember.FieldLastNode:     {Type: field.TypeInt64, Column: groupmember.FieldLastNode},
 		},
 	}
 	graph.Nodes[2] = &sqlgraph.Node{
@@ -81,7 +79,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 			key.FieldMemberID:  {Type: field.TypeString, Column: key.FieldMemberID},
 			key.FieldGroupID:   {Type: field.TypeString, Column: key.FieldGroupID},
 			key.FieldKeys:      {Type: field.TypeString, Column: key.FieldKeys},
-			key.FieldLastNode:  {Type: field.TypeInt64, Column: key.FieldLastNode},
 		},
 	}
 	graph.Nodes[3] = &sqlgraph.Node{
@@ -103,7 +100,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 			member.FieldPublicKey:    {Type: field.TypeString, Column: member.FieldPublicKey},
 			member.FieldNonce:        {Type: field.TypeString, Column: member.FieldNonce},
 			member.FieldShowNickname: {Type: field.TypeBool, Column: member.FieldShowNickname},
-			member.FieldLastNode:     {Type: field.TypeInt64, Column: member.FieldLastNode},
 		},
 	}
 	graph.Nodes[4] = &sqlgraph.Node{
@@ -123,7 +119,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 			message.FieldContent:   {Type: field.TypeBytes, Column: message.FieldContent},
 			message.FieldParentID:  {Type: field.TypeString, Column: message.FieldParentID},
 			message.FieldOwner:     {Type: field.TypeJSON, Column: message.FieldOwner},
-			message.FieldLastNode:  {Type: field.TypeInt64, Column: message.FieldLastNode},
 		},
 	}
 	graph.MustAddE(
@@ -429,11 +424,6 @@ func (f *GroupFilter) WhereKeys(p entql.StringP) {
 	f.Where(p.Field(group.FieldKeys))
 }
 
-// WhereLastNode applies the entql int64 predicate on the last_node field.
-func (f *GroupFilter) WhereLastNode(p entql.Int64P) {
-	f.Where(p.Field(group.FieldLastNode))
-}
-
 // WhereHasOwner applies a predicate to check if query has an edge owner.
 func (f *GroupFilter) WhereHasOwner() {
 	f.Where(entql.HasEdge("owner"))
@@ -575,11 +565,6 @@ func (f *GroupMemberFilter) WhereReadTime(p entql.TimeP) {
 	f.Where(p.Field(groupmember.FieldReadTime))
 }
 
-// WhereLastNode applies the entql int64 predicate on the last_node field.
-func (f *GroupMemberFilter) WhereLastNode(p entql.Int64P) {
-	f.Where(p.Field(groupmember.FieldLastNode))
-}
-
 // WhereHasMember applies a predicate to check if query has an edge member.
 func (f *GroupMemberFilter) WhereHasMember() {
 	f.Where(entql.HasEdge("member"))
@@ -680,11 +665,6 @@ func (f *KeyFilter) WhereGroupID(p entql.StringP) {
 // WhereKeys applies the entql string predicate on the keys field.
 func (f *KeyFilter) WhereKeys(p entql.StringP) {
 	f.Where(p.Field(key.FieldKeys))
-}
-
-// WhereLastNode applies the entql int64 predicate on the last_node field.
-func (f *KeyFilter) WhereLastNode(p entql.Int64P) {
-	f.Where(p.Field(key.FieldLastNode))
 }
 
 // WhereHasMember applies a predicate to check if query has an edge member.
@@ -793,11 +773,6 @@ func (f *MemberFilter) WhereNonce(p entql.StringP) {
 // WhereShowNickname applies the entql bool predicate on the show_nickname field.
 func (f *MemberFilter) WhereShowNickname(p entql.BoolP) {
 	f.Where(p.Field(member.FieldShowNickname))
-}
-
-// WhereLastNode applies the entql int64 predicate on the last_node field.
-func (f *MemberFilter) WhereLastNode(p entql.Int64P) {
-	f.Where(p.Field(member.FieldLastNode))
 }
 
 // WhereHasOwnGroups applies a predicate to check if query has an edge own_groups.
@@ -924,11 +899,6 @@ func (f *MessageFilter) WhereParentID(p entql.StringP) {
 // WhereOwner applies the entql json.RawMessage predicate on the owner field.
 func (f *MessageFilter) WhereOwner(p entql.BytesP) {
 	f.Where(p.Field(message.FieldOwner))
-}
-
-// WhereLastNode applies the entql int64 predicate on the last_node field.
-func (f *MessageFilter) WhereLastNode(p entql.Int64P) {
-	f.Where(p.Field(message.FieldLastNode))
 }
 
 // WhereHasMember applies a predicate to check if query has an edge member.

@@ -68,7 +68,6 @@ func (GroupMember) Fields() []ent.Field {
         field.Time("invite_expire").Comment("invite code expire time"),
         field.String("read_id").Optional().Nillable().Comment("last read message id"),
         field.Time("read_time").Optional().Nillable().Comment("last read message time"),
-        field.Int64("last_node"),
     }
 }
 
