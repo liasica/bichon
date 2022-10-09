@@ -41,7 +41,7 @@ func IDHook() ent.Hook {
             }
             _, ok = is.ID()
             if !ok {
-                id := g.SnowflakeNode().Generate()
+                id := g.Snowflaker().Generate()
                 is.SetID(fmt.Sprintf("%d", id))
             }
             return next.Mutate(ctx, m)

@@ -6,7 +6,6 @@ import (
     "github.com/bwmarrin/snowflake"
     jsoniter "github.com/json-iterator/go"
     rsaTools "github.com/liasica/go-encryption/rsa"
-    log "github.com/sirupsen/logrus"
 )
 
 type Node struct {
@@ -17,12 +16,18 @@ type Node struct {
 
     RsaPublicKey  *rsa.PublicKey  `json:"-"`
     RsaPrivateKey *rsa.PrivateKey `json:"-"`
+
+    snowflaker *snowflake.Node
 }
 
 var node *Node
 
-func IinitializeNode(str string) error {
+func IinitializeNode(str string) (err error) {
     node = new(Node)
+    node.snowflaker, err = snowflake.NewNode(node.NodeID)
+    if err != nil {
+        return
+    }
     return node.Unmarshal(str)
 }
 
@@ -80,10 +85,6 @@ func ApiUrl() string {
     return node.ApiUrl
 }
 
-func SnowflakeNode() *snowflake.Node {
-    n, err := snowflake.NewNode(node.NodeID)
-    if err != nil {
-        log.Fatal(err)
-    }
-    return n
+func Snowflaker() *snowflake.Node {
+    return node.snowflaker
 }
