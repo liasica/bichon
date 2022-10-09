@@ -1,7 +1,6 @@
 package distribution
 
 import (
-    "bufio"
     "context"
     "crypto"
     "crypto/rand"
@@ -38,7 +37,10 @@ func (c *client) syncedIndex() (index uint64) {
 // store synced index
 func (c *client) storeSyncedIndex(index uint64) {
     // meaning next sync index is + 1
-    cache.Set(context.Background(), syncedIndexKey, index+1, redis.KeepTTL)
+    err := cache.Set(context.Background(), syncedIndexKey, index+1, redis.KeepTTL).Err()
+    if err != nil {
+        log.Errorf("[D] %s save failed: %v", syncedIndexKey, err)
+    }
 }
 
 func CreateClient() {
@@ -75,6 +77,7 @@ func (c *client) run() {
 // send message to dribution node
 func (c *client) sendRequest(msg *model.SyncRequest) (err error) {
     msg.NodeID = g.NodeID()
+    msg.ApiUrl = g.ApiUrl()
     msg.Nonce = []byte(fmt.Sprintf("%d", time.Now().UnixNano()))
 
     hasher := sha256.New()
@@ -87,14 +90,14 @@ func (c *client) sendRequest(msg *model.SyncRequest) (err error) {
         return
     }
 
-    _, err = c.Write(msg.Marshal())
+    _, err = c.Write(pack(msg.Marshal()))
     return
 }
 
 func (c *client) startSync() {
     index := c.syncedIndex()
 
-    msg := &model.SyncRequest{SyncedStart: tea.UInt64(index), ApiUrl: tea.String(g.ApiUrl())}
+    msg := &model.SyncRequest{SyncedStart: tea.UInt64(index)}
 
     err := c.sendRequest(msg)
     if err != nil {
@@ -103,14 +106,11 @@ func (c *client) startSync() {
 }
 
 func (c *client) readBump() {
-    reader := bufio.NewReader(c)
-
     for {
-        b, _, err := reader.ReadLine()
+        b, err := c.decode()
         if err != nil {
-            log.Fatalf("[D] client read failed: %v", err)
+            continue
         }
-
         c.readResponse(b)
     }
 }

@@ -92,6 +92,12 @@ func (c *Client) writePump() {
 }
 
 func (c *Client) writeChatMessage(message *Message) {
+    defer func() {
+        if v := recover(); v != nil {
+            log.Errorf("[WS] client write failed: %v", v)
+        }
+    }()
+
     w, err := c.conn.NextWriter(websocket.BinaryMessage)
     if err != nil {
         log.Errorf("[WS] message write failed: %v", err)

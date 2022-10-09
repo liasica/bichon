@@ -14,6 +14,7 @@ import (
     jsoniter "github.com/json-iterator/go"
     rsaTools "github.com/liasica/go-encryption/rsa"
     "github.com/panjf2000/gnet/v2"
+    "github.com/panjf2000/gnet/v2/pkg/logging"
     log "github.com/sirupsen/logrus"
     "math"
     "os"
@@ -42,14 +43,6 @@ type hub struct {
     clients sync.Map
 }
 
-func (h *hub) saveSyncedData(data *model.SyncData) {
-
-    ctx := context.Background()
-    data.Index, _ = cache.LLen(ctx, distributionKey).Uint64()
-
-    cache.RPush(ctx, distributionKey, data)
-}
-
 func (h *hub) dataNotSynced(start uint64) (items []*model.SyncData) {
     ctx := context.Background()
     stop, _ := cache.LLen(ctx, distributionKey).Uint64()
@@ -68,27 +61,39 @@ func (h *hub) dataNotSynced(start uint64) (items []*model.SyncData) {
     return
 }
 
-func (h *hub) OnBoot(eng gnet.Engine) gnet.Action {
+func (h *hub) OnBoot(_ gnet.Engine) gnet.Action {
     log.Infof("distribution node server started at %s", h.addr)
     return gnet.None
 }
 
 func (h *hub) OnTraffic(c gnet.Conn) (action gnet.Action) {
-    action = gnet.None
+    // action = gnet.None
+    //
+    // buf, err := c.Next(-1)
+    // if err != nil {
+    //     return
+    // }
+    //
+    // b := buf[:len(buf)-1]
+    //
+    // go h.readRequest(c, b)
 
-    buf, err := c.Next(-1)
-    if err != nil {
-        return
+    for {
+        b, err := h.decode(c)
+        if err == errIncompletePacket {
+            break
+        }
+        if err != nil {
+            logging.Errorf("[D] invalid packet: %v", err)
+            return gnet.Close
+        }
+        go h.readRequest(c, b)
     }
-
-    b := buf[:len(buf)-1]
-
-    go h.readRequest(c, b)
 
     return gnet.None
 }
 
-func (h *hub) OnOpen(c gnet.Conn) (out []byte, action gnet.Action) {
+func (h *hub) OnOpen(_ gnet.Conn) (out []byte, action gnet.Action) {
     return
 }
 
@@ -99,7 +104,7 @@ func (h *hub) OnClose(c gnet.Conn, err error) (action gnet.Action) {
 }
 
 func (h *hub) Close(c gnet.Conn, err error) {
-    _, _ = c.Write(model.SyncResError(err))
+    _, _ = c.Write(pack(model.SyncResError(err)))
 
     _ = c.Close()
 
@@ -174,7 +179,9 @@ func (h *hub) broadcast() {
         // broadcast sync data
         case data := <-model.DistributionBroadcastChan:
             // saving data
-            h.saveSyncedData(data)
+            ctx := context.Background()
+            data.Index, _ = cache.LLen(ctx, distributionKey).Uint64()
+            cache.RPush(ctx, distributionKey, data)
 
             // broadcast data
             h.clients.Range(func(key, value any) bool {
@@ -198,7 +205,7 @@ func (h *hub) sendSyncResToNode(data *model.SyncData, node *Node, c gnet.Conn, c
         }
     }
     res := &model.SyncResponse{Data: data, Current: current, Progress: progress}
-    _, err = c.Write(res.Marshal())
+    _, err = c.Write(pack(res.Marshal()))
     if err != nil {
         log.Errorf("[D] send sync data to node (nodeid = %d) failed: %v", node.NodeID, err)
     }
@@ -207,7 +214,7 @@ func (h *hub) sendSyncResToNode(data *model.SyncData, node *Node, c gnet.Conn, c
 
 func (h *hub) readRequest(c gnet.Conn, b []byte) {
     // TODO DELETE DEBUG LOG
-    fmt.Printf("[%d] received request: %s", c.Fd(), string(b))
+    log.Infof("[%d] received request: %s", c.Fd(), string(b))
     // getting data
     var req model.SyncRequest
     err := jsoniter.Unmarshal(b, &req)
@@ -238,12 +245,9 @@ func (h *hub) readRequest(c gnet.Conn, b []byte) {
         return
     }
 
-    // register message
     // store connection
-    if req.Data == nil {
-        node.ApiUrl = *req.ApiUrl
-        h.clients.Store(node, c)
-    }
+    node.ApiUrl = req.ApiUrl
+    h.clients.Store(node, c)
 
     // sync start request
     if req.SyncedStart != nil {

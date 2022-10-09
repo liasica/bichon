@@ -1,21 +1,17 @@
 package model
 
 import (
-    "bytes"
     "github.com/chatpuppy/puppychat/pkg/tea"
     jsoniter "github.com/json-iterator/go"
 )
 
-const (
-    SyncStatusPending uint8 = iota // not synced
-)
-
 func SyncMarshal(data any) []byte {
-    var buffer bytes.Buffer
+    // var buffer bytes.Buffer
     b, _ := jsoniter.Marshal(data)
-    buffer.Write(b)
-    buffer.WriteRune('\n')
-    return buffer.Bytes()
+    // buffer.Write(b)
+    // buffer.WriteRune('\n')
+    // return buffer.Bytes()
+    return b
 }
 
 type SyncRequest struct {
@@ -23,8 +19,8 @@ type SyncRequest struct {
     Signature   []byte    `json:"signature"`
     Nonce       []byte    `json:"nonce"`
     Data        *SyncData `json:"data,omitempty"`
+    ApiUrl      string    `json:"apiUrl,omitempty"`
     SyncedStart *uint64   `json:"syncedStart,omitempty"`
-    ApiUrl      *string   `json:"apiUrl,omitempty"`
 }
 
 func (r *SyncRequest) Marshal() []byte {

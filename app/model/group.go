@@ -16,6 +16,8 @@ const (
     GroupCreateFrequency = 60
     // GroupKeyShareFrequency group key share interval seconds
     GroupKeyShareFrequency = 60
+    // GroupKeyShareFrequencyMaxCount limit the number of keys generated within a time period
+    GroupKeyShareFrequencyMaxCount = 30
     // GroupInviteCodeExpires group invite expiration days
     GroupInviteCodeExpires = 7 // 7 days
 )
