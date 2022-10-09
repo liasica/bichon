@@ -78,7 +78,7 @@ func (s *groupService) Create(mem *ent.Member, req *model.GroupCreateReq) (res *
 
     // check group max members count
     if req.MaxMembers > model.GroupMaxMembers {
-        err = model.ErrMaximunMembers
+        err = model.ErrMaximunGroupMemberCount
     }
     // check if the number of created groups exceeds the maximum number
     cnt, _ := s.orm.Query().Where(group.OwnerID(mem.ID)).Count(s.ctx)
@@ -239,11 +239,11 @@ func (s *groupService) ShareKey(mem *ent.Member, req *model.GroupShareKeyReq) (r
     }
 
     // check group create frequency limit
-    if exist, _ := ent.Database.Key.Query().Where(
+    if cnt, _ := ent.Database.Key.Query().Where(
         key.MemberID(mem.ID),
         key.GroupID(req.GroupID),
         key.CreatedAtGT(time.Now().Add(-time.Duration(model.GroupKeyShareFrequency)*time.Second)),
-    ).Exist(s.ctx); exist {
+    ).Count(s.ctx); cnt >= model.GroupKeyShareFrequencyMaxCount {
         err = model.ErrKeyShareFrequency
         return
     }
@@ -473,6 +473,11 @@ func (s *groupService) Join(mem *ent.Member, req *model.GroupJoinReq) (res *mode
 
     if gro == nil {
         err = model.ErrNotFoundGroup
+        return
+    }
+
+    if gro.MembersMax <= gro.MembersCount {
+        err = model.ErrGroupFull
         return
     }
 
