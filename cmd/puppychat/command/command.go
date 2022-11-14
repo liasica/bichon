@@ -7,7 +7,6 @@ import (
 
 func command() *cobra.Command {
     cmd := &cobra.Command{
-        Use: "chatpuppy",
         CompletionOptions: cobra.CompletionOptions{
             DisableDefaultCmd:   true,
             DisableNoDescFlag:   true,
