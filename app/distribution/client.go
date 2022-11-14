@@ -116,8 +116,6 @@ func (c *client) readBump() {
 }
 
 func (c *client) readResponse(b []byte) {
-    // TODO DELETE DEBUG LOG
-    log.Infof("readResponse: %s", string(b))
     var res model.SyncResponse
     err := jsoniter.Unmarshal(b, &res)
     if err != nil {
