@@ -2,7 +2,7 @@
 
 > Encrypt chat is a multi-node, p2p encrypted and secure chat tool.
 
-
+![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
 
 ### Commands
 
