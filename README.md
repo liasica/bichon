@@ -1,4 +1,4 @@
-# Encrypt Chat
+# Bichon Chat
 
 > Encrypt chat is a multi-node, p2p encrypted and secure chat tool.
 
